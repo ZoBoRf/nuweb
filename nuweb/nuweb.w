@@ -2159,6 +2159,20 @@ pointed out any during the first pass.
   Name *name = collect_scrap_name();
   fputs("&lt;\\end{rawhtml}", file);
   fputs(name->spelling, file);
+  if (scrap_name_has_parameters) {
+     fputs("{\\tt ",file);
+     do {
+       do {
+          c = source_get();
+	  if (c != nw_char)
+ 	     fputc(c,file);
+       } while ( c != nw_char );
+       c = source_get();
+       if (c != '>')
+ 	     fputc(c,file);
+     } while ( c != '>' );
+     fputs("}",file);
+  }
   fputs("\\begin{rawhtml} ", file);
   if (name->defs)
     @<Write HTML abbreviated definition list@>
