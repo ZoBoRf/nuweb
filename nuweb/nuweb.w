@@ -76,7 +76,7 @@
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 0.93c \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 0.94 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.} 
@@ -352,6 +352,8 @@ in the web file.
   nested, though there is currently a limit of 10~levels. The file name
   should be complete (no extension will be appended) and should be
   terminated by a carriage return.
+\item[{\tt @@r}$x$] Changes the escape character '@@' to '$x$' for the
+		remainder of the file.
 \end{description}
 Finally, there are three commands used to create indices to the macro
 names, file definitions, and user-specified identifiers.
@@ -1388,6 +1390,18 @@ int scrap_type = 0;
 
 void update_delimit_scrap()
 {
+  static int been_here_before = 0;
+
+
+  if (!been_here_before) {
+     int i,j;
+     /* make sure strings are writable first */
+     for(i = 0; i < 3; i++) {
+        for(j = 0; j < 5; j++) {
+	   delimit_scrap[i][j] = strdup(delimit_scrap[i][j]);
+	}
+     }
+  }
   /* {}-mode begin */
   delimit_scrap[0][0][5] = nw_char;
   /* {}-mode end */
@@ -2518,7 +2532,7 @@ hence this whole unsatisfactory \verb|double_at| business.
       case '%': case '_':
       case 'r':
 		source_peek = c;
-        c = nw_char;        
+        	c = nw_char;        
 		break;
       default:  
             if (c==nw_char)
@@ -2527,9 +2541,9 @@ hence this whole unsatisfactory \verb|double_at| business.
 		double_at = TRUE;
 		break;
               }
-            fprintf(stderr, "%s: bad @@ sequence %d (%s, line %d)\n",
-            command_name, c, source_name, source_line);
-		exit(-1);
+             fprintf(stderr, "%s: bad @@ sequence %c[%d] (%s, line %d)\n",
+                     command_name, c, c, source_name, source_line);
+	     exit(-1);
     }
 }@}
 
@@ -2607,6 +2621,7 @@ file. If unsuccessful, it complains and halts. Otherwise, it sets
     fprintf(stderr, "%s: couldn't open %s\n", command_name, name);
     exit(-1);
   }
+  nw_char = '@@';
   source_name = name;
   source_line = 1;
   source_peek = getc(source_file);
