@@ -26,11 +26,11 @@ DIST = Makefile README *.bib *.sty nuweb.w nuwebsty.w \
 	nuweb $*.hw
 
 .tex.dvi:
-	latex $*.tex
+	latex ./$*.tex
 
 .w.dvi:
-	$(MAKE) $*.tex
-	$(MAKE) $*.dvi
+	nuweb $*.w
+	latex ./$*.tex
 
 all:
 	$(MAKE) $(TARGET).tex
@@ -43,6 +43,13 @@ tar:	$(TARGET)doc.tex
 	tar -cf $(TARGET)$(VERSION).tar $(DIST)
 
 distribution: all shar tar nuwebhtml nuwebdoc 
+
+upload:
+	scp -r nuweb$(VERSION).sh nuweb$(VERSION).tar \
+		nuweb.ps nuwebdoc.ps \
+		nuwebdoc nuwebhtml \
+		nuweb.w \
+		mengel@nuweb.sourceforge.net:nuweb/htdocs
 
 nuwebdoc: nuwebdoc.tex
 	-latex nuwebdoc

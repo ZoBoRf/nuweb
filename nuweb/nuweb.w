@@ -4292,7 +4292,7 @@ back to the first empty chunk.
 
 Here is the UNIX man page for nuweb:
 
-@O nuweb.1 @{.TH NUWEB 1 "local 3/22/95"
+@O nuweb.1 -t @{.TH NUWEB 1 "local 3/22/95"
 .SH NAME
 Nuweb, a literate programming tool
 .SH SYNOPSIS
@@ -4317,23 +4317,30 @@ produces,
 .I LaTeX
 source for typeset documentation.
 .SH COMMAND LINE OPTIONS
-.br
-\fB-t\fP Suppresses generation of the {\tt .tex} file.
-.br
-\fB-o\fP Suppresses generation of the output files.
-.br
-\fB-d\fP list dangling identifier references in indexes.
-.br
-\fB-c\fP Forces output files to overwrite old files of the same
-  name without comparing for equality first.
-.br
-\fB-v\fP The verbose flag. Forces output of progress reports.
-.br
-\fB-n\fP Forces sequential numbering of scraps (instead of page
+.TP
+\fB-t\fP 
+Suppresses generation of the {\tt .tex} file.
+.TP
+\fB-o\fP 
+Suppresses generation of the output files.
+.TP
+\fB-d\fP 
+list dangling identifier references in indexes.
+.TP
+\fB-c\fP 
+Forces output files to overwrite old files of the same
+name without comparing for equality first.
+.TP
+\fB-v\fP 
+The verbose flag. Forces output of progress reports.
+.TP
+\fB-n\fP 
+Forces sequential numbering of scraps (instead of page
   numbers).
-.br
-\fB-s\fP Doesn't print list of scraps making up file at end of
-  each scrap.
+.TP
+\fB-s\fP 
+Doesn't print list of scraps making up file at end of
+each scrap.
 .SH FORMAT OF NUWEB FILES
 A 
 .I nuweb 
@@ -4345,29 +4352,48 @@ command is encountered. All
 .I nuweb
 commands start with an ``at-sign'' (@@). 
 Files and macros are defined with the following commands:
-.PP
-@@o \fIfile-name flags  scrap\fP  where scrap is smaller than one page.
-.br
-@@O \fIfile-name flags  scrap\fP  where scrap is bigger than one page.
-.br
-@@d \fImacro-name scrap\fP. Where scrap is smallar than one page.
-.br
-@@D \fImacro-name scrap\fP. Where scrap is bigger than one page.
+.TP
+@@o \fIfile-name flags  scrap\fP  
+where scrap is smaller than one page.
+.TP
+@@O \fIfile-name flags  scrap\fP  
+where scrap is bigger than one page.
+.TP
+@@d \fImacro-name scrap\fP. 
+Where scrap is smallar than one page.
+.TP
+@@D \fImacro-name scrap\fP. 
+Where scrap is bigger than one page.
 .PP
 Scraps have specific begin and end 
 markers;
 which begin and end marker you use determines how the scrap will be
 typeset in the .tex file:
-.br
-\fB@@{\fP...\fB@@}\fP for verbatim "terminal style" formatting
-.br
-\fB@@[\fP...\fB@@]\fP for LaTeX paragraph mode formatting, and
-.br
-\fB@@(\fP...\fB@@)\fP for LaTeX math mode formmating.
-.br
+.TP
+\fB@@{\fP...\fB@@}\fP 
+for verbatim "terminal style" formatting
+.TP
+\fB@@[\fP...\fB@@]\fP 
+for LaTeX paragraph mode formatting, and
+.TP
+\fB@@(\fP...\fB@@)\fP 
+for LaTeX math mode formmating.
+.PP
 Any amount of whitespace
 (including carriage returns) may appear between a name and the
 begining of a scrap.
+.PP
+Within a scrap the following commands may be used:
+.TP
+\fB@@<\fP\fImacro-name\fP\fB@@>\fP 
+Causes the macro macro-name to be expanded inline as the code is written out to a file. It is an error to specify recursive macro invocations.
+.TP
+\fB@@<\fP\fImacro-name\fP\fB@@(\fP\fI a1 \fP\fB@@,\fP\fI a2 \fP\fB@@)\fP\fB@@>\fP
+Causes the macro macro-name to be expanded inline with the parameters a1, a2, etc. Up to 9 parameters may be given.
+.TP
+\fB@@1\fP,\fB@@2\fP,...,\fB@@9\fP
+In a macro causes the n'th macro parameter to be substituted into the scrap. If the parameter is not passed, a null string is substituted.
+
 .PP
 Several code/file scraps may have the same name;
 .I nuweb
@@ -4383,34 +4409,42 @@ scraps with respect to the scraps in which they appear.
 .SH PER FILE OPTIONS
 When defining an output file, the programmer has the option of using flags
 to control the output.
-.PP
+.TP
 \fB-d\fR option, 
 .I Nuweb
 will emit line number indications at scrap boundaries.
-.br
+.TP
 \fB-i\fR option, 
 .I Nuweb
 supresses the indentation of macros (useful for \fBFortran\fR).
-.br
-\fB-t\fP option makes \fInuweb\fP 
+.TP
+\fB-t\fP option 
+makes \fInuweb\fP 
 copy tabs untouched from input to output.
 .PP
 .SH MINOR COMMANDS
-.br
-@@@@    Causes a single ``at-sign'' to be copied into the output.
-.br
-@@\_    Causes the text between it and the next {\tt @@\_} to be made bold 
-        (for keywords, etc.) in the formatted document
-.br
-@@%     Comments out a line so that it doesn't appear in the output.
-.br
-@@i     \fBfilename\fR causes the file named to be included.
-.br
-@@f     Creates an index of output files.
-.br
-@@m     Creates an index of macros.
-.br
-@@u     Creates an index of user-specified identifiers.
+.TP
+@@@@ 
+Causes a single ``at-sign'' to be copied into the output.
+.TP
+@@\_
+Causes the text between it and the next {\tt @@\_} to be made bold 
+(for keywords, etc.) in the formatted document
+.TP
+@@% 
+Comments out a line so that it doesn't appear in the output.
+.TP
+@@i \fBfilename\fR 
+causes the file named to be included.
+.TP
+@@f
+Creates an index of output files.
+.TP
+@@m
+Creates an index of macros.
+.TP
+@@u
+Creates an index of user-specified identifiers.
 .PP
 To mark an identifier for inclusion in the index, it must be mentioned
 at the end of the scrap it was defined in. The line starts
