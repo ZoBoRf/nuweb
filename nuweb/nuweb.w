@@ -1,4 +1,6 @@
-\documentstyle{report}
+\documentclass{report}
+\usepackage{latexsym}
+
 \newif\ifshowcode
 \showcodetrue
 
@@ -11,13 +13,15 @@
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 0.87b \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 0.90 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
-through ONR grant N00014-91-J-1989.} 
+through ONR grant N00014-91-J-1989.}
 \\ \sl preston@@cs.rice.edu
 \\ HTML scrap generator by John D. Ramsdell
-\\ \sl ramsdell@@mitre.org}
+\\ \sl ramsdell@@mitre.org
+\\ scrap formatting by Marc W. Mengel
+\\ \sl mengel@@fnal.gov}
 
 \begin{document}
 \pagenumbering{roman}
@@ -49,10 +53,10 @@ understanding and maintenance.
 
 Running \verb|weave| on the web file would produce a \TeX\ file, ready
 to be processed by \TeX\@@. The resulting document included a variety of
-automatically generated indices and cross-references that made it much
+automatically generated indexes and cross-references that made it much
 easier to navigate the code. Additionally, all of the code sections
 were automatically pretty printed, resulting in a quite impressive
-document. 
+document.
 
 Knuth also wrote the programs for \TeX\ and {\small\sf METAFONT}
 entirely in \verb|WEB|, eventually publishing them in book
@@ -71,7 +75,7 @@ documentation, I decided to write my own, very simple, tool for
 literate programming.%
 \footnote{There is another system similar to
 mine, written by Norman Ramsey, called {\em noweb}~\cite{noweb}. It
-perhaps suffers from being overly Unix-dependent and requiring several
+perhaps suffers from being overly UNIX-dependent and requiring several
 programs to use. On the other hand, its command syntax is very nice.
 In any case, nuweb certainly owes its name and a number of features to
 his inspiration.}
@@ -92,13 +96,15 @@ programming languages has many consequences:
   pretty print the code sections of their documents because they
   understand the language well enough to parse it. Since we want to use
   {\em any\/} language, we've got to abandon this feature.
+  However, we do allow particular individual formulas or fragments
+  of \LaTeX\ code to be formatted and still be parts of output files.
 \item[No index of identifiers] Because \verb|WEB| knows about Pascal,
   it is able to construct an index of all the identifiers occurring in
   the code sections (filtering out keywords and the standard type
   identifiers). Unfortunately, this isn't as easy in our case. We don't
   know what an identifiers looks like in each language and we certainly
   don't know all the keywords. (On the other hand, see the end of
-  Section~1.3)
+  Section~\ref{minorcommands})
 \end{description}
 Of course, we've got to have some compensation for our losses or the
 whole idea would be a waste. Here are the advantages I can see:
@@ -116,6 +122,8 @@ whole idea would be a waste. Here are the advantages I can see:
   is to provide ways to control the formatting. Our approach is
   simpler---we perform no automatic formatting and therefore allow the
   programmer complete control of code layout.
+  We do allow individual scraps to be presented in either verbatim,
+  math, or paragraph mode in the \TeX\ output.
 \item[Control] We also offer the programmer complete control of the
   layout of his output files (the files generated during tangling). Of
   course, this is essential for languages that are sensitive to layout;
@@ -137,7 +145,7 @@ whole idea would be a waste. Here are the advantages I can see:
 This last point is very important. By allowing the creation of
 multiple output files, we avoid the need for monolithic programs.
 Thus we support the creation of very large programs by groups of
-people. 
+people.
 
 A further reduction in compilation time is achieved by first
 writing each output file to a temporary location, then comparing the
@@ -191,11 +199,20 @@ the beginning of a scrap.
 \begin{description}
 \item[\tt @@\{{\em anything\/}@@\}] where the scrap body includes every
   character in {\em anything\/}---all the blanks, all the tabs, all the
-  carriage returns.
+  carriage returns.  This scrap will be typeset in verbatim mode.
+\item[\tt @@[{\em anything\/}@@]] where the scrap body includes every
+  character in {\em anything\/}---all the blanks, all the tabs, all the
+  carriage returns.  This scrap will be typeset in paragraph mode, allowing
+  sections of \TeX\ documents to be scraps, but still  be pretty printed
+  in the document.
+\item[\tt @@({\em anything\/}@@)] where the scrap body includes every
+  character in {\em anything\/}---all the blanks, all the tabs, all the
+  carriage returns.  This scrap will be typeset in math mode.  This allows
+  this scrap to have a formula which will be typeset nicely.
 \end{description}
 Inside a scrap, we may invoke a macro.
 \begin{description}
-\item[\tt @@<{\em macro-name\/}@@>] Causes the macro 
+\item[\tt @@<{\em macro-name\/}@@>] Causes the macro
   {\em macro-name\/} to be expanded inline as the code is written out
   to a file. It is an error to specify recursive macro invocations.
 \end{description}
@@ -210,7 +227,7 @@ abbreviated names.
 \begin{quote}
 \verb|@@d Check for terminating...|
 \end{quote}
-Basically, the programmer need only type enough characters to uniquely
+Basically, the programmer needs only type enough characters to uniquely
 identify the macro name, followed by three periods. An abbreviation
 may even occur before the full version; nuweb simply preserves the
 longest version of a macro name. Note also that blanks and tabs are
@@ -221,7 +238,7 @@ When scraps are written to a program file or a documentation file, tabs are
 expanded into spaces by default. Currently, I assume tab stops are set
 every eight characters. Furthermore, when a macro is expanded in a scrap,
 the body of the macro is indented to match the indentation of the
-macro invocation. Therefore, care must be taken with languages 
+macro invocation. Therefore, care must be taken with languages
 ({\em e.g.,} Fortran) that are sensitive to indentation.
 These default behaviors may be changed for each output file (see
 below).
@@ -237,7 +254,7 @@ single document. There are three ``per-file'' flags:
 \begin{description}
 \item[\tt -d] Forces the creation of \verb|#line| directives in the
   output file. These are useful with C (and sometimes C++ and Fortran) on
-  many Unix systems since they cause the compiler's error messages to
+  many UNIX systems since they cause the compiler's error messages to
   refer to the web file rather than the output file. Similarly, they
   allow source debugging in terms of the web file.
 \item[\tt -i] Suppresses the indentation of macros. That is, when a
@@ -249,7 +266,7 @@ single document. There are three ``per-file'' flags:
 \end{description}
 
 
-\subsection{The Minor Commands}
+\subsection{The Minor Commands\label{minorcommands}}
 
 We have two very low-level utility commands that may appear anywhere
 in the web file.
@@ -260,15 +277,16 @@ in the web file.
   should be complete (no extension will be appended) and should be
   terminated by a carriage return.
 \end{description}
-Finally, there are three commands used to create indices to the macro
+Finally, there are three commands used to create indexes to the macro
 names, file definitions, and user-specified identifiers.
 \begin{description}
 \item[\tt @@f] Create an index of file names.
-\item[\tt @@m] Create an index of macro name.
+\item[\tt @@m] Create an index of macro names.
 \item[\tt @@u] Create an index of user-specified identifiers.
 \end{description}
 I usually put these in their own section
-in the \LaTeX\ document; for example, see Chapter~\ref{indices}.
+in the \LaTeX\ document; for example, see
+Chapter~\ifshowcode\ref{indexes}\else6\fi.
 
 Identifiers must be explicitly specified for inclusion in the
 \verb|@@u| index. By convention, each identifier is marked at the
@@ -347,14 +365,14 @@ Nikos Drakos' {\LaTeX}2HTML Version 0.5.3~\cite{drakos:94} can be used
 to translate {\LaTeX} with embedded HTML scraps into HTML\@@.  Be sure
 to include the document-style option \verb|html| so that {\LaTeX} will
 understand the hypertext commands.  When translating into HTML, do not
-allow a document to be split by specifying ``\verb|-split 0|''.  
+allow a document to be split by specifying ``\verb|-split 0|''.
 You need not generate navigation links, so also specify
 ``\verb|-no_navigation|''.
 
 While preparing a web, you may want to view the program's scraps without
 taking the time to run {\LaTeX}2HTML\@@.  Simply rename the generated
 {\LaTeX} source so that its file name ends with \verb|.html|, and view
-that file.  The documentations section will be jumbled, but the
+that file.  The documentation sections will be jumbled, but the
 scraps will be clear.
 
 \section{Restrictions}
@@ -375,7 +393,7 @@ fundamental.
   It makes sense to change fonts or use math mode; however, care should
   be taken to ensure matching braces, brackets, and dollar signs.
   When producing HTML, macros are displayed in a preformatted element
-  (PRE), so macros may contain one or more A, B, I, U, or P elements
+  (PRE), so macros may contain one or more A, B, I, U or P elements
   or data characters.
 \item Anything is allowed in the body of a scrap; however, very
   long scraps (horizontally or vertically) may not typeset well.
@@ -406,7 +424,7 @@ skills. In particular, I'd like to acknowledge the contributions of
 Osman Buyukisik, Manuel Carriba, Adrian Clarke, Tim Harvey, Michael
 Lewis, Walter Ravenek, Rob Shillingsburg, Kayvan Sylvan, Dominique
 de~Waleffe, and Scott Warren.  Of course, most of these people would
-never have heard or nuweb (or many other tools) without the efforts of
+never have heard of nuweb (or many other tools) without the efforts of
 George Greenwade.
 
 
@@ -421,7 +439,7 @@ and lists of cross-references.
 protection and cross-reference information for all the scraps.
 \item Traverse the list of files names. For each file name:
 \begin{enumerate}
-\item Dump all the defining scraps into a temporary file. 
+\item Dump all the defining scraps into a temporary file.
 \item If the file already exists and is unchanged, delete the
 temporary file; otherwise, rename the temporary file.
 \end{enumerate}
@@ -432,27 +450,27 @@ temporary file; otherwise, rename the temporary file.
 
 I have divided the program into several files for quicker
 recompilation during development.
-@o global.h
+@o global.h -i
 @{@<Include files@>
 @<Type declarations@>
 @<Global variable declarations@>
 @<Function prototypes@>
 @}
 
-We'll need at least three of the standard system include files.
+We'll need at least four of the standard system include files.
 @d Include files
 @{#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 @| FILE stderr exit fprintf fputs fopen fclose getc putc strlen
-toupper isupper islower isgraph isspace tempnam remove malloc size_t @}
+toupper isupper islower isgraph isspace remove malloc size_t @}
 
 \newpage
 \noindent
 I also like to use \verb|TRUE| and \verb|FALSE| in my code.
 I'd use an \verb|enum| here, except that some systems seem to provide
-definitions of \verb|TRUE| and \verb|FALSE| be default.  The following
+definitions of \verb|TRUE| and \verb|FALSE| by default.  The following
 code seems to work on all the local systems.
 @d Type dec...
 @{#ifndef FALSE
@@ -466,7 +484,7 @@ code seems to work on all the local systems.
 
 \subsection{The Main Files}
 
-The code is divided into four main files (introduced here) and five
+The code is divided into five main files (introduced here) and five
 support files (introduced in the next section).
 The file \verb|main.c| will contain the driver for the whole program
 (see Section~\ref{main-routine}).
@@ -475,7 +493,7 @@ The file \verb|main.c| will contain the driver for the whole program
 @}
 
 The first pass over the source file is contained in \verb|pass1.c|.
-It handles collection of all the file names, macros names, and scraps
+It handles collection of all the file names, macro names, and scraps
 (see Section~\ref{pass-one}).
 @o pass1.c
 @{#include "global.h"
@@ -483,7 +501,7 @@ It handles collection of all the file names, macros names, and scraps
 
 The \verb|.tex| file is created during a second pass over the source
 file. The file \verb|latex.c| contains the code controlling the
-construction of the \verb|.tex| file 
+construction of the \verb|.tex| file
 (see Section~\ref{latex-file}).
 @o latex.c
 @{#include "global.h"
@@ -534,8 +552,17 @@ Memory allocation and deallocation is handled by routines in \verb|arena.c|
 
 Finally, for best portability, I seem to need a file containing
 (useless!) definitions of all the global variables.
-@o global.c
-@{#include "global.h"
+
+System dependent parts can be introduced here as well, e.g., on the Amiga
+we introduce the capability of multilinguality in both the terminal output
+and the \LaTeX\ output.  To activate the necessary variables and arrays,
+the value \verb|STRINGARRAY| must be set.
+
+@o global.c -i
+@{#ifdef _AMIGA
+#define STRINGARRAY 1
+#endif
+#include "global.h"
 @<Global variable definitions@>
 @}
 
@@ -544,19 +571,34 @@ Finally, for best portability, I seem to need a file containing
 The main routine is quite simple in structure.
 It wades through the optional command-line arguments,
 then handles any files listed on the command line.
-@o main.c
-@{int main(argc, argv)
-     int argc;
-     char **argv;
+@o main.c -i
+@{
+@<Operating System Dependencies@>
+void main(int argc, char **argv)
 {
   int arg = 1;
+#ifdef _AMIGA
+  @<Use catalog translations@>
+#endif
   @<Interpret command-line arguments@>
   @<Process the remaining arguments (file names)@>
-  exit(0);
+  exit(EXIT_SUCCESS);
 }
-@| main @}
+@| main EXIT_SUCCESS @}
 
-
+We only have one major operating system dependency, the separators for
+file names.
+@d Operating System Dependencies @{
+#if defined(VMS)
+#define PATH_SEP(c) (c==']'||c==':')
+#elif defined(MSDOS)
+#define PATH_SEP(c) (c=='\\')
+#elif defined(_AMIGA)
+#define PATH_SEP(c) (c=='/'||c==':')
+#else
+#define PATH_SEP(c) (c=='/')
+#endif
+@}
 \subsection{Command-Line Arguments}
 
 There are five possible command-line arguments:
@@ -638,10 +680,15 @@ we've got to loop through the string, handling them all.
 		break;
       case 'v': verbose_flag = TRUE;
 		break;
+#ifdef _AMIGA
+      default:  fprintf(stderr, get_string(MSG_WARNING_11B), command_name);
+		fprintf(stderr, get_string(MSG_USAGE_11B), command_name);
+#else
       default:  fprintf(stderr, "%s: unexpected argument ignored.  ",
 			command_name);
 		fprintf(stderr, "Usage is: %s [-cnotv] file...\n",
 			command_name);
+#endif
 		break;
     }
     c = *s++;
@@ -656,15 +703,21 @@ the usage convention.
 @d Process the remaining...
 @{{
   if (arg >= argc) {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_11C), command_name);
+    fprintf(stderr, get_string(MSG_USAGE_11B), command_name);
+#else
     fprintf(stderr, "%s: expected a file name.  ", command_name);
     fprintf(stderr, "Usage is: %s [-cnotv] file-name...\n", command_name);
-    exit(-1);
+#endif
+    exit(EXIT_FAILURE);
   }
   do {
     @<Handle the file name in \verb|argv[arg]|@>
     arg++;
   } while (arg < argc);
-}@}
+}
+@| EXIT_FAILURE @}
 
 \newpage
 \noindent
@@ -687,7 +740,7 @@ in the variable \verb|tex_name|.
 
 I bump the pointer \verb|p| through all the characters in \verb|argv[arg]|,
 copying all the characters into \verb|source_name| (via the pointer
-\verb|q|). 
+\verb|q|).
 
 At each slash, I update \verb|trim| to point just past the
 slash in \verb|source_name|. The effect is that \verb|trim| will point
@@ -707,7 +760,7 @@ this scrap.
   char c = *p++;
   while (c) {
     *q++ = c;
-    if (c == '/') {
+    if (PATH_SEP(c)) {
       trim = q;
       dot = NULL;
     }
@@ -746,7 +799,7 @@ is forced when generating HTML.
   pass1(source_name);
   if (tex_flag) {
     if (html_flag) {
-      int saved_number_flag = number_flag; 
+      int saved_number_flag = number_flag;
       number_flag = TRUE;
       collect_numbers(aux_name);
       write_html(source_name, tex_name);
@@ -767,28 +820,31 @@ is forced when generating HTML.
 \section{Pass One} \label{pass-one}
 
 During the first pass, we scan the file, recording the definitions of
-each macro and file and accumulating all the scraps. 
+each macro and file and accumulating all the scraps.
 
 @d Function pro...
-@{extern void pass1();
+@{extern void pass1(char *);
 @}
 
 
 The routine \verb|pass1| takes a single argument, the name of the
 source file. It opens the file, then initializes the scrap structures
 (see Section~\ref{scraps}) and the roots of the file-name tree, the
-macro-name tree, and the tree of user-specified index entries (see 
+macro-name tree, and the tree of user-specified index entries (see
 Section~\ref{names}). After completing all the
 necessary preparation, we make a pass over the file, filling in all
 our data structures. Next, we seach all the scraps for references to
 the user-specified index entries. Finally, we must reverse all the
 cross-reference lists accumulated while scanning the scraps.
-@o pass1.c
-@{void pass1(file_name)
-     char *file_name;
+@o pass1.c -i
+@{void pass1(char *file_name)
 {
   if (verbose_flag)
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_VERBOSE_14B), file_name);
+#else
     fprintf(stderr, "reading %s\n", file_name);
+#endif
   source_open(file_name);
   init_scraps();
   macro_names = NULL;
@@ -832,9 +888,14 @@ discovered.
     case 'm':
     case 'f': /* ignore during this pass */
 	      break;
+#ifdef _AMIGA
+    default:  fprintf(stderr, get_string(MSG_WARNING_15A),
+		      command_name, source_name, source_line);
+#else
     default:  fprintf(stderr,
 		      "%s: unexpected @@ sequence ignored (%s, line %d)\n",
 		      command_name, source_name, source_line);
+#endif
 	      break;
   }
 }@}
@@ -891,7 +952,7 @@ The code for \verb|reverse_lists| appears in Section~\ref{names}.
 
 
 
-\section{Writing the Latex File} \label{latex-file}
+\section{Writing the LaTeX File} \label{latex-file}
 
 The second pass (invoked via a call to \verb|write_tex|) copies most of
 the text from the source file straight into a \verb|.tex| file.
@@ -899,43 +960,52 @@ Definitions are formatted slightly and cross-reference information is
 printed out.
 
 Note that all the formatting is handled in this section.
-If you don't like the format of definitions or indices or whatever,
+If you don't like the format of definitions or indexes or whatever,
 it'll be in this section somewhere. Similarly, if someone wanted to
 modify nuweb to work with a different typesetting system, this would
 be the place to look.
 
 @d Function...
-@{extern void write_tex();
+@{extern void write_tex(char *, char *);
 @}
 
 We need a few local function declarations before we get into the body
 of \verb|write_tex|.
 
-@o latex.c
-@{static void copy_scrap();		/* formats the body of a scrap */
-static void print_scrap_numbers();	/* formats a list of scrap numbers */
-static void format_entry();		/* formats an index entry */
-static void format_user_entry();
+@o latex.c -i
+@{static void copy_scrap(FILE *);
+  /* formats the body of a scrap */
+static void print_scrap_numbers(FILE *, Scrap_Node *);
+  /* formats a list of scrap numbers */
+static void format_entry(Name *, FILE *, int);
+  /* formats an index entry */
+static void format_user_entry(Name *, FILE *);
 @}
 
 
 The routine \verb|write_tex| takes two file names as parameters: the
 name of the web source file and the name of the \verb|.tex| output file.
-@o latex.c
-@{void write_tex(file_name, tex_name)
-     char *file_name;
-     char *tex_name;
+@o latex.c -i
+@{void write_tex(char *file_name, char *tex_name)
 {
   FILE *tex_file = fopen(tex_name, "w");
   if (tex_file) {
     if (verbose_flag)
+#ifdef _AMIGA
+      fprintf(stderr, get_string(MSG_VERBOSE_17A), tex_name);
+#else
       fprintf(stderr, "writing %s\n", tex_name);
+#endif
     source_open(file_name);
     @<Copy \verb|source_file| into \verb|tex_file|@>
     fclose(tex_file);
   }
   else
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_WARNING_17A), command_name, tex_name);
+#else
     fprintf(stderr, "%s: can't open %s\n", command_name, tex_name);
+#endif
 }
 @| write_tex @}
 
@@ -993,7 +1063,7 @@ the scrap references):
 \begin{verbatim}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth} \label{scrap37}
-$\langle$Interpret at-sequence {\footnotesize 18}$\rangle\equiv$
+${}\langle{}$Interpret at-sequence {\footnotesize 18}${}\rangle{}\equiv{}$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@{@@\\
@@ -1001,7 +1071,8 @@ $\langle$Interpret at-sequence {\footnotesize 18}$\rangle\equiv$
 \mbox{}\verb@@  c = source_get();@@\\
 \mbox{}\verb@@  switch (c) {@@\\
 \mbox{}\verb@@    case 'O': big_definition = TRUE;@@\\
-\mbox{}\verb@@    case 'o': @@$\langle$Write output file definition {\footnotesize 19a}$\rangle$\verb@@@@\\
+\mbox{}\verb@@    case 'o': @@${}\langle{}$Write output file
+  definition {\footnotesize 19a}${}\rangle{}$\verb@@@@\\
 \end{verbatim}
 \vdots
 \begin{verbatim}
@@ -1036,7 +1107,7 @@ I've factored the common parts out into separate scraps.
   @<Begin the scrap environment@>
   fprintf(tex_file, "\\verb@@\"%s\"@@ {\\footnotesize ", name->spelling);
   write_single_scrap_ref(tex_file, scraps++);
-  fputs(" }$\\equiv$\n", tex_file);
+  fputs(" }${}\\equiv{}$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
   @<Write file defs@>
   @<Finish the scrap environment@>
@@ -1050,9 +1121,9 @@ might want to use italics or bold face in the midst of the name.
 @{{
   Name *name = collect_macro_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "$\\langle$%s {\\footnotesize ", name->spelling);
+  fprintf(tex_file, "${}\\langle{}$%s {\\footnotesize ", name->spelling);
   write_single_scrap_ref(tex_file, scraps++);
-  fputs("}$\\rangle\\equiv$\n", tex_file);
+  fputs("}${}\\rangle{}\\equiv{}$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
   @<Write macro defs@>
   @<Write macro refs@>
@@ -1109,7 +1180,11 @@ a scrap will not be indented. Again, this is a matter of personal taste.
     fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
     fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
+#ifdef _AMIGA
+    fputs(get_string(MSG_LATEX_20B), tex_file);
+#else
     fputs("\\item File defined by scraps ", tex_file);
+#endif
     print_scrap_numbers(tex_file, name->defs);
     fputs("\\end{list}\n", tex_file);
   }
@@ -1124,7 +1199,11 @@ a scrap will not be indented. Again, this is a matter of personal taste.
   fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
   fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
   if (name->defs->next) {
+#ifdef _AMIGA
+    fputs(get_string(MSG_LATEX_20C), tex_file);
+#else
     fputs("\\item Macro defined by scraps ", tex_file);
+#endif
     print_scrap_numbers(tex_file, name->defs);
   }
 }@}
@@ -1133,28 +1212,39 @@ a scrap will not be indented. Again, this is a matter of personal taste.
 @{{
   if (name->uses) {
     if (name->uses->next) {
+#ifdef _AMIGA
+      fputs(get_string(MSG_LATEX_21A1), tex_file);
+#else
       fputs("\\item Macro referenced in scraps ", tex_file);
+#endif
       print_scrap_numbers(tex_file, name->uses);
     }
     else {
+#ifdef _AMIGA
+      fputs(get_string(MSG_LATEX_21A2), tex_file);
+#else
       fputs("\\item Macro referenced in scrap ", tex_file);
+#endif
       write_single_scrap_ref(tex_file, name->uses->scrap);
       fputs(".\n", tex_file);
     }
   }
   else {
+#ifdef _AMIGA
+    fputs(get_string(MSG_LATEX_21A3), tex_file);
+    fprintf(stderr, get_string(MSG_WARNING_21A),
+#else
     fputs("\\item Macro never referenced.\n", tex_file);
     fprintf(stderr, "%s: <%s> never referenced.\n",
+#endif
 	    command_name, name->spelling);
   }
   fputs("\\end{list}\n", tex_file);
 }@}
 
 
-@o latex.c
-@{static void print_scrap_numbers(tex_file, scraps)
-     FILE *tex_file;
-     Scrap_Node *scraps;
+@o latex.c -i
+@{static void print_scrap_numbers(FILE *tex_file, Scrap_Node *scraps)
 {
   int page;
   write_scrap_ref(tex_file, scraps->scrap, TRUE, &page);
@@ -1172,19 +1262,37 @@ a scrap will not be indented. Again, this is a matter of personal taste.
 
 We add a \verb|\mbox{}| at the beginning of each line to avoid
 problems with older versions of \TeX.
+This is the only place we really care whether a scrap is
+delimited with \verb|@@{...@@}|, \verb|@@[...@@]|, or \verb|@@(...@@)|,
+and we base our output sequences on that.
 
 @o latex.c
-@{static void copy_scrap(file)
-     FILE *file;
+@{static char *delimit_scrap[3][5] = {
+  { "\\verb@@", "@@", "@@{\\tt @@}\\verb@@", "\\mbox{}", "\\\\" },
+  { "", "", "@@", "", "" },
+  { "$", "$", "@@", "", "" },
+};
+int scrap_type = 0;
+
+static void copy_scrap(FILE *file)
 {
   int indent = 0;
-  int c = source_get();
-  fputs("\\mbox{}\\verb@@", file);
+  int c;
+  if (source_last == '{') scrap_type = 0;
+  if (source_last == '[') scrap_type = 1;
+  if (source_last == '(') scrap_type = 2;
+  c = source_get();
+  fputs(delimit_scrap[scrap_type][3], file);
+  fputs(delimit_scrap[scrap_type][0], file);
   while (1) {
     switch (c) {
       case '@@':  @<Check at-sequence for end-of-scrap@>
 		 break;
-      case '\n': fputs("@@\\\\\n\\mbox{}\\verb@@", file);
+      case '\n': fputs(delimit_scrap[scrap_type][1], file);
+                 fputs(delimit_scrap[scrap_type][4], file);
+                 fputs("\n", file);
+                 fputs(delimit_scrap[scrap_type][3], file);
+                 fputs(delimit_scrap[scrap_type][0], file);
 		 indent = 0;
 		 break;
       case '\t': @<Expand tab into spaces@>
@@ -1196,7 +1304,7 @@ problems with older versions of \TeX.
     c = source_get();
   }
 }
-@| copy_scrap @}
+@| copy_scrap delimit_scrap scrap_type @}
 
 
 @d Expand tab into spaces
@@ -1213,10 +1321,12 @@ problems with older versions of \TeX.
 @{{
   c = source_get();
   switch (c) {
-    case '@@': fputs("@@{\\tt @@}\\verb@@", file);
+    case '@@': fputs(delimit_scrap[scrap_type][2], file);
 	      break;
     case '|': @<Skip over index entries@>
-    case '}': putc('@@', file);
+    case ')':
+    case ']':
+    case '}': fputs(delimit_scrap[scrap_type][1], file);
 	      return;
     case '<': @<Format macro name@>
 	      break;
@@ -1234,22 +1344,28 @@ pointed out any during the first pass.
       c = source_get();
     while (c != '@@');
     c = source_get();
-  } while (c != '}');
+  } while (c != '}' && c != ']' && c != ')' );
 }@}
 
 
 @d Format macro name
 @{{
   Name *name = collect_scrap_name();
-  fprintf(file, "@@$\\langle$%s {\\footnotesize ", name->spelling);
+  fputs(delimit_scrap[scrap_type][1],file);
+  fprintf(file, "\\hbox{${}\\langle{}$%s {\\footnotesize ", name->spelling);
   if (name->defs)
     @<Write abbreviated definition list@>
   else {
     putc('?', file);
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_WARNING_23B),
+#else
     fprintf(stderr, "%s: scrap never defined <%s>\n",
+#endif
 	    command_name, name->spelling);
   }
-  fputs("}$\\rangle$\\verb@@", file);
+  fputs("}${}\\rangle{}$}", file);
+  fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
 
@@ -1263,7 +1379,7 @@ pointed out any during the first pass.
 }@}
 
 
-\subsection{Generating the Indices}
+\subsection{Generating the Indexes}
 
 @d Write index of file names
 @{{
@@ -1291,11 +1407,8 @@ pointed out any during the first pass.
 }@}
 
 
-@o latex.c
-@{static void format_entry(name, tex_file, file_flag)
-     Name *name;
-     FILE *tex_file;
-     int file_flag;
+@o latex.c -i
+@{static void format_entry(Name *name, FILE *tex_file, int file_flag)
 {
   while (name) {
     format_entry(name->llink, tex_file, file_flag);
@@ -1314,9 +1427,9 @@ pointed out any during the first pass.
     @<Write file's defining scrap numbers@>
   }
   else {
-    fprintf(tex_file, "$\\langle$%s {\\footnotesize ", name->spelling);
+    fprintf(tex_file, "${}\\langle{}$%s {\\footnotesize ", name->spelling);
     @<Write defining scrap numbers@>
-    fputs("}$\\rangle$ ", tex_file);
+    fputs("}${}\\rangle{}$ ", tex_file);
     @<Write referencing scrap numbers@>
   }
   putc('\n', tex_file);
@@ -1326,6 +1439,14 @@ pointed out any during the first pass.
 @d Write file's defining scrap numbers
 @{{
   Scrap_Node *p = name->defs;
+#ifdef _AMIGA
+  if (p->next) {
+    fputs(get_string(MSG_LATEX_25A1), tex_file);
+    print_scrap_numbers(tex_file, p);
+  }
+  else {
+    fputs(get_string(MSG_LATEX_25A2), tex_file);
+#else
   fputs("{\\footnotesize Defined by scrap", tex_file);
   if (p->next) {
     fputs("s ", tex_file);
@@ -1333,6 +1454,7 @@ pointed out any during the first pass.
   }
   else {
     putc(' ', tex_file);
+#endif
     write_single_scrap_ref(tex_file, p->scrap);
     putc('.', tex_file);
   }
@@ -1360,6 +1482,14 @@ pointed out any during the first pass.
   Scrap_Node *p = name->uses;
   fputs("{\\footnotesize ", tex_file);
   if (p) {
+#ifdef _AMIGA
+    if (p->next) {
+      fputs(get_string(MSG_LATEX_25C1), tex_file);
+      print_scrap_numbers(tex_file, p);
+    }
+    else {
+      fputs(get_string(MSG_LATEX_25C2), tex_file);
+#else
     fputs("Referenced in scrap", tex_file);
     if (p->next) {
       fputs("s ", tex_file);
@@ -1367,12 +1497,17 @@ pointed out any during the first pass.
     }
     else {
       putc(' ', tex_file);
+#endif
       write_single_scrap_ref(tex_file, p->scrap);
       putc('.', tex_file);
     }
   }
   else
+#ifdef _AMIGA
+    fputs(get_string(MSG_LATEX_25C3), tex_file);
+#else
     fputs("Not referenced.", tex_file);
+#endif
   putc('}', tex_file);
 }@}
 
@@ -1390,10 +1525,8 @@ pointed out any during the first pass.
 }@}
 
 
-@o latex.c
-@{static void format_user_entry(name, tex_file)
-     Name *name;
-     FILE *tex_file;
+@o latex.c -i
+@{static void format_user_entry(Name *name, FILE *tex_file)
 {
   while (name) {
     format_user_entry(name->llink, tex_file);
@@ -1443,7 +1576,7 @@ pointed out any during the first pass.
   }
 }@}
 
-\section{Writing the LaTeX File with HTML Scraps} \label{html-file} 
+\section{Writing the LaTeX File with HTML Scraps} \label{html-file}
 
 The HTML generated is patterned closely upon the {\LaTeX} generated in
 the previous section.\footnote{\relax While writing this section, I
@@ -1455,39 +1588,50 @@ copies most of the text from the source file straight into a
 cross-reference information is printed out.
 
 @d Function...
-@{extern void write_html();
+@{extern void write_html(char *, char *);
 @}
 
 We need a few local function declarations before we get into the body
 of \verb|write_html|.
 
-@o html.c
-@{static void copy_scrap();               /* formats the body of a scrap */
-static void display_scrap_ref();        /* formats a scrap reference */
-static void display_scrap_numbers();    /* formats a list of scrap numbers */
-static void print_scrap_numbers();      /* pluralizes scrap formats list */
-static void format_entry();             /* formats an index entry */
-static void format_user_entry();
+@o html.c -i
+@{static void copy_scrap(FILE *);
+  /* formats the body of a scrap */
+static void display_scrap_ref(FILE *, int);
+  /* formats a scrap reference */
+static void display_scrap_numbers(FILE *, Scrap_Node *);
+  /* formats a list of scrap numbers */
+static void print_scrap_numbers(FILE *, Scrap_Node *);
+  /* pluralizes scrap formats list */
+static void format_entry(Name *name, FILE *html_file, int file_flag);
+  /* formats an index entry */
+static void format_user_entry(Name *, FILE *);
 @}
 
 
 The routine \verb|write_html| takes two file names as parameters: the
 name of the web source file and the name of the \verb|.tex| output file.
-@o html.c
-@{void write_html(file_name, html_name)
-     char *file_name;
-     char *html_name;
+@o html.c -i
+@{void write_html(char *file_name, char *html_name)
 {
   FILE *html_file = fopen(html_name, "w");
   if (html_file) {
     if (verbose_flag)
+#ifdef _AMIGA
+      fprintf(stderr, get_string(MSG_VERBOSE_17A), html_name);
+#else
       fprintf(stderr, "writing %s\n", html_name);
+#endif
     source_open(file_name);
     @<Copy \verb|source_file| into \verb|html_file|@>
     fclose(html_file);
   }
   else
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_WARNING_17A), command_name, html_name);
+#else
     fprintf(stderr, "%s: can't open %s\n", command_name, html_name);
+#endif
 }
 @| write_html @}
 
@@ -1514,10 +1658,10 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
 @{{
   c = source_get();
   switch (c) {
-    case 'O': 
+    case 'O':
     case 'o': @<Write HTML output file definition@>
 	      break;
-    case 'D': 
+    case 'D':
     case 'd': @<Write HTML macro definition@>
 	      break;
     case 'f': @<Write HTML index of file names@>
@@ -1545,10 +1689,10 @@ The HTML for the previous macro definition should look like this
 {
   c = source_get();
   switch (c) {
-    case 'O': 
+    case 'O':
     case 'o': &lt;Write HTML output file definition <a href="#nuweb69">69</a>&gt;
               break;
-    case 'D': 
+    case 'D':
     case 'd': &lt;Write HTML macro definition <a href="#nuweb71">71</a>&gt;
               break;
     case 'f': &lt;Write HTML index of file names <a href="#nuweb86">86</a>&gt;
@@ -1641,7 +1785,11 @@ end the paragraph.
 @d Write HTML file defs
 @{{
   if (name->defs->next) {
+#ifdef _AMIGA
+    fputs(get_string(MSG_HTML_31C), html_file);
+#else
     fputs("File defined by ", html_file);
+#endif
     print_scrap_numbers(html_file, name->defs);
     fputs("<br>\n", html_file);
   }
@@ -1650,7 +1798,11 @@ end the paragraph.
 @d Write HTML macro defs
 @{{
   if (name->defs->next) {
+#ifdef _AMIGA
+    fputs(get_string(MSG_HTML_31D), html_file);
+#else
     fputs("Macro defined by ", html_file);
+#endif
     print_scrap_numbers(html_file, name->defs);
     fputs("<br>\n", html_file);
   }
@@ -1659,21 +1811,28 @@ end the paragraph.
 @d Write HTML macro refs
 @{{
   if (name->uses) {
+#ifdef _AMIGA
+    fputs(get_string(MSG_HTML_31E1), html_file);
+#else
     fputs("Macro referenced in ", html_file);
+#endif
     print_scrap_numbers(html_file, name->uses);
   }
   else {
+#ifdef _AMIGA
+    fputs(get_string(MSG_HTML_31E2), html_file);
+    fprintf(stderr, get_string(MSG_WARNING_21A),
+#else
     fputs("Macro never referenced.\n", html_file);
     fprintf(stderr, "%s: <%s> never referenced.\n",
+#endif
 	    command_name, name->spelling);
   }
   fputs("<br>\n", html_file);
 }@}
 
-@o html.c
-@{static void display_scrap_ref(html_file, num)
-     FILE *html_file;
-     int num;
+@o html.c -i
+@{static void display_scrap_ref(FILE *html_file, int num)
 {
   fputs("<a href=\"#nuweb", html_file);
   write_single_scrap_ref(html_file, num);
@@ -1683,10 +1842,8 @@ end the paragraph.
 }
 @| display_scrap_ref @}
 
-@o html.c
-@{static void display_scrap_numbers(html_file, scraps)
-     FILE *html_file;
-     Scrap_Node *scraps;
+@o html.c -i
+@{static void display_scrap_numbers(FILE *html_file, Scrap_Node *scraps)
 {
   display_scrap_ref(html_file, scraps->scrap);
   scraps = scraps->next;
@@ -1698,13 +1855,16 @@ end the paragraph.
 }
 @| display_scrap_numbers @}
 
-@o html.c
-@{static void print_scrap_numbers(html_file, scraps)
-     FILE *html_file;
-     Scrap_Node *scraps;
+@o html.c -i
+@{static void print_scrap_numbers(FILE *html_file, Scrap_Node *scraps)
 {
+#ifdef _AMIGA
+  if (scraps->next) fputs(get_string(MSG_HTML_32C1), html_file);
+  else fputs(get_string(MSG_HTML_32C2), html_file);
+#else
   fputs("scrap", html_file);
   if (scraps->next) fputc('s', html_file);
+#endif
   fputc(' ', html_file);
   display_scrap_numbers(html_file, scraps);
   fputs(".\n", html_file);
@@ -1716,9 +1876,8 @@ end the paragraph.
 
 We must translate HTML special keywords into entities in scraps.
 
-@o html.c
-@{static void copy_scrap(file)
-     FILE *file;
+@o html.c -i
+@{static void copy_scrap(FILE *file)
 {
   int indent = 0;
   int c = source_get();
@@ -1756,7 +1915,9 @@ We must translate HTML special keywords into entities in scraps.
     case '@@': fputc(c, file);
 	      break;
     case '|': @<Skip over index entries@>
-    case '}': return;
+    case '}':
+    case ']':
+    case ')': return;
     case '<': @<Format HTML macro name@>
 	      break;
     default:  /* ignore these since pass1 will have warned about them */
@@ -1791,7 +1952,7 @@ pointed out any during the first pass.
 }@}
 
 
-\subsection{Generating the Indices}
+\subsection{Generating the Indexes}
 
 @d Write HTML index of file names
 @{{
@@ -1819,11 +1980,8 @@ pointed out any during the first pass.
 }@}
 
 
-@o html.c
-@{static void format_entry(name, html_file, file_flag)
-     Name *name;
-     FILE *html_file;
-     int file_flag;
+@o html.c -i
+@{static void format_entry(Name *name, FILE *html_file, int file_flag)
 {
   while (name) {
     format_entry(name->llink, html_file, file_flag);
@@ -1853,7 +2011,11 @@ pointed out any during the first pass.
 
 @d Write HTML file's defining scrap numbers
 @{{
+#ifdef _AMIGA
+  fputs(get_string(MSG_HTML_35C), html_file);
+#else
   fputs("Defined by ", html_file);
+#endif
   print_scrap_numbers(html_file, name->defs);
 }@}
 
@@ -1869,11 +2031,19 @@ pointed out any during the first pass.
 @{{
   Scrap_Node *p = name->uses;
   if (p) {
+#ifdef _AMIGA
+    fputs(get_string(MSG_HTML_35E1), html_file);
+#else
     fputs("Referenced in ", html_file);
+#endif
     print_scrap_numbers(html_file, p);
   }
   else
+#ifdef _AMIGA
+    fputs(get_string(MSG_HTML_35E2), html_file);
+#else
     fputs("Not referenced.\n", html_file);
+#endif
 }@}
 
 
@@ -1890,10 +2060,8 @@ pointed out any during the first pass.
 }@}
 
 
-@o html.c
-@{static void format_user_entry(name, html_file)
-     Name *name;
-     FILE *html_file;
+@o html.c -i
+@{static void format_user_entry(Name *name, FILE *html_file)
 {
   while (name) {
     format_user_entry(name->llink, html_file);
@@ -1944,12 +2112,11 @@ pointed out any during the first pass.
 \section{Writing the Output Files} \label{output-files}
 
 @d Function pro...
-@{extern void write_files();
+@{extern void write_files(Name *);
 @}
 
-@o output.c
-@{void write_files(files)
-     Name *files;
+@o output.c -i
+@{void write_files(Name *files)
 {
   while (files) {
     write_files(files->llink);
@@ -1959,11 +2126,11 @@ pointed out any during the first pass.
 }
 @| write_files @}
 
-We call \verb|tempnam|, causing it to create a file name in the
-current directory.  This could cause a problem for \verb|rename| if
-the eventual output file will reside on a different file system.
-Perhaps it would be better to examine \verb|files->spelling| to find
-any directory information.
+We create a file in the current directory with the hopefully improbable
+name ``\texttt{NUWEB.TMP}'' and make sure it is deleted before the
+program ends.  Thus we don't have to care about problems with different
+implementations of \verb|tempnam|,\verb|tmpnam|, or the like on different
+systems.  And except for \verb|rename| this should also be portable.
 
 Note the superfluous call to \verb|remove| before \verb|rename|.
 We're using it get around a bug in some implementations of
@@ -1973,15 +2140,28 @@ We're using it get around a bug in some implementations of
 @{{
   char indent_chars[500];
   FILE *temp_file;
-  char *temp_name = tempnam(".", 0);
+  char temp_name[]="NUWEB.TMP";
+  void (*old_signal_handler)(int);
+
+  old_signal_handler=signal(SIGINT,SIG_IGN);
   temp_file = fopen(temp_name, "w");
   if (!temp_file) {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_38),
+	    command_name, temp_name);
+    exit(EXIT_FAILURE);
+#else
     fprintf(stderr, "%s: can't create %s for a temporary file\n",
 	    command_name, temp_name);
     exit(-1);
-  }  
+#endif
+  }
   if (verbose_flag)
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_VERBOSE_17A), files->spelling);
+#else
     fprintf(stderr, "writing %s\n", files->spelling);
+#endif
   write_scraps(temp_file, files->defs, 0, indent_chars,
 	       files->debug_flag, files->tab_flag, files->indent_flag);
   fclose(temp_file);
@@ -1991,6 +2171,7 @@ We're using it get around a bug in some implementations of
     remove(files->spelling);
     rename(temp_name, files->spelling);
   }
+  signal(SIGINT,old_signal_handler);
 }@}
 
 Again, we use a call to \verb|remove| before \verb|rename|.
@@ -1998,19 +2179,23 @@ Again, we use a call to \verb|remove| before \verb|rename|.
 @{{
   FILE *old_file = fopen(files->spelling, "r");
   if (old_file) {
-    int x, y;
+    char x[BUFSIZ], y[BUFSIZ];
+    int x_size, y_size;
     temp_file = fopen(temp_name, "r");
     do {
-      x = getc(old_file);
-      y = getc(temp_file);
-    } while (x == y && x != EOF);
-    fclose(old_file);
-    fclose(temp_file);
-    if (x == y)
-      remove(temp_name);
-    else {
+      x_size = fread(x, 1, BUFSIZ, old_file);
+      y_size = fread(y, 1, BUFSIZ, temp_file);
+    } while ((x_size == y_size) && !memcmp(x, y, x_size) &&
+             !feof(old_file) && !feof(temp_file));
+    if ((x_size != y_size) || memcmp(x, y , x_size)) {
+      fclose(old_file);
+      fclose(temp_file);
       remove(files->spelling);
       rename(temp_name, files->spelling);
+    } else {
+      fclose(old_file);
+      fclose(temp_file);
+      remove(temp_name);
     }
   }
   else
@@ -2027,8 +2212,11 @@ Again, we use a call to \verb|remove| before \verb|rename|.
 
 We need two routines to handle reading the source files.
 @d Function pro...
-@{extern void source_open(); /* pass in the name of the source file */
-extern int source_get();   /* no args; returns the next char or EOF */
+@{extern void source_open(char *);
+  /* pass in the name of the source file */
+extern int source_get(void);
+  /* no args; returns the next char or EOF */
+extern int source_last;   /* what last source_get() returned. */
 @}
 
 
@@ -2047,7 +2235,7 @@ int source_line = 0;
 \subsection{Local Declarations}
 
 
-@o input.c
+@o input.c -i
 @{static FILE *source_file;  /* the current input file */
 static int source_peek;
 static int double_at;
@@ -2055,7 +2243,7 @@ static int include_depth;
 @| source_peek source_file double_at include_depth @}
 
 
-@o input.c
+@o input.c -i
 @{static struct {
   FILE *file;
   char *name;
@@ -2067,13 +2255,18 @@ static int include_depth;
 \subsection{Reading a File}
 
 The routine \verb|source_get| returns the next character from the
-current source file. It notices newlines and keeps the line counter 
+current source file. It notices newlines and keeps the line counter
 \verb|source_line| up to date. It also catches \verb|EOF| and watches
 for \verb|@@|~characters. All other characters are immediately returned.
-@o input.c
-@{int source_get()
+We define \verb|source_last| to let us tell which type of scrap we
+are defining.
+@o input.c -i
+@{
+int source_last;
+int source_get(void)
 {
-  int c = source_peek;
+  int c;
+  source_last = c = source_peek;
   switch (c) {
     case EOF:  @<Handle \verb|EOF|@>
 	       return c;
@@ -2084,7 +2277,7 @@ for \verb|@@|~characters. All other characters are immediately returned.
 	       return c;
   }
 }
-@| source_get @}
+@| source_get source_last @}
 
 
 This whole \verb|@@|~character handling mess is pretty annoying.
@@ -2108,15 +2301,21 @@ hence this whole unsatisfactory \verb|double_at| business.
       case 'f': case 'm': case 'u':
       case 'd': case 'o': case 'D': case 'O':
       case '{': case '}': case '<': case '>': case '|':
+      case '(': case ')': case '[': case ']':
 		source_peek = c;
 		c = '@@';
 		break;
       case '@@': source_peek = c;
 		double_at = TRUE;
 		break;
+#ifdef _AMIGA
+      default:  fprintf(stderr, get_string(MSG_ERROR_42A),
+			command_name, source_name, source_line);
+#else
       default:  fprintf(stderr, "%s: bad @@ sequence (%s, line %d)\n",
 			command_name, source_name, source_line);
-		exit(-1);
+#endif
+		exit(EXIT_FAILURE);
     }
 }@}
 
@@ -2124,9 +2323,14 @@ hence this whole unsatisfactory \verb|double_at| business.
 @{{
   char name[100];
   if (include_depth >= 10) {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_42B1),
+	    command_name, source_name, source_line);
+#else
     fprintf(stderr, "%s: include nesting too deep (%s, %d)\n",
 	    command_name, source_name, source_line);
-    exit(-1);
+#endif
+    exit(EXIT_FAILURE);
   }
   @<Collect include-file name@>
   stack[include_depth].name = source_name;
@@ -2137,9 +2341,14 @@ hence this whole unsatisfactory \verb|double_at| business.
   source_name = save_string(name);
   source_file = fopen(source_name, "r");
   if (!source_file) {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_42B2),
+     command_name, source_name);
+#else
     fprintf(stderr, "%s: can't open include file %s\n",
      command_name, source_name);
-    exit(-1);
+#endif
+    exit(EXIT_FAILURE);
   }
   source_peek = getc(source_file);
   c = source_get();
@@ -2148,7 +2357,7 @@ hence this whole unsatisfactory \verb|double_at| business.
 @d Collect include-file name
 @{{
     char *p = name;
-    do 
+    do
       c = getc(source_file);
     while (c == ' ' || c == '\t');
     while (isgraph(c)) {
@@ -2157,9 +2366,14 @@ hence this whole unsatisfactory \verb|double_at| business.
     }
     *p = '\0';
     if (c != '\n') {
+#ifdef _AMIGA
+      fprintf(stderr, get_string(MSG_ERROR_43A),
+	      command_name, source_name, source_line);
+#else
       fprintf(stderr, "%s: unexpected characters after file name (%s, %d)\n",
 	      command_name, source_name, source_line);
-      exit(-1);
+#endif
+      exit(EXIT_FAILURE);
     }
 }@}
 
@@ -2183,16 +2397,19 @@ on the stack, the \verb|EOF| is returned.
 \subsection{Opening a File}
 
 The routine \verb|source_open| takes a file name and tries to open the
-file. If unsuccessful, it complains and halts. Otherwise, it sets 
+file. If unsuccessful, it complains and halts. Otherwise, it sets
 \verb|source_name|, \verb|source_line|, and \verb|double_at|.
-@o input.c
-@{void source_open(name)
-     char *name;
+@o input.c -i
+@{void source_open(char *name)
 {
   source_file = fopen(name, "r");
   if (!source_file) {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_43C), command_name, name);
+#else
     fprintf(stderr, "%s: couldn't open %s\n", command_name, name);
-    exit(-1);
+#endif
+    exit(EXIT_FAILURE);
   }
   source_name = name;
   source_line = 1;
@@ -2208,7 +2425,7 @@ file. If unsuccessful, it complains and halts. Otherwise, it sets
 \section{Scraps} \label{scraps}
 
 
-@o scraps.c
+@o scraps.c -i
 @{#define SLAB_SIZE 500
 
 typedef struct slab {
@@ -2218,7 +2435,7 @@ typedef struct slab {
 @| Slab SLAB_SIZE @}
 
 
-@o scraps.c
+@o scraps.c -i
 @{typedef struct {
   char *file_name;
   int file_line;
@@ -2228,7 +2445,7 @@ typedef struct slab {
 } ScrapEntry;
 @| ScrapEntry @}
 
-@o scraps.c
+@o scraps.c -i
 @{static ScrapEntry *SCRAP[256];
 
 #define scrap_array(i) SCRAP[(i) >> 8][(i) & 255]
@@ -2238,16 +2455,16 @@ static int scraps;
 
 
 @d Function pro...
-@{extern void init_scraps();
-extern int collect_scrap();
-extern int write_scraps();
-extern void write_scrap_ref();
-extern void write_single_scrap_ref();
+@{extern void init_scraps(void);
+extern int collect_scrap(void);
+extern int write_scraps(FILE *, Scrap_Node *, int, char *, char, char, char);
+extern void write_scrap_ref(FILE *, int, int, int *);
+extern void write_single_scrap_ref(FILE *, int);
 @}
 
 
-@o scraps.c
-@{void init_scraps()
+@o scraps.c -i
+@{void init_scraps(void)
 {
   scraps = 1;
   SCRAP[0] = (ScrapEntry *) arena_getmem(256 * sizeof(ScrapEntry));
@@ -2255,12 +2472,8 @@ extern void write_single_scrap_ref();
 @| init_scraps @}
 
 
-@o scraps.c
-@{void write_scrap_ref(file, num, first, page)
-     FILE *file;
-     int num;
-     int first;
-     int *page;
+@o scraps.c -i
+@{void write_scrap_ref(FILE *file, int num, int first, int *page)
 {
   if (scrap_array(num).page >= 0) {
     if (first)
@@ -2275,16 +2488,14 @@ extern void write_single_scrap_ref();
       putc('?', file);
     else
       fputs(", ?", file);
-    @<Warn (only once) about needing to rerun after Latex@>
+    @<Warn (only once) about needing to rerun after LaTeX@>
   }
   *page = scrap_array(num).page;
 }
 @| write_scrap_ref @}
 
-@o scraps.c
-@{void write_single_scrap_ref(file, num)
-     FILE *file;
-     int num;
+@o scraps.c -i
+@{void write_single_scrap_ref(FILE *file, int num)
 {
   int page;
   write_scrap_ref(file, num, TRUE, &page);
@@ -2295,7 +2506,11 @@ extern void write_single_scrap_ref();
 @d Warn (only once) about needing to...
 @{{
   if (!already_warned) {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_WARNING_45C),
+#else
     fprintf(stderr, "%s: you'll need to rerun nuweb after running latex\n",
+#endif
 	    command_name);
     already_warned = TRUE;
   }
@@ -2309,7 +2524,7 @@ extern void write_single_scrap_ref();
 @{int already_warned = 0;
 @}
 
-@o scraps.c
+@o scraps.c -i
 @{typedef struct {
   Slab *scrap;
   Slab *prev;
@@ -2319,10 +2534,8 @@ extern void write_single_scrap_ref();
 
 
 
-@o scraps.c
-@{static void push(c, manager)
-     char c;
-     Manager *manager;
+@o scraps.c -i
+@{static void push(char c, Manager *manager)
 {
   Slab *scrap = manager->scrap;
   int index = manager->index;
@@ -2337,10 +2550,8 @@ extern void write_single_scrap_ref();
 }
 @| push @}
 
-@o scraps.c
-@{static void pushs(s, manager)
-     char *s;
-     Manager *manager;
+@o scraps.c -i
+@{static void pushs(char *s, Manager *manager)
 {
   while (*s)
     push(*s++, manager);
@@ -2348,8 +2559,8 @@ extern void write_single_scrap_ref();
 @| pushs @}
 
 
-@o scraps.c
-@{int collect_scrap()
+@o scraps.c -i
+@{int collect_scrap(void)
 {
   Manager writer;
   @<Create new scrap...@>
@@ -2377,10 +2588,16 @@ extern void write_single_scrap_ref();
   int c = source_get();
   while (1) {
     switch (c) {
+#ifdef _AMIGA
+      case EOF: fprintf(stderr, get_string(MSG_ERROR_47B),
+			command_name, scrap_array(scraps).file_name,
+			scrap_array(scraps).file_line);
+#else
       case EOF: fprintf(stderr, "%s: unexpect EOF in scrap (%s, %d)\n",
 			command_name, scrap_array(scraps).file_name,
 			scrap_array(scraps).file_line);
-		exit(-1);
+#endif
+		exit(EXIT_FAILURE);
       case '@@': @<Handle at-sign during scrap accumulation@>
 		break;
       default:  push(c, &writer);
@@ -2399,13 +2616,20 @@ extern void write_single_scrap_ref();
 	      c = source_get();
 	      break;
     case '|': @<Collect user-specified index entries@>
+    case ')':
+    case ']':
     case '}': push('\0', &writer);
 	      return scraps++;
     case '<': @<Handle macro invocation in scrap@>
 	      break;
+#ifdef _AMIGA
+    default : fprintf(stderr, get_string(MSG_ERROR_47C),
+		      command_name, c, source_name, source_line);
+#else
     default : fprintf(stderr, "%s: unexpected @@%c in scrap (%s, %d)\n",
 		      command_name, c, source_name, source_line);
-	      exit(-1);
+#endif
+	      exit(EXIT_FAILURE);
   }
 }@}
 
@@ -2415,7 +2639,7 @@ extern void write_single_scrap_ref();
   do {
     char new_name[100];
     char *p = new_name;
-    do 
+    do
       c = source_get();
     while (isspace(c));
     if (c != '@@') {
@@ -2435,10 +2659,10 @@ extern void write_single_scrap_ref();
     }
   } while (c != '@@');
   c = source_get();
-  if (c != '}') {
+  if (c != '}' && c != ']' && c != ')' ) {
     fprintf(stderr, "%s: unexpected @@%c in scrap (%s, %d)\n",
 	    command_name, c, source_name, source_line);
-    exit(-1);
+    exit(EXIT_FAILURE);
   }
 }@}
 
@@ -2480,9 +2704,8 @@ extern void write_single_scrap_ref();
 }@}
 
 
-@o scraps.c
-@{static char pop(manager)
-     Manager *manager;
+@o scraps.c -i
+@{static char pop(Manager *manager)
 {
   Slab *scrap = manager->scrap;
   int index = manager->index;
@@ -2499,9 +2722,8 @@ extern void write_single_scrap_ref();
 
 
 
-@o scraps.c
-@{static Name *pop_scrap_name(manager)
-     Manager *manager;
+@o scraps.c -i
+@{static Name *pop_scrap_name(Manager *manager)
 {
   char name[100];
   char *p = name;
@@ -2534,22 +2756,19 @@ extern void write_single_scrap_ref();
     return prefix_add(&macro_names, name);
   }
   else {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_50A), command_name);
+#else
     fprintf(stderr, "%s: found an internal problem (1)\n", command_name);
-    exit(-1);
+#endif
+    exit(EXIT_FAILURE);
   }
 }@}
 
 
-@o scraps.c
-@{int write_scraps(file, defs, global_indent, indent_chars,
-		   debug_flag, tab_flag, indent_flag)
-     FILE *file;
-     Scrap_Node *defs;
-     int global_indent;
-     char *indent_chars;
-     char debug_flag;
-     char tab_flag;
-     char indent_flag;
+@o scraps.c -i
+@{int write_scraps(FILE *file, Scrap_Node *defs, int global_indent,
+  char *indent_chars, char debug_flag, char tab_flag, char indent_flag)
 {
   int indent = 0;
   while (defs) {
@@ -2646,9 +2865,14 @@ extern void write_single_scrap_ref();
 @{{
   Name *name = pop_scrap_name(&reader);
   if (name->mark) {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_52C1),
+	    command_name, name->spelling);
+#else
     fprintf(stderr, "%s: recursive macro discovered involving <%s>\n",
 	    command_name, name->spelling);
-    exit(-1);
+#endif
+    exit(EXIT_FAILURE);
   }
   if (name->defs) {
     name->mark = TRUE;
@@ -2658,7 +2882,11 @@ extern void write_single_scrap_ref();
     name->mark = FALSE;
   }
   else if (!tex_flag)
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_WARNING_52C2),
+#else
     fprintf(stderr, "%s: macro never defined <%s>\n",
+#endif
 	    command_name, name->spelling);
 }@}
 
@@ -2666,12 +2894,11 @@ extern void write_single_scrap_ref();
 \subsection{Collecting Page Numbers}
 
 @d Function...
-@{extern void collect_numbers();
+@{extern void collect_numbers(char *);
 @}
 
-@o scraps.c
-@{void collect_numbers(aux_name)
-     char *aux_name;
+@o scraps.c -i
+@{void collect_numbers(char *aux_name)
 {
   if (number_flag) {
     int i;
@@ -2752,21 +2979,19 @@ Name *user_names = NULL;
 @}
 
 @d Function pro...
-@{extern Name *collect_file_name();
-extern Name *collect_macro_name();
-extern Name *collect_scrap_name();
-extern Name *name_add();
-extern Name *prefix_add();
-extern char *save_string();
-extern void reverse_lists();
+@{extern Name *collect_file_name(void);
+extern Name *collect_macro_name(void);
+extern Name *collect_scrap_name(void);
+extern Name *name_add(Name **, char *);
+extern Name *prefix_add(Name **, char *);
+extern char *save_string(char *);
+extern void reverse_lists(Name *);
 @}
 
-@o names.c
+@o names.c -i
 @{enum { LESS, GREATER, EQUAL, PREFIX, EXTENSION };
 
-static int compare(x, y)
-     char *x;
-     char *y;
+static int compare(char *x, char *y)
 {
   int len, result;
   int xl = strlen(x);
@@ -2792,9 +3017,8 @@ static int compare(x, y)
 @| compare LESS GREATER EQUAL PREFIX EXTENSION @}
 
 
-@o names.c
-@{char *save_string(s)
-     char *s;
+@o names.c -i
+@{char *save_string(char *s)
 {
   char *new = (char *) arena_getmem((strlen(s) + 1) * sizeof(char));
   strcpy(new, s);
@@ -2802,12 +3026,10 @@ static int compare(x, y)
 }
 @| save_string @}
 
-@o names.c
-@{static int ambiguous_prefix();
+@o names.c -i
+@{static int ambiguous_prefix(Name *, char *);
 
-Name *prefix_add(root, spelling)
-     Name **root;
-     char *spelling;
+Name *prefix_add(Name **root, char *spelling)
 {
   Name *node = *root;
   while (node) {
@@ -2836,15 +3058,17 @@ continue the search down {\em both\/} branches of the tree.
 @{{
   if (ambiguous_prefix(node->llink, spelling) ||
       ambiguous_prefix(node->rlink, spelling))
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_WARNING_56B),
+#else
     fprintf(stderr,
 	    "%s: ambiguous prefix @@<%s...@@> (%s, line %d)\n",
+#endif
 	    command_name, spelling, source_name, source_line);
 }@}
 
-@o names.c
-@{static int ambiguous_prefix(node, spelling)
-     Name *node;
-     char *spelling;
+@o names.c -i
+@{static int ambiguous_prefix(Name *node, char *spelling)
 {
   while (node) {
     switch (compare(node->spelling, spelling)) {
@@ -2876,10 +3100,8 @@ atoms
 \end{quote}
 The function \verb|robs_strcmp| implements the desired predicate.
 
-@o names.c
-@{static int robs_strcmp(x, y)
-     char *x;
-     char *y;
+@o names.c -i
+@{static int robs_strcmp(char *x, char *y)
 {
   char *xx = x;
   char *yy = y;
@@ -2908,10 +3130,8 @@ The function \verb|robs_strcmp| implements the desired predicate.
 }
 @| robs_strcmp @}
 
-@o names.c
-@{Name *name_add(root, spelling)
-     Name **root;
-     char *spelling;
+@o names.c -i
+@{Name *name_add(Name **root, char *spelling)
 {
   Name *node = *root;
   while (node) {
@@ -2948,14 +3168,14 @@ The function \verb|robs_strcmp| implements the desired predicate.
 
 Name terminated by whitespace.  Also check for ``per-file'' flags. Keep
 skipping white space until we reach scrap.
-@o names.c
-@{Name *collect_file_name()
+@o names.c -i
+@{Name *collect_file_name(void)
 {
   Name *new_name;
   char name[100];
   char *p = name;
   int start_line = source_line;
-  int c = source_get();
+  int c = source_get(), c2;
   while (isspace(c))
     c = source_get();
   while (isgraph(c)) {
@@ -2963,17 +3183,28 @@ skipping white space until we reach scrap.
     c = source_get();
   }
   if (p == name) {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_59A1),
+	    command_name, source_name, start_line);
+#else
     fprintf(stderr, "%s: expected file name (%s, %d)\n",
 	    command_name, source_name, start_line);
-    exit(-1);
+#endif
+    exit(EXIT_FAILURE);
   }
   *p = '\0';
   new_name = name_add(&file_names, name);
   @<Handle optional per-file flags@>
-  if (c != '@@' || source_get() != '{') {
-    fprintf(stderr, "%s: expected @@{ after file name (%s, %d)\n",
+  c2 = source_get();
+  if (c != '@@' || (c2 != '{' && c2 != '(' && c2 != '[')) {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_59A2),
 	    command_name, source_name, start_line);
-    exit(-1);
+#else
+    fprintf(stderr, "%s: expected @@{, @@[, or @@( after file name (%s, %d)\n",
+	    command_name, source_name, start_line);
+#endif
+    exit(EXIT_FAILURE);
   }
   return new_name;
 }
@@ -2994,7 +3225,11 @@ skipping white space until we reach scrap.
 		    break;
 	  case 'i': new_name->indent_flag = FALSE;
 		    break;
+#ifdef _AMIGA
+	  default : fprintf(stderr, get_string(MSG_WARNING_59B),
+#else
 	  default : fprintf(stderr, "%s: unexpected per-file flag (%s, %d)\n",
+#endif
 			    command_name, source_name, source_line);
 		    break;
 	}
@@ -3007,14 +3242,15 @@ skipping white space until we reach scrap.
 
 
 
-Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
-@o names.c
-@{Name *collect_macro_name()
+Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until
+\verb+@@{+.
+@o names.c -i
+@{Name *collect_macro_name(void)
 {
   char name[100];
   char *p = name;
   int start_line = source_line;
-  int c = source_get();
+  int c = source_get(), c2;
   while (isspace(c))
     c = source_get();
   while (c != EOF) {
@@ -3033,9 +3269,14 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
 		 break;
     }
   }
+#ifdef _AMIGA
+  fprintf(stderr, get_string(MSG_ERROR_60A),
+	  command_name, source_name, start_line);
+#else
   fprintf(stderr, "%s: expected macro name (%s, %d)\n",
 	  command_name, source_name, start_line);
-  exit(-1);
+#endif
+  exit(EXIT_FAILURE);
   return NULL;  /* unreachable return to avoid warnings on some compilers */
 }
 @| collect_macro_name @}
@@ -3047,11 +3288,18 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   switch (c) {
     case '@@': *p++ = c;
 	      break;
+    case '(':
+    case '[':
     case '{': @<Cleanup and install name@>
+#ifdef _AMIGA
+    default:  fprintf(stderr, get_string(MSG_ERROR_60B),
+		      command_name, c, source_name, start_line);
+#else
     default:  fprintf(stderr,
 		      "%s: unexpected @@%c in macro name (%s, %d)\n",
 		      command_name, c, source_name, start_line);
-	      exit(-1);
+#endif
+	      exit(EXIT_FAILURE);
   }
 }@}
 
@@ -3065,9 +3313,14 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
     p -= 2;
   }
   if (p == name || name[0] == ' ') {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_61A),
+	    command_name, source_name, source_line);
+#else
     fprintf(stderr, "%s: empty scrap name (%s, %d)\n",
 	    command_name, source_name, source_line);
-    exit(-1);
+#endif
+    exit(EXIT_FAILURE);
   }
   *p = '\0';
   return prefix_add(&macro_names, name);
@@ -3079,18 +3332,24 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   do
     c = source_get();
   while (isspace(c));
-  if (c != '@@' || source_get() != '{') {
-    fprintf(stderr, "%s: expected @@{ after macro name (%s, %d)\n",
+  c2 = source_get();
+  if (c != '@@' || (c2 != '{' && c2 != '(' && c2 != '[')) {
+#ifdef _AMIGA
+    fprintf(stderr, get_string(MSG_ERROR_61B),
 	    command_name, source_name, start_line);
-    exit(-1);
+#else
+    fprintf(stderr, "%s: expected @@{, @@[, or @@( after macro name (%s, %d)\n",
+	    command_name, source_name, start_line);
+#endif
+    exit(EXIT_FAILURE);
   }
   @<Cleanup and install name@>
 }@}
 
 
-Terminated by \verb+@@>+
-@o names.c
-@{Name *collect_scrap_name()
+Terminated by \verb+@@>+.
+@o names.c -i
+@{Name *collect_scrap_name(void)
 {
   char name[100];
   char *p = name;
@@ -3108,19 +3367,29 @@ Terminated by \verb+@@>+
 		 while (c == ' ' || c == '\t');
 		 break;
       default:	 if (!isgraph(c)) {
+#ifdef _AMIGA
+		   fprintf(stderr, get_string(MSG_ERROR_62A1),
+			   command_name, source_name, source_line);
+#else
 		   fprintf(stderr,
 			   "%s: unexpected character in macro name (%s, %d)\n",
 			   command_name, source_name, source_line);
-		   exit(-1);
+#endif
+		   exit(EXIT_FAILURE);
 		 }
 		 *p++ = c;
 		 c = source_get();
 		 break;
     }
   }
+#ifdef _AMIGA
+  fprintf(stderr, get_string(MSG_ERROR_62A2),
+	  command_name, source_name, source_line);
+#else
   fprintf(stderr, "%s: unexpected end of file (%s, %d)\n",
 	  command_name, source_name, source_line);
-  exit(-1);
+#endif
+  exit(EXIT_FAILURE);
   return NULL;  /* unreachable return to avoid warnings on some compilers */
 }
 @| collect_scrap_name @}
@@ -3137,16 +3406,15 @@ Terminated by \verb+@@>+
     default:  fprintf(stderr,
 		      "%s: unexpected @@%c in macro name (%s, %d)\n",
 		      command_name, c, source_name, source_line);
-	      exit(-1);
+	      exit(EXIT_FAILURE);
   }
 }@}
 
 
-@o names.c
-@{static Scrap_Node *reverse();	/* a forward declaration */
+@o names.c -i
+@{static Scrap_Node *reverse(Scrap_Node *); /* a forward declaration */
 
-void reverse_lists(names)
-     Name *names;
+void reverse_lists(Name *names)
 {
   while (names) {
     reverse_lists(names->llink);
@@ -3160,9 +3428,8 @@ void reverse_lists(names)
 Just for fun, here's a non-recursive version of the traditional list
 reversal code. Note that it reverses the list in place; that is, it
 does no new allocations.
-@o names.c
-@{static Scrap_Node *reverse(a)
-     Scrap_Node *a;
+@o names.c -i
+@{static Scrap_Node *reverse(Scrap_Node *a)
 {
   if (a) {
     Scrap_Node *b = a->next;
@@ -3188,14 +3455,14 @@ however, there is an interesting  paper describing an efficient
 solution~\cite{aho:75}.
 
 
-@o scraps.c
+@o scraps.c -i
 @{typedef struct name_node {
   struct name_node *next;
   Name *name;
 } Name_Node;
 @| Name_Node @}
 
-@o scraps.c
+@o scraps.c -i
 @{typedef struct goto_node {
   Name_Node *output;		/* list of words ending in this state */
   struct move_node *moves;	/* list of possible moves */
@@ -3204,7 +3471,7 @@ solution~\cite{aho:75}.
 } Goto_Node;
 @| Goto_Node @}
 
-@o scraps.c
+@o scraps.c -i
 @{typedef struct move_node {
   struct move_node *next;
   Goto_Node *state;
@@ -3212,17 +3479,15 @@ solution~\cite{aho:75}.
 } Move_Node;
 @| Move_Node @}
 
-@o scraps.c
+@o scraps.c -i
 @{static Goto_Node *root[128];
 static int max_depth;
 static Goto_Node **depths;
 @| root max_depth depths @}
 
 
-@o scraps.c
-@{static Goto_Node *goto_lookup(c, g)
-     char c;
-     Goto_Node *g;
+@o scraps.c -i
+@{static Goto_Node *goto_lookup(char c, Goto_Node *g)
 {
   Move_Node *m = g->moves;
   while (m && m->c != c)
@@ -3239,14 +3504,14 @@ static Goto_Node **depths;
 
 
 @d Function pro...
-@{extern void search();
+@{extern void search(void);
 @}
 
-@o scraps.c
-@{static void build_gotos();
-static int reject_match();
+@o scraps.c -i
+@{static void build_gotos(Name *);
+static int reject_match(Name *, char, Manager *);
 
-void search()
+void search(void)
 {
   int i;
   for (i=0; i<128; i++)
@@ -3263,9 +3528,8 @@ void search()
 
 
 
-@o scraps.c
-@{static void build_gotos(tree)
-     Name *tree;
+@o scraps.c -i
+@{static void build_gotos(Name *tree)
 {
   while (tree) {
     @<Extend goto graph with \verb|tree->spelling|@>
@@ -3415,11 +3679,10 @@ For the present, we'll consider the mechanism an experiment.
 @o scraps.c
 @{#define sym_char(c) (isalnum(c) || (c) == '_')
 
-static int op_char(c)
-     char c;
+static int op_char(char c)
 {
   switch (c) {
-    case '!': case '@@': case '#': case '%': case '$': case '^': 
+    case '!': case '@@': case '#': case '%': case '$': case '^':
     case '&': case '*': case '-': case '+': case '=': case '/':
     case '|': case '~': case '<': case '>':
       return TRUE;
@@ -3429,11 +3692,8 @@ static int op_char(c)
 }
 @| sym_char op_char @}
 
-@o scraps.c
-@{static int reject_match(name, post, reader)
-     Name *name;
-     char post;
-     Manager *reader;
+@o scraps.c -i
+@{static int reject_match(Name *name, char post, Manager *reader)
 {
   int len = strlen(name->spelling);
   char first = name->spelling[0];
@@ -3461,18 +3721,18 @@ static int op_char(c)
 I manage memory using a simple scheme inspired by Hanson's idea of
 {\em arenas\/}~\cite{hanson:90}.
 Basically, I allocate all the storage required when processing a
-source file (primarily for names and scraps) using calls to 
+source file (primarily for names and scraps) using calls to
 \verb|arena_getmem(n)|, where \verb|n| specifies the number of bytes to
 be allocated. When the storage is no longer required, the entire arena
 is freed with a single call to  \verb|arena_free()|. Both operations
 are quite fast.
 @d Function p...
-@{extern void *arena_getmem();
-extern void arena_free();
+@{extern void *arena_getmem(size_t);
+extern void arena_free(void);
 @}
 
 
-@o arena.c
+@o arena.c -i
 @{typedef struct chunk {
   struct chunk *next;
   char *limit;
@@ -3486,7 +3746,7 @@ at the current chunk of memory; it's initially pointed at \verb|first|.
 As soon as some storage is required, a ``real'' chunk of memory will
 be allocated and attached to \verb|first->next|; storage will be
 allocated from the new chunk (and later chunks if necessary).
-@o arena.c
+@o arena.c -i
 @{static Chunk first = { NULL, NULL, NULL };
 static Chunk *arena = &first;
 @| first arena @}
@@ -3494,15 +3754,14 @@ static Chunk *arena = &first;
 
 \subsection{Allocating Memory}
 
-The routine \verb|arena_getmem(n)| returns a pointer to (at least) 
+The routine \verb|arena_getmem(n)| returns a pointer to (at least)
 \verb|n| bytes of memory. Note that \verb|n| is rounded up to ensure
 that returned pointers are always aligned.  We align to the nearest
 8~byte segment, since that'll satisfy the more common 2-byte and
 4-byte alignment restrictions too.
 
-@o arena.c
-@{void *arena_getmem(n)
-     size_t n;
+@o arena.c -i
+@{void *arena_getmem(size_t n)
 {
   char *q;
   char *p = arena->avail;
@@ -3518,7 +3777,7 @@ that returned pointers are always aligned.  We align to the nearest
 
 
 If the current chunk doesn't have adequate space (at least \verb|n|
-bytes) we examine the rest of the list of chunks (starting at 
+bytes) we examine the rest of the list of chunks (starting at
 \verb|arena->next|) looking for a chunk with adequate space. If \verb|n|
 is very large, we may not find it right away or we may not find a
 suitable chunk at all.
@@ -3559,17 +3818,288 @@ need to allocate a new one.
 
 To free all the memory in the arena, we need only point \verb|arena|
 back to the first empty chunk.
-@o arena.c
+@o arena.c -i
 @{void arena_free()
 {
   arena = &first;
 }
 @| arena_free @}
 
+\chapter{Man page}
 
-\chapter{Indices} \label{indices}
+Here is the UNIX man page for nuweb:
 
-Three sets of indices can be created automatically: an index of file
+@o nuweb.1 @{.TH NUWEB 1 "local 3/22/95"
+.SH NAME
+Nuweb, a literate programming tool
+.SH SYNOPSIS
+.B nuweb
+.br
+\fBnuweb\fP [\fB-t\fP|\fB-c\fP|\fB-o\fP] [file] ...
+.SH DESCRIPTION
+.I Nuweb
+is a literate programming tool like Knuth's
+.I WEB,
+only simpler.
+A
+.I nuweb
+file contains program source code interleaved with documentation.
+When
+.I nuweb
+is given a
+.I nuweb
+file, it writes the program file(s),
+and also
+produces,
+.I LaTeX
+source for typeset documentation.
+.SH COMMAND LINE OPTIONS
+.br
+\fB-t\fP	Suppress generation of the \fB.tex\fP file.
+.br
+\fB-o\fP	Suppress generation of the output file(s).
+.br
+\fB-c\fP	Avoid testing output files for change before updating them.
+.br
+@}
+@o nuweb.1 @{.SH FORMAT OF NUWEB FILES
+A
+.I nuweb
+file contains mostly ordinary
+.I LaTeX.
+The file is read and copied to output (.tex file) unless a
+.I nuweb
+command is encountered. All
+.I nuweb
+commands start with an ``at-sign'' (@@).
+Files and macros are defined with the following commands:
+.PP
+@@o \fIfile-name flags  scrap\fP  where scrap is smaller than one page.
+.br
+@@O \fIfile-name flags  scrap\fP  where scrap is bigger than one page.
+.br
+@@d \fImacro-name scrap\fP. Where scrap is smallar than one page.
+.br
+@@D \fImacro-name scrap\fP. Where scrap is bigger than one page.
+.PP
+Scraps have specific begin and end
+markers;
+which begin and end marker you use determines how the scrap will be
+typeset in the .tex file:
+.br
+\fB@@{\fP...\fB@@}\fP for verbatim "terminal style" formatting
+.br
+\fB@@[\fP...\fB@@]\fP for LaTeX paragraph mode formatting, and
+.br
+\fB@@(\fP...\fB@@)\fP for LaTeX math mode formmating.
+.br
+Any amount of whitespace
+(including carriage returns) may appear between a name and the
+begining of a scrap.
+.PP
+Several code/file scraps may have the same name;
+.I nuweb
+concatenates their definitions to produce a single scrap.
+Code scrap definitions are like macro definitions;
+.I nuweb
+extracts a program by expanding one scrap.
+The definition of that scrap contains references to other scraps, which are
+themselves expanded, and so on.
+\fINuweb\fP's output is readable; it preserves the indentation of expanded
+scraps with respect to the scraps in which they appear.
+.PP
+@}
+@o nuweb.1 @{.SH PER FILE OPTIONS
+When defining an output file, the programmer has the option of using flags
+to control the output.
+.PP
+\fB-d\fR option,
+.I Nuweb
+will emit line number indications at scrap boundaries.
+.br
+\fB-i\fR option,
+.I Nuweb
+supresses the indentation of macros (useful for \fBFortran\fR).
+.br
+\fB-t\fP option makes \fInuweb\fP
+copy tabs untouched from input to output.
+.PP
+.SH MINOR COMMANDS
+.br
+@@@@ 	Causes a single ``at-sign'' to be copied into the output.
+.br
+@@i 	\fBfilename\fR causes the file named to be included.
+.br
+@@f 	Creates an index of output files.
+.br
+@@m 	Creates an index of macros.
+.br
+@@u 	Creates an index of user-specified identifiers.
+.PP
+To mark an identifier for inclusion in the index, it must be mentioned
+at the end of the scrap it was defined in. The line starts
+with @@| and ends with the \fBend of scrap\fP mark \fB@@}\fP.
+.PP
+.SH ERROR MESSAGES
+.PP
+.SH BUGS
+.PP
+.SH AUTHOR
+Preston Briggs.
+Internet address \fBpreston@@cs.rice.edu\fP.
+.SH MAINTAINER
+Marc Mengel.
+Internet address \fBmengel@@fnal.gov\fP.
+@}
+
+\chapter{Multilinguality} \label{multilinguality}
+
+The Amiga operating system (and maybe some other operating systems as
+well), starting with version~2.1, is inherently multilingual.  With the
+help of system catalogs, any decent program interface can be made sensitive
+to the language the user wants to be addressed with.  All terminal output
+strings and \LaTeX\ output strings were located and replaced by references
+to an external array \verb|AppStrings|.  The English defaults of these
+strings can be overwritten by the entries of translated catalogs.  The
+following include file \verb|cweb.h| contains a complete description of all
+strings used in this extended \verb|NUWEB| system.
+
+@d Include files
+@{#ifdef _AMIGA
+#include <proto/exec.h>
+#include <proto/locale.h>
+
+#define get_string(n) AppStrings[n].as_Str /* reference string n */
+
+#include "catalogs/nuweb.h"
+
+#ifndef STRINGARRAY
+struct AppString
+{
+  LONG   as_ID;
+  STRPTR as_Str;
+};
+
+extern struct AppString AppStrings[];
+#endif
+#endif
+@| get_string AppStrings as_Str STRINGARRAY AppString as_ID @}
+
+We need some handles to access the system library and the language catalogs.
+
+@d Global variable definitions
+@{#ifdef _AMIGA
+struct Library *LocaleBase; /* pointer to the locale library */
+struct Catalog *catalog; /* pointer to the external catalog, when present */
+int i; /* global counter for list of strings */
+#endif
+@| LocaleBase catalog @}
+
+@d Global variable declarations
+@{extern struct Library *LocaleBase;
+  /* pointer to the locale library */
+extern struct Catalog *catalog;
+  /* pointer to the external catalog, when present */
+extern int i;
+  /* global counter for list of strings */
+@}
+
+Version 2.1 or higher of the Amiga operating system (represented as
+internal version~38) will replace the complete set of terminal output
+strings by an external translation in accordance to the system default
+language.
+
+@d Use catalog translations
+@{@<Set up exit trap@>
+@<Set up interrupt handler@>
+
+if(LocaleBase = OpenLibrary("locale.library", 38L)) {
+  if(catalog = OpenCatalog(NULL, "nuweb.catalog", OC_BuiltInLanguage,
+                           "english", TAG_DONE)) {
+    for(i = MSG_WARNING_11B; i <= MSG_ERROR_62A2; i++)
+      AppStrings[i].as_Str = GetCatalogStr(catalog, i, AppStrings[i].as_Str);
+  }
+}
+@| OpenLibrary OpenCatalog @}
+
+At the end of the program and especially in case of an user break we must
+take care of the opened resources like system libraries and catalog files.
+ANSI-C provides ``exit traps'' and ``exception handlers'' for this purpose.
+\verb|atexit| returns \verb|NULL| if the trap is set up correctly and a code
+other than \verb|NULL| in case of error.  It is very important that the
+``exit traps'' {\em are\/} set up properly, so we better quit further
+processing in case of an error.
+
+@d Set up exit trap
+@{if(atexit(&CloseSystemResources))
+  exit(EXIT_FAILURE); /* Exit trap could not be set up */
+@| atexit @}
+
+It is essential to close the pointer references to the language catalog and
+to the system library before shutting down the program itself.  This
+program will only be left by calls to the \verb|exit| function, so we use
+a nice feature of the C language, socalled ``exit traps.''
+
+@d Function prototypes
+@{#ifdef _AMIGA
+extern void CloseSystemResources(void);
+#endif
+@| CloseSystemResources @}
+
+The only purpose of \verb|CloseSystemResources| is to take care of
+the opened files.
+
+@o global.c
+@{#ifdef _AMIGA
+void CloseSystemResources(void) {
+  if(LocaleBase) {
+    CloseCatalog(catalog);
+    CloseLibrary(LocaleBase);
+  }
+}
+#endif
+@| CloseCatalog CloseLibrary @}
+
+After the ``exit trap'' is set up, it is very convenient to add another
+feature of modern technology, the possibility to abort the program with
+``Control-C'' or ``Control-D''.  The C standard library provides a
+mechanism for this purpose with its \verb|signal| routine.
+
+@d Set up interrupt handler
+@{if(signal(SIGINT, &catch_break) == SIG_ERR)
+  exit(EXIT_FAILURE); /* Interrupt handler could not be set up */
+@| signal SIGINT SIG_ERR @}
+
+The \verb|signal| function and the macros for the interrupt codes are given
+in the following standard header file.
+
+@d Include files
+@{#ifdef _AMIGA
+#include <signal.h>
+#endif
+@}
+
+The action to be taken at the last moments of the run is quite simple,
+we only call \verb|exit|, thus activating the ``exit trap'' for
+resource handling.
+
+@d Function prototypes
+@{#ifdef _AMIGA
+extern void catch_break(int);
+#endif
+@| catch_break @}
+
+@o global.c
+@{#ifdef _AMIGA
+void catch_break(int dummy) {
+  exit(EXIT_FAILURE);
+}
+#endif
+@| dummy @}
+
+\chapter{Indexes} \label{indexes}
+
+Three sets of indexes can be created automatically: an index of file
 names, an index of macro names, and an index of user-specified
 identifiers. An index entry includes the name of the entry, where it
 was defined, and where it was referenced.
@@ -3587,7 +4117,7 @@ was defined, and where it was referenced.
 Knuth prints his index of identifiers in a two-column format.
 I could force this automatically by emitting the \verb|\twocolumn|
 command; but this has the side effect of forcing a new page.
-Therefore, it seems better to leave it this up to the user.
+Therefore, it seems better to leave this up to the user.
 
 @u
 
