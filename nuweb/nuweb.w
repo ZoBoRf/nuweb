@@ -1,4 +1,4 @@
-\documentstyle{report}
+\documentclass{report}
 \newif\ifshowcode
 \showcodetrue
 
@@ -15,11 +15,12 @@
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.} 
-\\ \sl preston@@cs.rice.edu
+\\ \sl preston@@tera.com
 \\ HTML scrap generator by John D. Ramsdell
 \\ \sl ramsdell@@mitre.org
-\\ scrap formatting by Marc W. Mengel
-\\ \sl mengel@@fnal.gov}
+\\ scrap formatting and continuing maintenance by Marc W. Mengel
+\\ \sl mengel@@fnal.gov
+\\ nuweb @@\% comments and LaTeX2e changes by \sl shilet@@hetnet.nl}
 
 \begin{document}
 \pagenumbering{roman}
@@ -231,6 +232,15 @@ may even occur before the full version; nuweb simply preserves the
 longest version of a macro name. Note also that blanks and tabs are
 insignificant in a macro name; any string of them are replaced by a
 single blank.
+
+Sometimes, for instance during program testing, it is convenient to comment
+out a few lines of code. In C or Fortran placing \verb|/* ... */| around the relevant
+code is not a robust solution, as the code itself may contain 
+comments. Nuweb provides the command
+\begin{quote}
+\verb|@@%| 
+\end{quote}only to be used inside scraps. It behaves exactly the same 
+as \verb|%| in the normal {\LaTeX} text body. 
 
 When scraps are written to a program file or a documentation file, tabs are
 expanded into spaces by default. Currently, I assume tab stops are set
@@ -1036,7 +1046,7 @@ $\langle$Interpret at-sequence {\footnotesize 18}$\rangle\equiv$
 \mbox{}\verb@@    default:  c = source_get();@@\\
 \mbox{}\verb@@              break;@@\\
 \mbox{}\verb@@  }@@\\
-\mbox{}\verb@@}@@$\Diamond$
+\mbox{}\verb@@}@@$\diamond$
 \end{list}
 \vspace{-1ex}
 \footnotesize\addtolength{\baselineskip}{-1ex}
@@ -1095,7 +1105,7 @@ might want to use italics or bold face in the midst of the name.
   fprintf(tex_file, " \\label{scrap%d}\n", scraps);
 }@}
 
-The interesting things here are the $\Diamond$ inserted at the end of
+The interesting things here are the $\diamond$ inserted at the end of
 each scrap and the various spacing commands. The diamond helps to
 clearly indicate the end of a scrap. The spacing commands were derived
 empirically; they may be adjusted to taste.
@@ -1104,7 +1114,7 @@ empirically; they may be adjusted to taste.
 @{{
   fputs("\\vspace{-1ex}\n\\begin{list}{}{} \\item\n", tex_file);
   copy_scrap(tex_file);
-  fputs("$\\Diamond$\n\\end{list}\n", tex_file);
+  fputs("$\\diamond$\n\\end{list}\n", tex_file);
 }@}
 
 \newpage
@@ -1247,7 +1257,7 @@ static void copy_scrap(file)
 
 @d Expand tab into spaces
 @{{
-  int delta = 8 - (indent % 8);
+  int delta = 3 - (indent % 3);
   indent += delta;
   while (delta > 0) {
     putc(' ', file);
@@ -1268,6 +1278,8 @@ static void copy_scrap(file)
 	      return;
     case '<': @<Format macro name@>
 	      break;
+    case '%': @<Skip out-commented code@>
+         break;
     default:  /* ignore these since pass1 will have warned about them */
 	      break;
   }
@@ -1285,6 +1297,13 @@ pointed out any during the first pass.
   } while (c != '}' && c != ']' && c != ')' );
 }@}
 
+@d Skip out-commented code...
+@{{
+        do
+                c = source_get();
+        while (c != '\n');
+        source_ungetc(&c);
+}@}
 
 @d Format macro name
 @{{
@@ -1811,6 +1830,8 @@ We must translate HTML special keywords into entities in scraps.
     case ')': return;
     case '<': @<Format HTML macro name@>
 	      break;
+    case '%': @<Skip out-commented code@>
+         break;
     default:  /* ignore these since pass1 will have warned about them */
 	      break;
   }
@@ -2144,6 +2165,16 @@ int source_get()
 }
 @| source_get source_last @}
 
+\verb|source_ungetc| pushes a read character back to the \verb|source_file|.
+@o input.c
+@{int source_ungetc(int *c)
+{       
+        ungetc(source_peek, source_file);
+	if(*c == '\n') 
+		source_line--;
+   source_peek=*c;
+}
+@|source_ungetc @}
 
 This whole \verb|@@|~character handling mess is pretty annoying.
 I want to recognize \verb|@@i| so I can handle include files correctly.
@@ -2167,6 +2198,7 @@ hence this whole unsatisfactory \verb|double_at| business.
       case 'd': case 'o': case 'D': case 'O':
       case '{': case '}': case '<': case '>': case '|':
       case '(': case ')': case '[': case ']':
+		case '%':
 		source_peek = c;
 		c = '@@';
 		break;
@@ -2464,6 +2496,9 @@ extern void write_single_scrap_ref();
 	      return scraps++;
     case '<': @<Handle macro invocation in scrap@>
 	      break;
+	 case '%': @<Skip out-commented code@>
+			c = source_get();
+         break;
     default : fprintf(stderr, "%s: unexpected @@%c in scrap (%s, %d)\n",
 		      command_name, c, source_name, source_line);
 	      exit(-1);
