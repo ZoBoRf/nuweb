@@ -3927,12 +3927,22 @@ produces,
 source for typeset documentation.
 .SH COMMAND LINE OPTIONS
 .br
-\fB-t\fP	Suppress generation of the \fB.tex\fP file.
+\fB-t\fP Suppresses generation of the {\tt .tex} file.
 .br
-\fB-o\fP	Suppress generation of the output file(s).
+\fB-o\fP Suppresses generation of the output files.
 .br
-\fB-c\fP	Avoid testing output files for change before updating them.
+\fB-d\fP list dangling scrap references in indexes.
 .br
+\fB-c\fP Forces output files to overwrite old files of the same
+  name without comparing for equality first.
+.br
+\fB-v\fP The verbose flag. Forces output of progress reports.
+.br
+\fB-n\fP Forces sequential numbering of scraps (instead of page
+  numbers).
+.br
+\fB-s\fP Doesn't print list of scraps making up file at end of
+  each scrap.
 .SH FORMAT OF NUWEB FILES
 A 
 .I nuweb 
@@ -3997,6 +4007,11 @@ copy tabs untouched from input to output.
 .SH MINOR COMMANDS
 .br
 @@@@ 	Causes a single ``at-sign'' to be copied into the output.
+.br
+@@\_ 	Causes the text between it and the next {\tt @@\_} to be made bold 
+	(for keywords, etc.) in the formatted document
+.br
+@@% 	Comments out a line so that it doesn't appear in the output.
 .br
 @@i 	\fBfilename\fR causes the file named to be included.
 .br
