@@ -3,7 +3,7 @@ CC = cc
 CFLAGS = -O -g
 
 TARGET = nuweb
-VERSION = 1.0b1
+VERSION = 1.0b2
 
 OBJS = main.o pass1.o latex.o html.o output.o input.o scraps.o names.o \
 	arena.o global.o
