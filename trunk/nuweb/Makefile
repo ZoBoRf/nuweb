@@ -31,12 +31,12 @@ all:
 	$(MAKE) $(TARGET)
 
 shar:	$(TARGET)doc.tex
-	shar Makefile README literate.bib nuweb.w \
+	shar Makefile README misc.bib nuweb.w \
 		$(TARGET)doc.tex $(SRCS) global.h \
 		 > $(TARGET)$(VERSION).sh
 
 tar:	$(TARGET)doc.tex
-	tar -cf $(TARGET)$(VERSION).tar Makefile README literate.bib nuweb.w \
+	tar -cf $(TARGET)$(VERSION).tar Makefile README misc.bib nuweb.w \
 		$(TARGET)doc.tex $(SRCS) global.h
 
 $(TARGET)doc.tex:	$(TARGET).tex

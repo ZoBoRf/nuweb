@@ -1,6 +1,39 @@
+% 
+% Copyright (c) 1996, Preston Briggs
+% All rights reserved.
+% 
+% Redistribution and use in source and binary forms, with or without 
+% modification, are permitted provided that the following conditions 
+% are met:
+% 
+% Redistributions of source code must retain the above copyright notice, 
+% this list of conditions and the following disclaimer.
+% 
+% Redistributions in binary form must reproduce the above copyright notice, 
+% this list of conditions and the following disclaimer in the documentation 
+% and/or other materials provided with the distribution.
+% 
+% Neither name of the product nor the names of its contributors may 
+% be used to endorse or promote products derived from this software without 
+% specific prior written permission. 
+% 
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+% ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+% FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS 
+% OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+% EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+% PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+% PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
+% OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+% NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+% SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+% 
 \documentclass{report}
 \newif\ifshowcode
 \showcodetrue
+
+%\usepackage{html}
 
 \setlength{\oddsidemargin}{0in}
 \setlength{\evensidemargin}{0in}
@@ -11,7 +44,7 @@
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 0.90 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 0.92 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.} 
@@ -19,8 +52,7 @@ through ONR grant N00014-91-J-1989.}
 \\ HTML scrap generator by John D. Ramsdell
 \\ \sl ramsdell@@mitre.org
 \\ scrap formatting and continuing maintenance by Marc W. Mengel
-\\ \sl mengel@@fnal.gov
-\\ nuweb @@\% comments and LaTeX2e changes by \sl shilet@@hetnet.nl}
+\\ \sl mengel@@fnal.gov}
 
 \begin{document}
 \pagenumbering{roman}
@@ -31,14 +63,14 @@ through ONR grant N00014-91-J-1989.}
 \pagenumbering{arabic}
 
 In 1984, Knuth introduced the idea of {\em literate programming\/} and
-described a pair of tools to support the practise~\cite{knuth:84}.
+described a pair of tools to support the practise~\cite{Knuth:CJ-27-2-97}.
 His approach was to combine Pascal code with \TeX\ documentation to
 produce a new language, \verb|WEB|, that offered programmers a superior
 approach to programming. He wrote several programs in \verb|WEB|,
 including \verb|weave| and \verb|tangle|, the programs used to support
 literate programming.
 The idea was that a programmer wrote one document, the web file, that
-combined documentation (written in \TeX~\cite{texbook}) with code
+combined documentation (written in \TeX~\cite{Knuth:ct-a}) with code
 (written in Pascal).
 
 Running \verb|tangle| on the web file would produce a complete
@@ -59,21 +91,21 @@ document.
 
 Knuth also wrote the programs for \TeX\ and {\small\sf METAFONT}
 entirely in \verb|WEB|, eventually publishing them in book
-form~\cite{tex:program,metafont:program}. These are probably the
+form~\cite{Knuth:ct-b,Knuth:ct-d}. These are probably the
 largest programs ever published in a readable form.
 
 Inspired by Knuth's example, many people have experimented with
 \verb|WEB|\@@. Some people have even built web-like tools for their
 own favorite combinations of programming language and typesetting
 language. For example, \verb|CWEB|, Knuth's current system of choice,
-works with a combination of C (or C++) and \TeX~\cite{levy:90}.
+works with a combination of C (or C++) and \TeX~\cite{Levy:TB8-1-12}.
 Another system, FunnelWeb, is independent of any programming language
-and only mildly dependent on \TeX~\cite{funnelweb}. Inspired by the
+and only mildly dependent on \TeX~\cite{Williams:FUM92}. Inspired by the
 versatility of FunnelWeb and by the daunting size of its
 documentation, I decided to write my own, very simple, tool for
 literate programming.%
 \footnote{There is another system similar to
-mine, written by Norman Ramsey, called {\em noweb}~\cite{noweb}. It
+mine, written by Norman Ramsey, called {\em noweb}~\cite{Ramsey:LPT92}. It
 perhaps suffers from being overly Unix-dependent and requiring several
 programs to use. On the other hand, its command syntax is very nice.
 In any case, nuweb certainly owes its name and a number of features to
@@ -82,7 +114,7 @@ his inspiration.}
 
 \section{Nuweb}
 
-Nuweb works with any programming language and \LaTeX~\cite{latex}. I
+Nuweb works with any programming language and \LaTeX~\cite{Lamport:LDP85}. I
 wanted to use \LaTeX\ because it supports a multi-level sectioning
 scheme and has facilities for drawing figures. I wanted to be able to
 work with arbitrary programming languages because my friends and I
@@ -438,6 +470,12 @@ de~Waleffe, and Scott Warren.  Of course, most of these people would
 never have heard or nuweb (or many other tools) without the efforts of
 George Greenwade.
 
+Since maintenanc has been taken over by Marc Mengel, online contributions
+have been made by:
+\begin{itemize}
+\item
+    shilet@@hetnet.nl
+\end{itemize}
 
 \ifshowcode
 \chapter{The Overall Structure}
@@ -581,14 +619,17 @@ int main(argc, argv)
      char **argv;
 {
   int arg = 1;
+  @<Avoid rename() problems@>
   @<Interpret command-line arguments@>
   @<Process the remaining arguments (file names)@>
   exit(0);
 }
 @| main @}
 
-We only have one major operating system dependency, the separators for
-file names.
+We only have two major operating system dependencies; the separators for
+file names, and how to set environment variables.  
+For now we assume the latter can be accomplished 
+via "putenv" in \verb|stdlib.h|.
 @d Operating System Dependencies @{
 #if defined(VMS)
 #define PATH_SEP(c) (c==']'||c==':')
@@ -597,6 +638,7 @@ file names.
 #else
 #define PATH_SEP(c) (c=='/')
 #endif
+#include <stdlib.h>
 @}
 \subsection{Command-Line Arguments}
 
@@ -1282,7 +1324,7 @@ static void copy_scrap(file)
 	      return;
     case '<': @<Format macro name@>
 	      break;
-    case '%': @<Skip out-commented code@>
+    case '%': @<Skip commented-out code@>
               break;
     case '_': @<Bold Keyword@>
               break;
@@ -1303,7 +1345,7 @@ pointed out any during the first pass.
   } while (c != '}' && c != ']' && c != ')' );
 }@}
 
-@d Skip out-commented code...
+@d Skip commented-out code...
 @{{
         do
                 c = source_get();
@@ -1850,9 +1892,11 @@ We must translate HTML special keywords into entities in scraps.
     case '}': 
     case ']': 
     case ')': return;
+    case '_': @<Write HTML bold tag or end@>
+              break;
     case '<': @<Format HTML macro name@>
 	      break;
-    case '%': @<Skip out-commented code@>
+    case '%': @<Skip commented-out code@>
          break;
     default:  /* ignore these since pass1 will have warned about them */
 	      break;
@@ -1913,6 +1957,17 @@ pointed out any during the first pass.
   c = source_get();
 }@}
 
+
+@d Write HTML bold tag or end 
+@{{
+     static int toggle;
+     toggle = ~toggle;
+     if( toggle ) {
+	fputs( "<b>", file );
+     } else {
+	fputs( "</b>", file );
+     }
+}@}
 
 @o html.c
 @{static void format_entry(name, html_file, file_flag)
@@ -2057,8 +2112,14 @@ pointed out any during the first pass.
 We call \verb|tempnam|, causing it to create a file name in the
 current directory.  This could cause a problem for \verb|rename| if
 the eventual output file will reside on a different file system.
-Perhaps it would be better to examine \verb|files->spelling| to find
-any directory information.
+
+To avoid this, we set the environment variable \verb|TMPDIR| to \verb|"."|
+at the beginning of the program.
+
+@d Avoid rename() problems 
+@{
+  putenv("TMPDIR=."); 
+@}
 
 Note the superfluous call to \verb|remove| before \verb|rename|.
 We're using it get around a bug in some implementations of
@@ -2518,7 +2579,7 @@ extern void write_single_scrap_ref();
 	      return scraps++;
     case '<': @<Handle macro invocation in scrap@>
 	      break;
-    case '%': @<Skip out-commented code@>
+    case '%': @<Skip commented-out code@>
  	      c = source_get();
               break;
     case '_': c = source_get();
@@ -3843,6 +3904,6 @@ Therefore, it seems better to leave it this up to the user.
 \fi
 
 \bibliographystyle{plain}
-\bibliography{literate}
+\bibliography{litprog,master,misc}
 
 \end{document}
