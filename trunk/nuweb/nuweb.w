@@ -1056,7 +1056,7 @@ There still is not, for example, an index of macro parameters.
 We need a data type to keep track of macro parameters.
 
 @o scraps.c
-@{typedef struct Param { int p[10]; struct param* parent;} *Parameters;
+@{typedef struct Param { int p[10]; struct Param* parent;} *Parameters;
 @| Parameters @}
 
 
@@ -2810,7 +2810,7 @@ hence this whole unsatisfactory \verb|double_at| business.
     do 
       c = getc(source_file);
     while (c == ' ' || c == '\t');
-    while (isgraph(c)) {
+    while (isgraph((signed char)c)) {
       *p++ = c;
       c = getc(source_file);
     }
@@ -4107,7 +4107,7 @@ void search()
 @d Search scraps
 @{{
   for (i=1; i<scraps; i++) {
-    char c;
+    signed char c;
     Manager reader;
     Goto_Node *state = NULL;
     reader.prev = NULL;
