@@ -596,6 +596,7 @@ construction of the \verb|.tex| file
 (see Section~\ref{latex-file}).
 @o latex.c
 @{#include "global.h"
+static int scraps = 1;
 @}
 
 The file \verb|html.c| contains the code controlling the
@@ -603,6 +604,7 @@ construction of the \verb|.tex| file appropriate for use with {\LaTeX}2HTML
 (see Section~\ref{html-file}).
 @o html.c
 @{#include "global.h"
+static int scraps = 1;
 @}
 
 The code controlling the creation of the output files is in \verb|output.c|
@@ -1117,7 +1119,6 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
 
 @d Copy \verb|source_file| into \verb|tex_file|
 @{{
-  int scraps = 1;
   int c = source_get();
   while (c != EOF) {
     if (c == nw_char)
@@ -1475,6 +1476,7 @@ static void copy_scrap(file)
   c = source_get();
   switch (c) {
     case '|': @<Skip over index entries@>
+    case ',':
     case ')':
     case ']':
     case '}': fputs(delimit_scrap[scrap_type][1], file);
@@ -1545,18 +1547,7 @@ This scrap helps deal with bold keywords:
   fputs(delimit_scrap[scrap_type][1],file);
   fprintf(file, "\\hbox{$\\langle\\,$%s\\nobreak\\ ", name->spelling);
   if (scrap_name_has_parameters) {
-     fputs("\\textbf{: }{\\tt ", file);
-     do {
-       do {
-          c = source_get();
-	  if (c != nw_char)
- 	     fputc(c,file);
-       } while ( c != nw_char );
-       c = source_get();
-       if (c != '>')
- 	     fputc(c,file);
-     } while ( c != '>' );
-     fputs("}",file);
+    @<Format macro parameters@>
   }
   fprintf(file, "{\\footnotesize ");
   if (name->defs)
@@ -1848,6 +1839,8 @@ name of the web source file and the name of the \verb|.tex| output file.
      char *html_name;
 {
   FILE *html_file = fopen(html_name, "w");
+  FILE *tex_file = html_file;
+  @<Write LaTeX limbo definitions@>
   if (html_file) {
     if (verbose_flag)
       fprintf(stderr, "writing %s\n", html_name);
@@ -1867,7 +1860,6 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
 
 @d Copy \verb|source_file| into \verb|html_file|
 @{{
-  int scraps = 1;
   int c = source_get();
   while (c != EOF) {
     if (c == nw_char)
@@ -2139,11 +2131,18 @@ We must translate HTML special keywords into entities in scraps.
   c = source_get();
   switch (c) {
     case '|': @<Skip over index entries@>
+    case ',': 
     case '}': 
     case ']': 
     case ')': return;
     case '_': @<Write HTML bold tag or end@>
               break;
+    case '1': case '2': case '3': 
+    case '4': case '5': case '6': 
+    case '7': case '8': case '9': 
+	      fputc(nw_char, file);
+	      fputc(c,   file);
+	      break;
     case '<': @<Format HTML macro name@>
 	      break;
     case '%': @<Skip commented-out code@>
@@ -2168,18 +2167,7 @@ pointed out any during the first pass.
   fputs("&lt;\\end{rawhtml}", file);
   fputs(name->spelling, file);
   if (scrap_name_has_parameters) {
-     fputs("\\textbf{: }{\\tt ",file);
-     do {
-       do {
-          c = source_get();
-	  if (c != nw_char)
- 	     fputc(c,file);
-       } while ( c != nw_char );
-       c = source_get();
-       if (c != '>')
- 	     fputc(c,file);
-     } while ( c != '>' );
-     fputs("}",file);
+    @<Format HTML macro parameters@>
   }
   fputs("\\begin{rawhtml} ", file);
   if (name->defs)
@@ -2819,46 +2807,12 @@ extern void write_single_scrap_ref();
 @o scraps.c
 @{int collect_scrap()
 {
+  int current_scrap;
   Manager writer;
   @<Create new scrap...@>
   @<Accumulate scrap and return \verb|scraps++|@>
 }
 @| collect_scrap @}
-
-@o scraps.c
-@{int collect_scrap_from_string(s)
-  char *s;
-{
-  Manager writer;
-  char namebuf[100];
-  char *p;
-  int c, oldc;
-  int in_name = 0;
-  Name *name;
-
-  @<Create new scrap...@>
-  oldc = 0;
-  while (0 != (c = *s++)) {
-    push(c, &writer);
-    if (oldc == nw_char && c == '>' || c == ':' ) {
-        p--;
-	*p = 0;
-	name = prefix_add(&macro_names, namebuf);
-	@<Add current scrap to \verb|name|'s uses@>
-    }
-    if (in_name) {
-	*p++ = c;
-    }
-    if (oldc == nw_char && c == '<' ) {
-	in_name = 1;
-        p = namebuf;
-    }
-    oldc = c;
-  }
-  push(0, &writer);
-  return scraps++;
-}
-@| collect_scrap_from_string @}
 
 @d Create new scrap, managed by \verb|writer|
 @{{
@@ -2872,6 +2826,7 @@ extern void write_single_scrap_ref();
   scrap_array(scraps).letter = 0;
   writer.scrap = scrap;
   writer.index = 0;
+  current_scrap = scraps++;
 }@}
 
 
@@ -2881,8 +2836,8 @@ extern void write_single_scrap_ref();
   while (1) {
     switch (c) {
       case EOF: fprintf(stderr, "%s: unexpect EOF in (%s, %d)\n",
-			command_name, scrap_array(scraps).file_name,
-			scrap_array(scraps).file_line);
+			command_name, scrap_array(current_scrap).file_name,
+			scrap_array(current_scrap).file_line);
 		exit(-1);
       default:  
         if (c==nw_char)
@@ -2902,10 +2857,12 @@ extern void write_single_scrap_ref();
   c = source_get();
   switch (c) {
     case '|': @<Collect user-specified index entries@>
+    case ',':
     case ')':
     case ']':
     case '}': push('\0', &writer);
-	      return scraps++;
+	      scrap_ended_with = c;
+	      return current_scrap;
     case '<': @<Handle macro invocation in scrap@>
 	      break;
     case '%': @<Skip commented-out code@>
@@ -2950,9 +2907,9 @@ extern void write_single_scrap_ref();
       } while (c != nw_char && !isspace(c));
       *p = '\0';
       name = name_add(&user_names, new_name);
-      if (!name->defs || name->defs->scrap != scraps) {
+      if (!name->defs || name->defs->scrap != current_scrap) {
 	Scrap_Node *def = (Scrap_Node *) arena_getmem(sizeof(Scrap_Node));
-	def->scrap = scraps;
+	def->scrap = current_scrap;
 	def->next = name->defs;
 	name->defs = def;
       }
@@ -2971,10 +2928,12 @@ extern void write_single_scrap_ref();
 @{{
   Name *name = collect_scrap_name();
   @<Save macro name@>
+  @<Add current scrap to \verb|name|'s uses@>
   if (scrap_name_has_parameters) {
     @<Save macro parameters @>
   }
-  @<Add current scrap to \verb|name|'s uses@>
+  push(nw_char, &writer);
+  push('>', &writer);
   c = source_get();
 }@}
 
@@ -2993,31 +2952,13 @@ extern void write_single_scrap_ref();
     pushs("...", &writer);
   else
     push(*s, &writer);
-  if (!scrap_name_has_parameters) {
-      push(nw_char, &writer);
-      push('>', &writer);
-  }
 }@}
-
-@d Save macro parameters 
-@{
-  push(nw_char, &writer);
-  push(':', &writer);
-  do {
-     do {
-	c=source_get();
-        push(c, &writer);
-     } while (c != nw_char && c != EOF);
-     c=source_get();
-     push(c, &writer);
-  } while (c != '>' && c != EOF);
-@}
 
 @d Add current scrap to...
 @{{
-  if (!name->uses || name->uses->scrap != scraps) {
+  if (!name->uses || name->uses->scrap != current_scrap) {
     Scrap_Node *use = (Scrap_Node *) arena_getmem(sizeof(Scrap_Node));
-    use->scrap = scraps;
+    use->scrap = current_scrap;
     use->next = name->uses;
     name->uses = use;
   }
@@ -3052,53 +2993,6 @@ We need a data type to keep track of macro parameters.
 @{typedef int *Parameters;
 @| Parameters @}
 
-And a routine to generate one of them from a array of character
-pointers:
-
-@o scraps.c
-@{
-Parameters
-copy_parameters(char **ppp) {
-    Parameters res = malloc(10 * sizeof(int));
-    char **p1 = ppp; 
-    int *p2 = res;
-    int count = 0;
-
-    while (p1 && *p1) {
-        *p2 = collect_scrap_from_string(*p1);
-	count++;
-	p2++;
-	p1++;
-    }
-    while (count < 10) {
-        *p2++ = 0;
-	count++;
-    }
-    return res;
-}
-
-Parameters
-print_parameters( parameters ) 
-  Parameters parameters;
-{
-  Manager reader;
-  int *p = parameters;
-  char c;
-
-  printf("debug: parameters:\n");
-  while (p && *p) {
-    printf("scrap %d:", *p);
-    reader.scrap = scrap_array(*p).slab;
-    reader.index = 0;
-    while( c = pop(&reader) ) {
- 	fputc(c,stdout);
-    }
-    printf("\n");
-    p++;
-  }
-  printf("\n");
-}
-@| copy_parameters @}
 
 When we are copying a scrap to the output, we can then pull
 the $n$th string from the \verb|Parameters| list when we
@@ -3120,74 +3014,146 @@ see an \verb|@@1| \verb|@@2|, etc.
 	      break;
 @}
 Now onto actually parsing macro parameters from a call.
-We start off checking for macro parameters, an \verb|@@:| sequence 
-followed by parameters separated by \verb|@@|, sequences.  
+We start off checking for macro parameters, an \verb|@@(| sequence 
+followed by parameters separated by \verb|@@,| sequences, and
+terminated by a \verb|@@)| sequence.
 
-We have a \verb|parms| buffer to hold parameters, an array of pointers
-to paramters \verb|ppp|, and a pointer into the paramter buffer
-\verb|pp|, and a count of parameters \verb|np|.
+We collect separate scraps for each parameter, and write the
+scrap numbers down in the text. For example, if the file has:
+\begin{verbatim}
+   @@<foo @@( param1 @@, param2 @@)@@>
+\end{verbatim}
+we actually make new scraps, say 10 and 11, for param1 and param2, 
+and write in the collected scrap:
+\begin{verbatim}
+   @@<foo @@(10@@,11@@)@@>
+\end{verbatim}
+
+@d Save macro parameters 
+@{{ 
+  int param_scrap;
+  char param_buf[10];
+
+  push(nw_char, &writer);
+  push('(', &writer);
+  do {
+     
+     param_scrap = collect_scrap();
+     sprintf(param_buf, "%d", param_scrap);
+     pushs(param_buf, &writer);
+     push(nw_char, &writer);
+     push(scrap_ended_with, &writer);
+     @<Add current scrap to...@>
+  } while( scrap_ended_with == ',' );
+  do
+    c = source_get();
+  while( ' ' == c );
+  if (c == nw_char) {
+    c = source_get();
+  }
+  if (c != '>') {
+    /* ZZZ print error */;
+  }
+}@}
 
 If we get inside, we have at least one parameter, which will be at
 the beginning of the parms buffer, and we prime the pump with the
 first character.
 
-Then we go into a loop, putting characters into the buffer,
-and checking for \verb|@@|, and \verb|@@>| seqences.  In
-the case of the former, we move on to the next parameter,
-in the case of the latter, we end the parameter list, and
-push back the sequence for the other code to find.
-
-This needs work for the case where we run out of room in the
-parameter buffer, and needs to copy the parameters and 
-return them somehow.
-
 @d Check for macro parameters
 @{
-  if (c == ':') {
-#define PLEN 256
-      static char parms[PLEN]; 
-      char *ppp[10];
-      char *pp;
-      int np;
-      int sawend;
+  if (c == '(') {
+    Parameters res = malloc(10 * sizeof(int));
+    int *p2 = res;
+    int count = 0;
+    int scrapnum;
 
-      pp = parms;		
-      np = 1;		
-      ppp[np - 1] = pp; 
+    while( c && c != ')' ) {
+      scrapnum = 0;
       c = pop(manager);
-      sawend = 0;
-
-      while ( pp - parms < PLEN ) {
-	if ( c == nw_char ) {
-	  c = pop(manager);
-	  if ( c == ',' ) {
-	    c = pop(manager);
-	    np++;
-	    *pp++ = 0;
-	    ppp[np - 1] = pp;
-	  } else if ( c == '>' ) {
-	    ppp[np] = 0;
-	    *pp++ = 0;
-	    sawend = 1;
-	    break;
-	  }
-        }
-	*pp++ = c;
+      while( '0' <= c && c <= '9' ) {
+	scrapnum = scrapnum  * 10 + c - '0';
 	c = pop(manager);
       }
-      if (!sawend) {
-	 fprintf(stderr, "%s: macro parameters too long (%s, line %d)\n",
-		 command_name, source_name, source_line);
-	 while(nw_char != pop(manager)) {
-	     ;
-         }
-	 c = pop(manager);
-      } else {
-	 *parameters = copy_parameters(ppp); 
+      if ( c == nw_char ) {
+	c = pop(manager);
       }
+      *p2++ = scrapnum;
+    }
+    while (count < 10) {
+      *p2++ = 0;
+      count++;
+    }
+    while( c && c != nw_char ) {
+	c = pop(manager);
+    }
+    if ( c == nw_char ) {
+      c = pop(manager);
+    }
+    *parameters = res;
   }
 @}
 
+This is used in both write_tex and write_html to output the
+argument list for a macro.
+
+@d Format macro parameters
+@{
+   char sep;
+
+   sep = '(';
+   do {
+     fputc(sep,file);
+
+     fputs("{\\footnotesize ", file);
+     write_single_scrap_ref(file, scraps);
+     fputs("}", file);
+
+     source_last = '{';
+     copy_scrap(file);
+
+     fprintf(file, " \\label{scrap%d}\n", scraps);
+     ++scraps;
+
+     sep = ',';
+   } while ( source_last != ')' && source_last != EOF );
+   fputs(" ) ",file);
+   do 
+     c = source_get();
+   while(c != nw_char && c != EOF);
+   if (c == nw_char) {
+     c = source_get();
+   }
+@}
+
+@d Format HTML macro parameters
+@{
+   char sep;
+
+   sep = '(';
+   fputs("\\begin{rawhtml}", file);
+   do {
+
+     fputc(sep,file);
+     
+     fprintf(file, "%d <A NAME=\"#nuweb%d\"></A>", scraps, scraps);
+
+     source_last = '{';
+     copy_scrap(file);
+
+     ++scraps;
+     sep = ',';
+
+   } while ( source_last != ')' && source_last != EOF );
+   fputs(" ) ",file);
+   do 
+     c = source_get();
+   while(c != nw_char && c != EOF);
+   if (c == nw_char) {
+     c = source_get();
+   }
+   fputs("\\end{rawhtml}", file);
+@}
 
 @o scraps.c
 @{static Name *pop_scrap_name(manager, parameters)
@@ -3449,6 +3415,7 @@ return them somehow.
 extern Name *macro_names;
 extern Name *user_names;
 extern int scrap_name_has_parameters;
+extern int scrap_ended_with;
 @| file_names macro_names user_names @}
 
 @d Global variable def...
@@ -3456,6 +3423,7 @@ extern int scrap_name_has_parameters;
 Name *macro_names = NULL;
 Name *user_names = NULL;
 int scrap_name_has_parameters;
+int scrap_ended_with;
 @}
 
 @d Function pro...
@@ -3852,7 +3820,7 @@ Terminated by \verb+@@>+
   c = source_get();
   switch (c) {
 
-    case ':': 
+    case '(': 
 	scrap_name_has_parameters = 1;
 	@<Cleanup and install name@>
     case '>': 
