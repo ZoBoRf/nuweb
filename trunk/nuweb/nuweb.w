@@ -470,11 +470,13 @@ de~Waleffe, and Scott Warren.  Of course, most of these people would
 never have heard or nuweb (or many other tools) without the efforts of
 George Greenwade.
 
-Since maintenanc has been taken over by Marc Mengel, online contributions
+Since maintenance has been taken over by Marc Mengel, online contributions
 have been made by:
 \begin{itemize}
 \item
-    shilet@@hetnet.nl
+    Nicky van Foreest <n.d.vanforeest@@math.utwente.nl>
+\item
+    Walter Brown <wb@fnal.gov>
 \end{itemize}
 
 \ifshowcode
