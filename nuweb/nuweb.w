@@ -11,13 +11,15 @@
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 0.87b \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 0.90 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.} 
 \\ \sl preston@@cs.rice.edu
 \\ HTML scrap generator by John D. Ramsdell
-\\ \sl ramsdell@@mitre.org}
+\\ \sl ramsdell@@mitre.org
+\\ scrap formatting by Marc W. Mengel
+\\ \sl mengel@@fnal.gov}
 
 \begin{document}
 \pagenumbering{roman}
@@ -92,13 +94,15 @@ programming languages has many consequences:
   pretty print the code sections of their documents because they
   understand the language well enough to parse it. Since we want to use
   {\em any\/} language, we've got to abandon this feature.
+  However, we do allow particular individual formulas or fragments
+  of \LaTeX\ code to be formatted and still be parts of output files.
 \item[No index of identifiers] Because \verb|WEB| knows about Pascal,
   it is able to construct an index of all the identifiers occurring in
   the code sections (filtering out keywords and the standard type
   identifiers). Unfortunately, this isn't as easy in our case. We don't
   know what an identifiers looks like in each language and we certainly
   don't know all the keywords. (On the other hand, see the end of
-  Section~1.3)
+  Section~\ref{minorcommands})
 \end{description}
 Of course, we've got to have some compensation for our losses or the
 whole idea would be a waste. Here are the advantages I can see:
@@ -116,6 +120,8 @@ whole idea would be a waste. Here are the advantages I can see:
   is to provide ways to control the formatting. Our approach is
   simpler---we perform no automatic formatting and therefore allow the
   programmer complete control of code layout.
+  We do allow individual scraps to be presented in either verbatim,
+  math, or paragraph mode in the \TeX\ output.
 \item[Control] We also offer the programmer complete control of the
   layout of his output files (the files generated during tangling). Of
   course, this is essential for languages that are sensitive to layout;
@@ -191,7 +197,16 @@ the beginning of a scrap.
 \begin{description}
 \item[\tt @@\{{\em anything\/}@@\}] where the scrap body includes every
   character in {\em anything\/}---all the blanks, all the tabs, all the
-  carriage returns.
+  carriage returns.  This scrap will be typeset in verbatim mode.
+\item[\tt @@[{\em anything\/}@@]] where the scrap body includes every
+  character in {\em anything\/}---all the blanks, all the tabs, all the
+  carriage returns.  This scrap will be typeset in paragraph mode, allowing
+  sections of \TeX\ documents to be scraps, but still  be pretty printed
+  in the document.
+\item[\tt @@({\em anything\/}@@)] where the scrap body includes every
+  character in {\em anything\/}---all the blanks, all the tabs, all the
+  carriage returns.  This scrap will be typeset in math mode.  This allows
+  this scrap to have a formula which will be typeset nicely.
 \end{description}
 Inside a scrap, we may invoke a macro.
 \begin{description}
@@ -249,7 +264,7 @@ single document. There are three ``per-file'' flags:
 \end{description}
 
 
-\subsection{The Minor Commands}
+\subsection{The Minor Commands\label{minorcommands}}
 
 We have two very low-level utility commands that may appear anywhere
 in the web file.
@@ -545,7 +560,9 @@ The main routine is quite simple in structure.
 It wades through the optional command-line arguments,
 then handles any files listed on the command line.
 @o main.c
-@{int main(argc, argv)
+@{
+@<Operating System Dependencies@>
+int main(argc, argv)
      int argc;
      char **argv;
 {
@@ -556,7 +573,17 @@ then handles any files listed on the command line.
 }
 @| main @}
 
-
+We only have one major operating system dependency, the separators for
+file names.
+@d Operating System Dependencies @{
+#if defined(VMS)
+#define PATH_SEP(c) (c==']'||c==':')
+#elif defined(MSDOS)
+#define PATH_SEP(c) (c=='\\')
+#else
+#define PATH_SEP(c) (c=='/')
+#endif
+@}
 \subsection{Command-Line Arguments}
 
 There are five possible command-line arguments:
@@ -707,7 +734,7 @@ this scrap.
   char c = *p++;
   while (c) {
     *q++ = c;
-    if (c == '/') {
+    if (PATH_SEP(c)) {
       trim = q;
       dot = NULL;
     }
@@ -1172,19 +1199,38 @@ a scrap will not be indented. Again, this is a matter of personal taste.
 
 We add a \verb|\mbox{}| at the beginning of each line to avoid
 problems with older versions of \TeX.
+This is the only place we really care whether a scrap is
+delimited with \verb|@@{...@@}|, \verb|@@[...@@]|, or \verb|@@(...@@)|,
+and we base our output sequences on that.
 
 @o latex.c
-@{static void copy_scrap(file)
+@{static char *delimit_scrap[3][5] = {
+  { "\\verb@@", "@@", "@@{\\tt @@}\\verb@@", "\\mbox{}", "\\\\" },
+  { "", "", "@@", "", "" },
+  { "$", "$", "@@", "", "" },
+};
+int scrap_type = 0;
+
+static void copy_scrap(file)
      FILE *file;
 {
   int indent = 0;
-  int c = source_get();
-  fputs("\\mbox{}\\verb@@", file);
+  int c;
+  if (source_last == '{') scrap_type = 0;
+  if (source_last == '[') scrap_type = 1;
+  if (source_last == '(') scrap_type = 2;
+  c = source_get();
+  fputs(delimit_scrap[scrap_type][3], file);
+  fputs(delimit_scrap[scrap_type][0], file);
   while (1) {
     switch (c) {
       case '@@':  @<Check at-sequence for end-of-scrap@>
 		 break;
-      case '\n': fputs("@@\\\\\n\\mbox{}\\verb@@", file);
+      case '\n': fputs(delimit_scrap[scrap_type][1], file);
+                 fputs(delimit_scrap[scrap_type][4], file);
+                 fputs("\n", file);
+                 fputs(delimit_scrap[scrap_type][3], file);
+                 fputs(delimit_scrap[scrap_type][0], file);
 		 indent = 0;
 		 break;
       case '\t': @<Expand tab into spaces@>
@@ -1196,7 +1242,7 @@ problems with older versions of \TeX.
     c = source_get();
   }
 }
-@| copy_scrap @}
+@| copy_scrap delimit_scrap scrap_type @}
 
 
 @d Expand tab into spaces
@@ -1213,10 +1259,12 @@ problems with older versions of \TeX.
 @{{
   c = source_get();
   switch (c) {
-    case '@@': fputs("@@{\\tt @@}\\verb@@", file);
+    case '@@': fputs(delimit_scrap[scrap_type][2], file);
 	      break;
     case '|': @<Skip over index entries@>
-    case '}': putc('@@', file);
+    case ')':
+    case ']':
+    case '}': fputs(delimit_scrap[scrap_type][1], file);
 	      return;
     case '<': @<Format macro name@>
 	      break;
@@ -1234,14 +1282,15 @@ pointed out any during the first pass.
       c = source_get();
     while (c != '@@');
     c = source_get();
-  } while (c != '}');
+  } while (c != '}' && c != ']' && c != ')' );
 }@}
 
 
 @d Format macro name
 @{{
   Name *name = collect_scrap_name();
-  fprintf(file, "@@$\\langle$%s {\\footnotesize ", name->spelling);
+  fputs(delimit_scrap[scrap_type][1],file);
+  fprintf(file, "\\hbox{$\\langle$%s {\\footnotesize ", name->spelling);
   if (name->defs)
     @<Write abbreviated definition list@>
   else {
@@ -1249,7 +1298,8 @@ pointed out any during the first pass.
     fprintf(stderr, "%s: scrap never defined <%s>\n",
 	    command_name, name->spelling);
   }
-  fputs("}$\\rangle$\\verb@@", file);
+  fputs("}$\\rangle$}", file);
+  fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
 
@@ -1756,7 +1806,9 @@ We must translate HTML special keywords into entities in scraps.
     case '@@': fputc(c, file);
 	      break;
     case '|': @<Skip over index entries@>
-    case '}': return;
+    case '}': 
+    case ']': 
+    case ')': return;
     case '<': @<Format HTML macro name@>
 	      break;
     default:  /* ignore these since pass1 will have warned about them */
@@ -2029,6 +2081,7 @@ We need two routines to handle reading the source files.
 @d Function pro...
 @{extern void source_open(); /* pass in the name of the source file */
 extern int source_get();   /* no args; returns the next char or EOF */
+extern int source_last;   /* what last source_get() returned. */
 @}
 
 
@@ -2070,10 +2123,15 @@ The routine \verb|source_get| returns the next character from the
 current source file. It notices newlines and keeps the line counter 
 \verb|source_line| up to date. It also catches \verb|EOF| and watches
 for \verb|@@|~characters. All other characters are immediately returned.
+We define \verb|source_last| to let us tell which type of scrap we
+are defining.
 @o input.c
-@{int source_get()
+@{
+int source_last;
+int source_get()
 {
-  int c = source_peek;
+  int c;
+  source_last = c = source_peek;
   switch (c) {
     case EOF:  @<Handle \verb|EOF|@>
 	       return c;
@@ -2084,7 +2142,7 @@ for \verb|@@|~characters. All other characters are immediately returned.
 	       return c;
   }
 }
-@| source_get @}
+@| source_get source_last @}
 
 
 This whole \verb|@@|~character handling mess is pretty annoying.
@@ -2108,6 +2166,7 @@ hence this whole unsatisfactory \verb|double_at| business.
       case 'f': case 'm': case 'u':
       case 'd': case 'o': case 'D': case 'O':
       case '{': case '}': case '<': case '>': case '|':
+      case '(': case ')': case '[': case ']':
 		source_peek = c;
 		c = '@@';
 		break;
@@ -2399,6 +2458,8 @@ extern void write_single_scrap_ref();
 	      c = source_get();
 	      break;
     case '|': @<Collect user-specified index entries@>
+    case ')':
+    case ']':
     case '}': push('\0', &writer);
 	      return scraps++;
     case '<': @<Handle macro invocation in scrap@>
@@ -2435,7 +2496,7 @@ extern void write_single_scrap_ref();
     }
   } while (c != '@@');
   c = source_get();
-  if (c != '}') {
+  if (c != '}' && c != ']' && c != ')' ) {
     fprintf(stderr, "%s: unexpected @@%c in scrap (%s, %d)\n",
 	    command_name, c, source_name, source_line);
     exit(-1);
@@ -2955,7 +3016,7 @@ skipping white space until we reach scrap.
   char name[100];
   char *p = name;
   int start_line = source_line;
-  int c = source_get();
+  int c = source_get(), c2;
   while (isspace(c))
     c = source_get();
   while (isgraph(c)) {
@@ -2970,8 +3031,9 @@ skipping white space until we reach scrap.
   *p = '\0';
   new_name = name_add(&file_names, name);
   @<Handle optional per-file flags@>
-  if (c != '@@' || source_get() != '{') {
-    fprintf(stderr, "%s: expected @@{ after file name (%s, %d)\n",
+  c2 = source_get();
+  if (c != '@@' || (c2 != '{' && c2 != '(' && c2 != '[')) {
+    fprintf(stderr, "%s: expected @@{, @@[, or @@( after file name (%s, %d)\n",
 	    command_name, source_name, start_line);
     exit(-1);
   }
@@ -3014,7 +3076,7 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   char name[100];
   char *p = name;
   int start_line = source_line;
-  int c = source_get();
+  int c = source_get(), c2;
   while (isspace(c))
     c = source_get();
   while (c != EOF) {
@@ -3047,6 +3109,8 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   switch (c) {
     case '@@': *p++ = c;
 	      break;
+    case '(':
+    case '[':
     case '{': @<Cleanup and install name@>
     default:  fprintf(stderr,
 		      "%s: unexpected @@%c in macro name (%s, %d)\n",
@@ -3079,7 +3143,8 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   do
     c = source_get();
   while (isspace(c));
-  if (c != '@@' || source_get() != '{') {
+  c2 = source_get();
+  if (c != '@@' || (c2 != '{' && c2 != '(' && c2 != '[')) {
     fprintf(stderr, "%s: expected @@{ after macro name (%s, %d)\n",
 	    command_name, source_name, start_line);
     exit(-1);
@@ -3566,6 +3631,130 @@ back to the first empty chunk.
 }
 @| arena_free @}
 
+\chapter{Man page}
+
+Here is the UNIX man page for nuweb:
+
+@O nuweb.1 @{.TH NUWEB 1 "local 3/22/95"
+.SH NAME
+Nuweb, a literate programming tool
+.SH SYNOPSIS
+.B nuweb
+.br
+\fBnuweb\fP [\fB-t\fP|\fB-c\fP|\fB-o\fP] [file] ...
+.SH DESCRIPTION
+.I Nuweb
+is a literate programming tool like Knuth's
+.I WEB,
+only simpler.
+A 
+.I nuweb
+file contains program source code interleaved with documentation.
+When 
+.I nuweb
+is given a 
+.I nuweb
+file, it writes the program file(s),
+and also 
+produces,
+.I LaTeX
+source for typeset documentation.
+.SH COMMAND LINE OPTIONS
+.br
+\fB-t\fP	Suppress generation of the \fB.tex\fP file.
+.br
+\fB-o\fP	Suppress generation of the output file(s).
+.br
+\fB-c\fP	Avoid testing output files for change before updating them.
+.br
+.SH FORMAT OF NUWEB FILES
+A 
+.I nuweb 
+file contains mostly ordinary
+.I LaTeX.
+The file is read and copied to output (.tex file) unless a
+.I nuweb
+command is encountered. All 
+.I nuweb
+commands start with an ``at-sign'' (@@). 
+Files and macros are defined with the following commands:
+.PP
+@@o \fIfile-name flags  scrap\fP  where scrap is smaller than one page.
+.br
+@@O \fIfile-name flags  scrap\fP  where scrap is bigger than one page.
+.br
+@@d \fImacro-name scrap\fP. Where scrap is smallar than one page.
+.br
+@@D \fImacro-name scrap\fP. Where scrap is bigger than one page.
+.PP
+Scraps have specific begin and end 
+markers;
+which begin and end marker you use determines how the scrap will be
+typeset in the .tex file:
+.br
+\fB@@{\fP...\fB@@}\fP for verbatim "terminal style" formatting
+.br
+\fB@@[\fP...\fB@@]\fP for LaTeX paragraph mode formatting, and
+.br
+\fB@@(\fP...\fB@@)\fP for LaTeX math mode formmating.
+.br
+Any amount of whitespace
+(including carriage returns) may appear between a name and the
+begining of a scrap.
+.PP
+Several code/file scraps may have the same name;
+.I nuweb
+concatenates their definitions to produce a single scrap.
+Code scrap definitions are like macro definitions;
+.I nuweb
+extracts a program by expanding one scrap.
+The definition of that scrap contains references to other scraps, which are 
+themselves expanded, and so on.
+\fINuweb\fP's output is readable; it preserves the indentation of expanded
+scraps with respect to the scraps in which they appear.
+.PP
+.SH PER FILE OPTIONS
+When defining an output file, the programmer has the option of using flags
+to control the output.
+.PP
+\fB-d\fR option, 
+.I Nuweb
+will emit line number indications at scrap boundaries.
+.br
+\fB-i\fR option, 
+.I Nuweb
+supresses the indentation of macros (useful for \fBFortran\fR).
+.br
+\fB-t\fP option makes \fInuweb\fP 
+copy tabs untouched from input to output.
+.PP
+.SH MINOR COMMANDS
+.br
+@@@@ 	Causes a single ``at-sign'' to be copied into the output.
+.br
+@@i 	\fBfilename\fR causes the file named to be included.
+.br
+@@f 	Creates an index of output files.
+.br
+@@m 	Creates an index of macros.
+.br
+@@u 	Creates an index of user-specified identifiers.
+.PP
+To mark an identifier for inclusion in the index, it must be mentioned
+at the end of the scrap it was defined in. The line starts
+with @@| and ends with the \fBend of scrap\fP mark \fB@@}\fP.
+.PP
+.SH ERROR MESSAGES
+.PP
+.SH BUGS
+.PP
+.SH AUTHOR
+Preston Briggs.
+Internet address \fBpreston@@cs.rice.edu\fP.
+.SH MAINTAINER
+Marc Mengel.
+Internet address \fBmengel@@fnal.gov\fP.
+@}
 
 \chapter{Indices} \label{indices}
 
