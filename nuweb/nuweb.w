@@ -86,7 +86,7 @@ Running \verb|weave| on the web file would produce a \TeX\ file, ready
 to be processed by \TeX\@@. The resulting document included a variety of
 automatically generated indices and cross-references that made it much
 easier to navigate the code. Additionally, all of the code sections
-were automatically pretty printed, resulting in a quite impressive
+were automatically prettyprinted, resulting in a quite impressive
 document. 
 
 Knuth also wrote the programs for \TeX\ and {\small\sf METAFONT}
@@ -123,8 +123,8 @@ several languages), {\em e.g.,} C, Fortran, C++, yacc, lex, Scheme,
 assembly, Postscript, and so forth. The need to support arbitrary
 programming languages has many consequences:
 \begin{description}
-\item[No pretty printing] Both \verb|WEB| and \verb|CWEB| are able to
-  automatically pretty print the code sections of their documents because they
+\item[No prettyprinting] Both \verb|WEB| and \verb|CWEB| are able to
+  prettyprint the code sections of their documents because they
   understand the language well enough to parse it. Since we want to use
   {\em any\/} language, we've got to abandon this feature.
   However, we do allow particular individual formulas or fragments
@@ -135,7 +135,7 @@ programming languages has many consequences:
   it is able to construct an index of all the identifiers occurring in
   the code sections (filtering out keywords and the standard type
   identifiers). Unfortunately, this isn't as easy in our case. We don't
-  know what an identifiers looks like in each language and we certainly
+  know what an identifier looks like in each language and we certainly
   don't know all the keywords. (On the other hand, see the end of
   Section~\ref{minorcommands})
 \end{description}
@@ -143,14 +143,14 @@ Of course, we've got to have some compensation for our losses or the
 whole idea would be a waste. Here are the advantages I can see:
 \begin{description}
 \item[Simplicity] The majority of the commands in \verb|WEB| are
-  concerned with control of the automatic pretty printing. Since we
-  don't pretty print, many commands are eliminated. A further set of
+  concerned with control of the automatic prettyprinting. Since we
+  don't prettyprint, many commands are eliminated. A further set of
   commands is subsumed by \LaTeX\  and may also be eliminated. As a
   result, our set of commands is reduced to only four members (explained
   in the next section). This simplicity is also reflected in
   the size of this tool, which is quite a bit smaller than the tools
   used with other approaches.
-\item[No pretty printing] Everyone disagrees about how their code
+\item[No prettyprinting] Everyone disagrees about how their code
   should look, so automatic formatting annoys many people. One approach
   is to provide ways to control the formatting. Our approach is
   simpler---we perform no automatic formatting and therefore allow the
@@ -162,12 +162,12 @@ whole idea would be a waste. Here are the advantages I can see:
   course, this is essential for languages that are sensitive to layout;
   but it is also important in many practical situations, {\em e.g.,}
   debugging.
-\item[Speed] Since nuweb doesn't do to much, the nuweb tool runs
+\item[Speed] Since nuweb doesn't do too much, the nuweb tool runs
   quickly. I combine the functions of \verb|tangle| and \verb|weave| into
   a single program that performs both functions at once.
 \item[Page numbers] Inspired by the example of noweb, nuweb refers to
   all scraps by page number to simplify navigation. If there are
-  multiple scraps on a page (say page~17), they are distinguished by
+  multiple scraps on a page (say, page~17), they are distinguished by
   lower-case letters ({\em e.g.,} 17a, 17b, and so forth).
 \item[Multiple file output] The programmer may specify more than one
   output file in a single nuweb file. This is required when constructing
@@ -192,7 +192,7 @@ since \verb|make| will avoid recompiling untouched output files.
 
 In addition to producing {\LaTeX} source, nuweb can be used to
 generate HyperText Markup Language (HTML), the markup language used by
-the World Wide Web.  HTML provides hypertext links.  When a HTML
+the World Wide Web.  HTML provides hypertext links.  When an HTML
 document is viewed online, a user can navigate within the document by
 activating the links.  The tools which generate HTML automatically
 produce hypertext links from a nuweb source.
@@ -202,7 +202,7 @@ produce hypertext links from a nuweb source.
 
 The bulk of a nuweb file will be ordinary \LaTeX\@@. In fact, any
 {\LaTeX} file can serve as input to nuweb and will be simply copied
-through unchanged to the documentation file---unless a nuweb command
+through, unchanged, to the documentation file---unless a nuweb command
 is discovered. All nuweb commands begin with an ``at-sign''
 (\verb|@@|).  Therefore, a file without at-signs will be copied
 unchanged.  Nuweb commands are used to specify {\em output files,}
@@ -221,7 +221,7 @@ Files and macros are defined with the following commands:
 \end{description}
 A specific file may be specified several times, with each definition
 being written out, one after the other, in the order they appear.
-The definitions of macros may be similarly divided.
+The definitions of macros may be similarly specified piecemeal.
 
 \subsubsection{Scraps}
 
@@ -236,12 +236,12 @@ the beginning of a scrap.
 \item[\tt @@[{\em anything\/}@@]] where the scrap body includes every
   character in {\em anything\/}---all the blanks, all the tabs, all the
   carriage returns.  This scrap will be typeset in paragraph mode, allowing
-  sections of \TeX\ documents to be scraps, but still  be pretty printed
+  sections of \TeX\ documents to be scraps, but still  be prettyprinted
   in the document.
 \item[\tt @@({\em anything\/}@@)] where the scrap body includes every
   character in {\em anything\/}---all the blanks, all the tabs, all the
   carriage returns.  This scrap will be typeset in math mode.  This allows
-  this scrap to have a formula which will be typeset nicely.
+  this scrap to contain a formula which will be typeset nicely.
 \end{description}
 Inside a scrap, we may invoke a macro.
 \begin{description}
@@ -251,7 +251,7 @@ Inside a scrap, we may invoke a macro.
 \end{description}
 Note that macro names may be abbreviated, either during invocation or
 definition. For example, it would be very tedious to have to
-repeatedly type the macro name
+type, repeatedly, the macro name
 \begin{quote}
 \verb|@@d Check for terminating at-sequence and return name if found|
 \end{quote}
@@ -260,11 +260,11 @@ abbreviated names.
 \begin{quote}
 \verb|@@d Check for terminating...|
 \end{quote}
-Basically, the programmer need only type enough characters to uniquely
-identify the macro name, followed by three periods. An abbreviation
+Basically, the programmer need only type enough characters to
+identify the macro name uniquely, followed by three periods. An abbreviation
 may even occur before the full version; nuweb simply preserves the
 longest version of a macro name. Note also that blanks and tabs are
-insignificant in a macro name; any string of them are replaced by a
+insignificant within a macro name; each string of them is replaced by a
 single blank.
 
 Sometimes, for instance during program testing, it is convenient to comment
@@ -297,10 +297,10 @@ single document. There are three ``per-file'' flags:
 \item[\tt -d] Forces the creation of \verb|#line| directives in the
   output file. These are useful with C (and sometimes C++ and Fortran) on
   many Unix systems since they cause the compiler's error messages to
-  refer to the web file rather than the output file. Similarly, they
+  refer to the web file rather than to the output file. Similarly, they
   allow source debugging in terms of the web file.
 \item[\tt -i] Suppresses the indentation of macros. That is, when a
-  macro is expanded in a scrap, it will {\em not\/} be indented to
+  macro is expanded within a scrap, it will {\em not\/} be indented to
   match the indentation of the macro invocation. This flag would seem
   most useful for Fortran programmers.
 \item[\tt -t] Suppresses expansion of tabs in the output file. This
@@ -482,16 +482,16 @@ have been made by:
 
 Processing a web requires three major steps:
 \begin{enumerate}
-\item Read the source, accumulating file names, macro names, scraps,
-and lists of cross-references.
-\item Reread the source, copying out to the documentation file, with
-protection and cross-reference information for all the scraps.
-\item Traverse the list of files names. For each file name:
-\begin{enumerate}
-\item Dump all the defining scraps into a temporary file. 
-\item If the file already exists and is unchanged, delete the
-temporary file; otherwise, rename the temporary file.
-\end{enumerate}
+  \item Read the source, accumulating file names, macro names, scraps,
+    and lists of cross-references.
+  \item Reread the source, copying out to the documentation file, with
+    protection and cross-reference information for all the scraps.
+  \item Traverse the list of files names. For each file name:
+  \begin{enumerate}
+    \item Dump all the defining scraps into a temporary file. 
+    \item If the file already exists and is unchanged, delete the
+      temporary file; otherwise, rename the temporary file.
+  \end{enumerate}
 \end{enumerate}
 
 
@@ -926,9 +926,9 @@ discovered.
 
 There are three steps required to handle a definition:
 \begin{enumerate}
-\item Build an entry for the name so we can look it up later.
-\item Collect the scrap and save it in the table of scraps.
-\item Attach the scrap to the name.
+  \item Build an entry for the name so we can look it up later.
+  \item Collect the scrap and save it in the table of scraps.
+  \item Attach the scrap to the name.
 \end{enumerate}
 We go through the same steps for both file names and macro names.
 @d Build output file definition
@@ -1192,7 +1192,7 @@ a scrap will not be indented. Again, this is a matter of personal taste.
     fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
     fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
-    fputs("\\item File defined by scraps ", tex_file);
+    fputs("\\item File defined by ", tex_file);
     print_scrap_numbers(tex_file, name->defs);
     fputs("\\end{list}\n", tex_file);
   }
@@ -1207,7 +1207,7 @@ a scrap will not be indented. Again, this is a matter of personal taste.
   fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
   fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
   if (name->defs->next) {
-    fputs("\\item Macro defined by scraps ", tex_file);
+    fputs("\\item Macro defined by ", tex_file);
     print_scrap_numbers(tex_file, name->defs);
   }
 }@}
@@ -1216,11 +1216,11 @@ a scrap will not be indented. Again, this is a matter of personal taste.
 @{{
   if (name->uses) {
     if (name->uses->next) {
-      fputs("\\item Macro referenced in scraps ", tex_file);
+      fputs("\\item Macro referenced in ", tex_file);
       print_scrap_numbers(tex_file, name->uses);
     }
     else {
-      fputs("\\item Macro referenced in scrap ", tex_file);
+      fputs("\\item Macro referenced in ", tex_file);
       write_single_scrap_ref(tex_file, name->uses->scrap);
       fputs(".\n", tex_file);
     }
@@ -1350,7 +1350,6 @@ pointed out any during the first pass.
         do
                 c = source_get();
         while (c != '\n');
-        source_ungetc(&c);
 }@}
 
 This scrap helps deal with bold keywords:
@@ -1378,7 +1377,7 @@ This scrap helps deal with bold keywords:
     @<Write abbreviated definition list@>
   else {
     putc('?', file);
-    fprintf(stderr, "%s: scrap never defined <%s>\n",
+    fprintf(stderr, "%s: never defined <%s>\n",
 	    command_name, name->spelling);
   }
   fputs("}$\\rangle$}", file);
@@ -1459,7 +1458,7 @@ This scrap helps deal with bold keywords:
 @d Write file's defining scrap numbers
 @{{
   Scrap_Node *p = name->defs;
-  fputs("{\\footnotesize Defined by scrap", tex_file);
+  fputs("{\\footnotesize Defined by", tex_file);
   if (p->next) {
     fputs("s ", tex_file);
     print_scrap_numbers(tex_file, p);
@@ -1493,7 +1492,7 @@ This scrap helps deal with bold keywords:
   Scrap_Node *p = name->uses;
   fputs("{\\footnotesize ", tex_file);
   if (p) {
-    fputs("Referenced in scrap", tex_file);
+    fputs("Referenced in", tex_file);
     if (p->next) {
       fputs("s ", tex_file);
       print_scrap_numbers(tex_file, p);
@@ -1836,9 +1835,6 @@ end the paragraph.
      FILE *html_file;
      Scrap_Node *scraps;
 {
-  fputs("scrap", html_file);
-  if (scraps->next) fputc('s', html_file);
-  fputc(' ', html_file);
   display_scrap_numbers(html_file, scraps);
   fputs(".\n", html_file);
 }
@@ -1914,7 +1910,7 @@ pointed out any during the first pass.
     @<Write HTML abbreviated definition list@>
   else {
     putc('?', file);
-    fprintf(stderr, "%s: scrap never defined <%s>\n",
+    fprintf(stderr, "%s: never defined <%s>\n",
 	    command_name, name->spelling);
   }
   fputs("&gt;", file);
@@ -2551,7 +2547,7 @@ extern void write_single_scrap_ref();
   int c = source_get();
   while (1) {
     switch (c) {
-      case EOF: fprintf(stderr, "%s: unexpect EOF in scrap (%s, %d)\n",
+      case EOF: fprintf(stderr, "%s: unexpect EOF in (%s, %d)\n",
 			command_name, scrap_array(scraps).file_name,
 			scrap_array(scraps).file_line);
 		exit(-1);
@@ -2584,7 +2580,7 @@ extern void write_single_scrap_ref();
               break;
     case '_': c = source_get();
 	      break;
-    default : fprintf(stderr, "%s: unexpected @@%c in scrap (%s, %d)\n",
+    default : fprintf(stderr, "%s: unexpected @@%c in (%s, %d)\n",
 		      command_name, c, source_name, source_line);
 	      exit(-1);
   }
@@ -2617,7 +2613,7 @@ extern void write_single_scrap_ref();
   } while (c != '@@');
   c = source_get();
   if (c != '}' && c != ']' && c != ')' ) {
-    fprintf(stderr, "%s: unexpected @@%c in scrap (%s, %d)\n",
+    fprintf(stderr, "%s: unexpected @@%c in (%s, %d)\n",
 	    command_name, c, source_name, source_line);
     exit(-1);
   }
@@ -3250,7 +3246,7 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
     p -= 2;
   }
   if (p == name || name[0] == ' ') {
-    fprintf(stderr, "%s: empty scrap name (%s, %d)\n",
+    fprintf(stderr, "%s: empty name (%s, %d)\n",
 	    command_name, source_name, source_line);
     exit(-1);
   }
