@@ -54,10 +54,10 @@
 %    to unsigned char (bad solution, since unsigned char should be used for numerical
 %    purposes) or attention should be payed to all char-int conversions. (including
 %    comparisons)
-%  --2002-01-15: the TILDE modificiation is necessary because some ties have been
-%   introduced in version 0.93 in troublesome places when the babel package is used
-%   with the spanish.ldf option (which makes ~ an active character).
-%  --2002-01-15: an ``s'' was being added to the NWtxtDefBy and NWtxtDefBy
+% --2002-01-15: the TILDE modificiation is necessary because some ties have been
+%   introduced in version 0.93 in troublesome places when the babel package is 
+%   used with the spanish.ldf option (which makes ~ an active character).
+% --2002-01-15: an ``s'' was being added to the NWtxtDefBy and NWtxtDefBy
 %   messages when followed by more than one reference.
 
 \documentclass{report}
