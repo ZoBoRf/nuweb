@@ -2570,11 +2570,16 @@ will overwrite the file.
 Note: I've modified this on 2001-02-15 for compilation
 for Win32 with Borland C++ (assuming \verb|MSDOS| is defined). The second
 argument to \verb|tempname| cannot be null in that system.
+@d Type dec...
+@{
+#define MAX_INDENT 500
+@}
+
 @d Write out \verb|files->spelling|
 @{{
   static char temp_name[] = "nw000000";
   static int temp_name_count = 0;
-  char indent_chars[500];
+  char indent_chars[MAX_INDENT];
   int temp_file_fd;
   FILE *temp_file;
 
@@ -3270,8 +3275,10 @@ extern void write_single_scrap_ref();
              break;
            }         
           putc(c, file);
-          indent_chars[global_indent + indent] = ' ';
-          indent++;
+	  if (global_indent + indent < MAX_INDENT) {
+             indent_chars[global_indent + indent] = ' ';
+             indent++;
+	  }
           break;
     }
     c = pop(&reader);
@@ -3307,8 +3314,10 @@ extern void write_single_scrap_ref();
     @<Expand tab...@>
   else {
     putc('\t', file);
-    indent_chars[global_indent + indent] = '\t';
-    indent++;
+    if (global_indent + indent < MAX_INDENT) {
+        indent_chars[global_indent + indent] = '\t';
+        indent++;
+    }
   }
 }@}
 
@@ -3326,8 +3335,10 @@ extern void write_single_scrap_ref();
           if(c==nw_char)
             {
               putc(c, file);
-              indent_chars[global_indent + indent] = ' ';
-              indent++;
+              if (global_indent + indent < MAX_INDENT) {
+                 indent_chars[global_indent + indent] = ' ';
+                 indent++;
+	      }
               break;
             }
           /* ignore, since we should already have a warning */
