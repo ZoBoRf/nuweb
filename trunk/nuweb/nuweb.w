@@ -2259,9 +2259,10 @@ at the beginning of the program.
   putenv("TMPDIR=."); 
 @}
 
-Note the superfluous call to \verb|remove| before \verb|rename|.
-We're using it get around a bug in some implementations of
-\verb|rename|.
+Note the call to \verb|remove| before \verb|rename| --
+The ANSI/ISO C standard does {\em not}
+guarantee that renaming a file to an existing filename 
+will overwrite the file. 
 
 @d Write out \verb|files->spelling|
 @{{
@@ -3907,7 +3908,7 @@ Nuweb, a literate programming tool
 .SH SYNOPSIS
 .B nuweb
 .br
-\fBnuweb\fP [\fB-t\fP|\fB-c\fP|\fB-o\fP] [file] ...
+\fBnuweb\fP [options] [file] ...
 .SH DESCRIPTION
 .I Nuweb
 is a literate programming tool like Knuth's
