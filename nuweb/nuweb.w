@@ -1145,6 +1145,7 @@ first character.
         c = pop(manager);
       }
       *p2++ = scrapnum;
+      count++;
     }
     while (count < 10) {
       *p2++ = 0;
@@ -2585,7 +2586,7 @@ argument to \verb|tempname| cannot be null in that system.
        break;
     }
 #else
-    if (0 != (temp_file = fopen(temp_name, "a"))) {
+    if (0 != (temp_file = fopen(temp_name, "w"))) {
        if ( 0L == ftell(temp_file)) {
           break;
        } else {
@@ -2609,7 +2610,8 @@ argument to \verb|tempname| cannot be null in that system.
     @<Compare the temp file and the old file@>
   else {
     remove(files->spelling);
-    rename(temp_name, files->spelling);
+    if (rename(temp_name, files->spelling) == -1)
+	remove(temp_name);
   }
 }@}
 
@@ -3267,10 +3269,10 @@ extern void write_single_scrap_ref();
              @<Check for macro invocation in scrap@>
              break;
            }         
-         putc(c, file);
-                 indent_chars[global_indent + indent] = ' ';
-                 indent++;
-                 break;
+          putc(c, file);
+          indent_chars[global_indent + indent] = ' ';
+          indent++;
+          break;
     }
     c = pop(&reader);
   }
