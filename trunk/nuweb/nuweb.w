@@ -44,7 +44,7 @@
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 0.90 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 0.92 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.} 
@@ -619,14 +619,17 @@ int main(argc, argv)
      char **argv;
 {
   int arg = 1;
+  @<Avoid rename() problems@>
   @<Interpret command-line arguments@>
   @<Process the remaining arguments (file names)@>
   exit(0);
 }
 @| main @}
 
-We only have one major operating system dependency, the separators for
-file names.
+We only have two major operating system dependencies; the separators for
+file names, and how to set environment variables.  
+For now we assume the latter can be accomplished 
+via "putenv" in \verb|stdlib.h|.
 @d Operating System Dependencies @{
 #if defined(VMS)
 #define PATH_SEP(c) (c==']'||c==':')
@@ -635,6 +638,7 @@ file names.
 #else
 #define PATH_SEP(c) (c=='/')
 #endif
+#include <stdlib.h>
 @}
 \subsection{Command-Line Arguments}
 
@@ -2108,8 +2112,14 @@ pointed out any during the first pass.
 We call \verb|tempnam|, causing it to create a file name in the
 current directory.  This could cause a problem for \verb|rename| if
 the eventual output file will reside on a different file system.
-Perhaps it would be better to examine \verb|files->spelling| to find
-any directory information.
+
+To avoid this, we set the environment variable \verb|TMPDIR| to \verb|"."|
+at the beginning of the program.
+
+@d Avoid rename() problems 
+@{
+  putenv("TMPDIR=."); 
+@}
 
 Note the superfluous call to \verb|remove| before \verb|rename|.
 We're using it get around a bug in some implementations of
