@@ -1056,7 +1056,7 @@ There still is not, for example, an index of macro parameters.
 We need a data type to keep track of macro parameters.
 
 @o scraps.c
-@{typedef int *Parameters;
+@{typedef struct Param { int p[10]; struct param* parent;} *Parameters;
 @| Parameters @}
 
 
@@ -1068,12 +1068,13 @@ see an \verb|@@1| \verb|@@2|, etc.
     case '1': case '2': case '3': 
     case '4': case '5': case '6':
     case '7': case '8': case '9':
-              if ( parameters && parameters[c - '1'] ) {
+              if ( parameters && parameters->p[c - '1'] ) {
                 Scrap_Node param_defs;
-                param_defs.scrap = parameters[c - '1'];
+                param_defs.scrap = parameters->p[c - '1'];
                 param_defs.next = 0;
                 write_scraps(file, &param_defs, global_indent + indent,
-                          indent_chars, debug_flag, tab_flag, indent_flag, 0);
+                          indent_chars, debug_flag, tab_flag, indent_flag, 
+				parameters? parameters->parent : 0);
               } else {
                 /* ZZZ need error message here */
               }
@@ -1129,11 +1130,12 @@ first character.
 @d Check for macro parameters
 @{
   if (c == '(') {
-    Parameters res = arena_getmem(10 * sizeof(int));
-    int *p2 = res;
+    Parameters res = arena_getmem(sizeof(struct Param));
+    int *p2 = res->p;
     int count = 0;
     int scrapnum;
 
+    res->parent = 0;
     while( c && c != ')' ) {
       scrapnum = 0;
       c = pop(manager);
@@ -3350,6 +3352,9 @@ extern void write_single_scrap_ref();
 @d Copy macro into...
 @{{
   Name *name = pop_scrap_name(&reader, &local_parameters);
+  if (local_parameters) {
+    local_parameters->parent = parameters;
+  }
   if (name->mark) {
     fprintf(stderr, "%s: recursive macro discovered involving <%s>\n",
             command_name, name->spelling);
