@@ -31,6 +31,11 @@
 % 
 
 % Notes:
+% Updates on 2004-02-13 from Gregor Goldbach <glauschwuffel@@users.sourceforge.net>
+% -- new command line option -l which will make nuweb typeset scraps with the
+%    help of LaTeX's listings packages instead or pure verbatim.
+% -- man page corrections and additions.
+% Notes:
 % Updates on 2003-04-24 from Keith Harwood <vitalmis@@bigpond.net.au>
 % -- sectioning commands (@@s and global-plus-sign in scrap names)
 % -- @@x..@@x labelling
@@ -74,6 +79,8 @@
 \usepackage{latexsym}
 %\usepackage{html}
 
+\usepackage{listings}
+
 \setlength{\oddsidemargin}{0in}
 \setlength{\evensidemargin}{0in}
 \setlength{\topmargin}{0in}
@@ -83,7 +90,9 @@
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 1.0b1 \\ A Simple Literate Programming Tool}
+\lstset{extendedchars=true,keepspaces=true,language=C}
+
+\title{Nuweb Version 1.1 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.} 
@@ -520,7 +529,20 @@ There are several additional command-line flags:
 \item[\tt -d] Print "dangling" identifiers -- user identifiers which
   are never referenced, in indices, etc.
 \item[\tt -p \it path] Prepend \textit{path} to the filenames for
-all the output files.
+  all the output files.
+\item[\texttt{-l}] \label{sec:pretty-print} Use the \texttt{listings}
+   package for formatting scraps. Use this if you want to have a
+   pretty-printer for your scraps. In order to e.g. have pretty Perl
+   scraps, include the following \LaTeX\ commands in your document:
+   \lstset{language=[LaTeX]TeX}
+ 
+ \begin{lstlisting}{language={[LaTeX]TeX}}
+ \usepackage{listings}
+ ...
+ \lstset{extendedchars=true,keepspaces=true,language=perl}
+ \end{lstlisting}
+
+ See the \texttt{listings} documentation for a list of formatting options.
 \end{description}
 
 \section{Generating HTML}
@@ -639,8 +661,9 @@ We'll need at least five of the standard system include files.
 #include <string.h>
 #include <ctype.h>
 #include <signal.h>
+#include <locale.h>
 @| FILE stderr exit fprintf fputs fopen fclose getc putc strlen
-toupper isupper islower isgraph isspace tempnam remove malloc size_t @}
+toupper isupper islower isgraph isspace tempnam remove malloc size_t getenv set_locale@}
 
 
 \newpage
@@ -752,6 +775,8 @@ int main(argc, argv)
   int arg = 1;
   @<Avoid rename() problems@>
   @<Interpret command-line arguments@>
+  @<Set locale information@>
+  initialise_delimit_scrap_array();
   @<Process the remaining arguments (file names)@>
   exit(0);
 }
@@ -809,7 +834,8 @@ extern int dangling_flag;    /* if FALSE, don't print dangling flags */
 extern int prepend_flag;  /* If TRUE, prepend a path to the output file names */
 extern char * dirpath;    /* The prepended directory path */
 extern char * path_sep;   /* How to join path to filename */
-@| tex_flag html_flag output_flag compare_flag verbose_flag number_flag scrap_flag dangling_flag@}
+extern int listings_flag;   /* if TRUE, use listings package for scrap formatting */
+@| tex_flag html_flag output_flag compare_flag verbose_flag number_flag scrap_flag dangling_flag listings_flag@}
 
 The flags are all initialized for correct default behavior.
 
@@ -825,6 +851,7 @@ int dangling_flag = FALSE;
 int prepend_flag = FALSE;
 char * dirpath = DEFAULT_PATH; /* Default directory path */
 char * path_sep = PATH_SEP_CHAR;
+int listings_flag = FALSE;
 @}
 
 A global variable \verb|nw_char| will be used for the nuweb
@@ -889,9 +916,11 @@ we've got to loop through the string, handling them all.
                 break;
       case 'p': prepend_flag = TRUE;
                 break;
+      case 'l': listings_flag = TRUE;
+                break;
       default:  fprintf(stderr, "%s: unexpected argument ignored.  ",
                         command_name);
-                fprintf(stderr, "Usage is: %s [-cnotv] [-p path] file...\n",
+                fprintf(stderr, "Usage is: %s [-clnotv] [-p path] file...\n",
                         command_name);
                 break;
     }
@@ -907,6 +936,25 @@ we've got to loop through the string, handling them all.
 }
 @}
 
+In order to be able to process files in foreign languages we
+set the locale information. \texttt{isgraph()} and friends need
+this (see Section~\ref{names}).
+Try to read \texttt{LC\_CTYPE} from the environment. Use \texttt{LC\_ALL}
+if that fails. Don't set the locale if reading \texttt{LC\_ALL} fails, too.
+Print a warning if setting the program's locale failes.
+@d Set locale information @{
+{
+  /* try to get locale information */
+  char *s=getenv("LC_CTYPE");
+  if (s==NULL) s=getenv("LC_ALL");
+
+  /* set it */
+  if (s!=NULL)
+    if(setlocale(LC_CTYPE, s)==NULL)
+      fprintf(stderr, "Setting locale failed\n");
+}
+@| getenv setlocale @}
+
 
 \subsection{File Names}
 
@@ -917,7 +965,7 @@ the usage convention.
 @{{
   if (arg >= argc) {
     fprintf(stderr, "%s: expected a file name.  ", command_name);
-    fprintf(stderr, "Usage is: %s [-cnotv] [-p path] file-name...\n", command_name);
+    fprintf(stderr, "Usage is: %s [-clnotv] [-p path] file-name...\n", command_name);
     exit(-1);
   }
   do {
@@ -1197,10 +1245,10 @@ skipped:
         break;
      default:
         if (c != nw_char) {
-	   fprintf(stderr, "%s: unexpected %c%c in text at (%s, %d)\n",
-	                   command_name, nw_char, c, source_name, source_line);
-	   exit(-1);
-	}
+           fprintf(stderr, "%s: unexpected %c%c in text at (%s, %d)\n",
+                           command_name, nw_char, c, source_name, source_line);
+           exit(-1);
+        }
         break;
    }
 }
@@ -1244,7 +1292,7 @@ see an \verb|@@1| \verb|@@2|, etc.
                 param_defs.next = 0;
                 write_scraps(file, spelling, &param_defs, global_indent + indent,
                           indent_chars, debug_flag, tab_flag, indent_flag, 
-				parameters? parameters->parent : 0);
+                                parameters? parameters->parent : 0);
               } else {
                 /* ZZZ need error message here */
               }
@@ -1747,8 +1795,15 @@ This is the only place we really care whether a scrap is
 delimited with \verb|@@{...@@}|, \verb|@@[...@@]|, or \verb|@@(...@@)|,
 and we base our output sequences on that.
 
-@O latex.c
-@{static char *delimit_scrap[3][5] = {
+We have an array \texttt{delimit\_scrap} where we store our strings
+that perform the formatting for one line of a scrap. Upon
+initialisation we copy our strings from the source
+\texttt{orig\_delimit\_scrap} to it to have the strings writeable. We
+might change the strings later when we encounter the command to change
+the `nuweb character'.
+
+@o latex.c
+@{static char *orig_delimit_scrap[3][5] = {
   /* {} mode: begin, end, insert nw_char, prefix, suffix */
   { "\\verb@@", "@@", "@@{\\tt @@}\\verb@@", "\\mbox{}", "\\\\" },
   /* [] mode: begin, end, insert nw_char, prefix, suffix */
@@ -1756,13 +1811,56 @@ and we base our output sequences on that.
   /* () mode: begin, end, insert nw_char, prefix, suffix */
   { "$", "$", "@@", "", "" },
 };
-int scrap_type = 0;
+
+static char *delimit_scrap[3][5];
+@}
+
+The function \texttt{initialise\_delimit\_scrap\_array} does the
+copying. If we want to have the listings package \index{listings package}
+do the formatting we have to replace only two of those strings: the
+\texttt{verb} command has to be replaced by the package's \texttt{lstinline}
+command.
+
+@o latex.c
+@{void initialise_delimit_scrap_array() {
+  int i,j;
+  for(i = 0; i < 3; i++) {
+    for(j = 0; j < 5; j++) {
+      if((delimit_scrap[i][j] = strdup(orig_delimit_scrap[i][j])) == NULL) {
+        fprintf(stderr, "Not enough memory for string allocation\n");
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
+  /* replace verb by lstinline */
+  if (listings_flag == TRUE) {
+    free(delimit_scrap[0][0]);
+    if((delimit_scrap[0][0]=strdup("\\lstinline@@")) == NULL) {
+      fprintf(stderr, "Not enough memory for string allocation\n");
+      exit(EXIT_FAILURE);
+    }
+    free(delimit_scrap[0][2]);
+    if((delimit_scrap[0][2]=strdup("@@{\\tt @@}\\lstinline@@")) == NULL) {
+      fprintf(stderr, "Not enough memory for string allocation\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+}
+@}
+
+@d Function prototypes
+@{void initialise_delimit_scrap_array(void);
+@}
+
+@O latex.c
+@{int scrap_type = 0;
 
 void update_delimit_scrap()
 {
   static int been_here_before = 0;
 
-
+#if 0
   if (!been_here_before) {
      int i,j;
      /* make sure strings are writable first */
@@ -1772,15 +1870,27 @@ void update_delimit_scrap()
         }
      }
   }
+#endif
+
   /* {}-mode begin */
-  delimit_scrap[0][0][5] = nw_char;
+  if (listings_flag == TRUE) {
+    delimit_scrap[0][0][10] = nw_char;
+  } else {
+    delimit_scrap[0][0][5] = nw_char;
+  }
   /* {}-mode end */
   delimit_scrap[0][1][0] = nw_char;
   /* {}-mode insert nw_char */
+
   delimit_scrap[0][2][0] = nw_char;
   delimit_scrap[0][2][6] = nw_char;
-  delimit_scrap[0][2][13] = nw_char;
-  
+
+  if (listings_flag == TRUE) {
+    delimit_scrap[0][2][18] = nw_char;
+  } else {
+    delimit_scrap[0][2][13] = nw_char;
+  }  
+
   /* []-mode insert nw_char */
   delimit_scrap[1][2][0] = nw_char;
 
@@ -1829,7 +1939,6 @@ static void copy_scrap(file, prefix)
 @d Function prototypes
 @{void update_delimit_scrap();
 @}
-
 
 @d Expand tab into spaces
 @{{
@@ -2135,9 +2244,9 @@ unsigned char sector;
     }
     if (has_sector(user_names, sector)) {
        fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
-	     tex_file);
+             tex_file);
        fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
-	 format_user_entry(user_names, tex_file, sector);
+         format_user_entry(user_names, tex_file, sector);
        fputs("\\end{list}}", tex_file);
     }
 }@}
@@ -3325,7 +3434,7 @@ extern void write_single_scrap_ref();
     case ']':
     case '}': if (--depth > 0)
                 break;
-	      /* else fall through */
+              /* else fall through */
     case ',':
               push('\0', &writer);
               scrap_ended_with = c;
@@ -3610,10 +3719,10 @@ if (!name->defs || name->defs->scrap != current_scrap) {
              break;
            }         
           putc(c, file);
-	  if (global_indent + indent < MAX_INDENT) {
+          if (global_indent + indent < MAX_INDENT) {
              indent_chars[global_indent + indent] = ' ';
              indent++;
-	  }
+          }
           break;
     }
     c = pop(&reader);
@@ -3688,7 +3797,7 @@ may be needed when the next macro is started.
               if (global_indent + indent < MAX_INDENT) {
                  indent_chars[global_indent + indent] = ' ';
                  indent++;
-	      }
+              }
               break;
             }
           /* ignore, since we should already have a warning */
@@ -4577,9 +4686,9 @@ void search()
       if (last == nw_char)
       {
          if (c == '>')
-	    n--;
-	 else if (c == '<')
-	    n++;
+            n--;
+         else if (c == '<')
+            n++;
       }
    }while (n > 0);
 }
@@ -4846,21 +4955,21 @@ lbl->seq = ++lblseq;
          int cmp = label_name[0] - lbl->name[0];
 
          if (cmp == 0)
-	    cmp = strcmp(label_name + 1, lbl->name + 1);
-	 if (cmp < 0)
-	    plbl = &lbl->left;
-	 else if (cmp > 0)
-	    plbl = &lbl->right;
-	 else
-	 {
-	    @1
-	    break;
-	 }
+            cmp = strcmp(label_name + 1, lbl->name + 1);
+         if (cmp < 0)
+            plbl = &lbl->left;
+         else if (cmp > 0)
+            plbl = &lbl->right;
+         else
+         {
+            @1
+            break;
+         }
       }
       else
       {
           @2
-	  break;
+          break;
       }
    }
 }
@@ -5040,7 +5149,11 @@ source for typeset documentation.
 .br
 \fB-s\fP Doesn't print list of scraps making up file at end of
   each scrap.
+.br
 \fB-p path\fP Prepend path to the filenames for all the output files.
+.br
+\fB-l\fP Format scraps with LaTeX's listings package.
+.br
 .SH FORMAT OF NUWEB FILES
 A 
 .I nuweb 
@@ -5126,6 +5239,10 @@ with @@| and ends with the \fBend of scrap\fP mark \fB@@}\fP.
 .SH ERROR MESSAGES
 .PP
 .SH BUGS
+.PP
+.SH NOTES
+\fInuweb\fP's home is \fBhttp://nuweb.sourceforge.net/\fP. Go there
+for complete documentation and source code.
 .PP
 .SH AUTHOR
 Preston Briggs.
