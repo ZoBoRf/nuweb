@@ -3375,8 +3375,8 @@ extern void write_single_scrap_ref();
 @d Collect user-specified index entries
 @{{
   do {
+    int type = c;
     do {
-      int type = c;
     char new_name[100];
     char *p = new_name;
       unsigned int sector = 0;
@@ -3566,7 +3566,7 @@ if (!name->defs || name->defs->scrap != current_scrap) {
      char indent_flag;
      Parameters parameters;
 {
-  /* This is in file @f */
+  /* This is in file @@f */
   int indent = 0;
   while (defs) {
     @<Copy \verb|defs->scrap| to \verb|file|@>
@@ -4440,6 +4440,7 @@ void search()
   char *p = tree->spelling;
   char c = *p++;
   Goto_Node *q = root[c];
+  Name_Node * last;
   if (!q) {
     q = (Goto_Node *) arena_getmem(sizeof(Goto_Node));
     root[c] = q;
@@ -4480,8 +4481,9 @@ void search()
     q = new;
     depth++;
   }
+  last = q->output;
   q->output = (Name_Node *) arena_getmem(sizeof(Name_Node));
-  q->output->next = NULL;
+  q->output->next = last;
   q->output->name = tree;
 }@}
 
@@ -4555,7 +4557,7 @@ void search()
             new_use->next = name->uses;
             name->uses = new_use;
             if (!scrap_is_in(name->defs, i))
-	      add_uses(&(scrap_array(i).uses), name);
+              add_uses(&(scrap_array(i).uses), name);
           }
           p = p->next;
         } while (p);
@@ -4774,20 +4776,20 @@ static int op_char(c)
   if (sym_char(first) && sym_char(prev)) return TRUE;
   if (op_char(last) && op_char(post)) return TRUE;
   if (op_char(first) && op_char(prev)) return TRUE;
-  return FALSE; /* Here is @xother@x */
+  return FALSE; /* Here is @@xother@@x */
 }
 @| reject_match @}
 
 
 \section{Labels}
 
-Refer to @xlabel@x.
-And another one @xother@x.
+Refer to @@xlabel@@x.
+And another one @@xother@@x.
 
 @d Get label from
 @{char  label_name[100];
 char * p = label_name;
-while (c = @1, c != nw_char) /* Here is @xlabel@x */
+while (c = @1, c != nw_char) /* Here is @@xlabel@@x */
    *p++ = c;
 *p = '\0';
 c = @1;
