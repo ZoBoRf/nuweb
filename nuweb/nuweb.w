@@ -31,7 +31,7 @@
 % 
 
 % Notes:
-% Updates on 2003-04-24 from Keith Harwood <vitalmis@bigpond.net.au>
+% Updates on 2003-04-24 from Keith Harwood <vitalmis@@bigpond.net.au>
 % -- sectioning commands (@@s and global-plus-sign in scrap names)
 % -- @@x..@@x labelling
 % -- @@f current file macro
@@ -598,7 +598,7 @@ have been made by:
 \item Nicky van Foreest \verb|<n.d.vanforeest@@math.utwente.nl>|
 \item Javier Goizueta \verb|<jgoizueta@@jazzfree.com>|
 \item Alan Karp \verb|<karp@@hp.com>|
-\item Keith Harwood \verb|<vitalmis@bigpond.net.au>|
+\item Keith Harwood \verb|<vitalmis@@bigpond.net.au>|
 \end{itemize}
 
 \ifshowcode
@@ -1426,10 +1426,9 @@ static void format_user_entry();
 The routine \verb|write_tex| takes two file names as parameters: the
 name of the web source file and the name of the \verb|.tex| output file.
 @o latex.c
-@{void write_tex(file_name, tex_name, sector)
+@{void write_tex(file_name, tex_name)
      char *file_name;
      char *tex_name;
-     unsigned char sector;
 {
   FILE *tex_file = fopen(tex_name, "w");
   if (tex_file) {
