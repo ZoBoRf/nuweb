@@ -30,5 +30,6 @@ nuweb.hw, and then add the html document-style option to nuweb.hw.
 After producing the LaTeX source file nuweb.tex, convert it to HTML
 using LaTeX2HTML.
 
-For the latest version contact the current maintainer, Marc Mengel
-<mengel@fnal.gov>.
+For the latest version check the SourceForge page: 
+    http://nuweb.sourceforge.net/
+
