@@ -2788,6 +2788,21 @@ extern void write_single_scrap_ref();
 }
 @| collect_scrap @}
 
+@o scraps.c
+@{int collect_scrap_from_string(s)
+  char *s;
+{
+  Manager writer;
+  int c;
+  @<Create new scrap...@>
+  while (0 != (c = *s++)) {
+    push(c, &writer);
+  }
+  push(0, &writer);
+  return scraps++;
+}
+@| collect_scrap_from_string @}
+
 @d Create new scrap, managed by \verb|writer|
 @{{
   Slab *scrap = (Slab *) arena_getmem(sizeof(Slab));
@@ -2844,6 +2859,8 @@ extern void write_single_scrap_ref();
     case '1': case '2': case '3': 
     case '4': case '5': case '6':
     case '7': case '8': case '9':
+              push(nw_char, &writer);
+	      break;
     case '_': c = source_get();
 	      break;
     default : 
@@ -2975,7 +2992,7 @@ anything.
 We need a data type to keep track of macro parameters.
 
 @o scraps.c
-@{typedef char **Parameters;
+@{typedef int *Parameters;
 @| Parameters @}
 
 And a routine to generate one of them from a array of character
@@ -2985,16 +3002,19 @@ pointers:
 @{
 Parameters
 copy_parameters(char **ppp) {
-    Parameters res = malloc(10 * sizeof(char *));
-    char **p = ppp;
+    Parameters res = malloc(10 * sizeof(int));
+    char **p1 = ppp; 
+    int *p2 = res;
     int count = 0;
 
-    while (p && *p) {
-        *res++ = strdup(*p++);
+    while (p1 && *p1) {
+        *p2 = collect_scrap_from_string(*p1);
 	count++;
+	p2++;
+	p1++;
     }
     while (count < 10) {
-        *res++ = 0;
+        *p2++ = 0;
 	count++;
     }
     return res;
@@ -3004,10 +3024,20 @@ Parameters
 print_parameters( parameters ) 
   Parameters parameters;
 {
-  char **p = parameters;
-  printf("debug: parameters: ");
+  Manager reader;
+  int *p = parameters;
+  char c;
+
+  printf("debug: parameters:\n");
   while (p && *p) {
-    printf("%s,", *p++);
+    printf("scrap %d:", *p);
+    reader.scrap = scrap_array(*p).slab;
+    reader.index = 0;
+    while( c = pop(&reader) ) {
+ 	fputc(c,stdout);
+    }
+    printf("\n");
+    p++;
   }
   printf("\n");
 }
@@ -3021,8 +3051,12 @@ see an \verb|@@1| \verb|@@2|, etc.
     case '1': case '2': case '3': 
     case '4': case '5': case '6':
     case '7': case '8': case '9':
-	      if ( parameters && parameters[c - '0'] ) {
-	        pushs(parameters[c - '0'], &reader);
+	      if ( parameters && parameters[c - '1'] ) {
+		Scrap_Node param_defs;
+		param_defs.scrap = parameters[c - '1'];
+		param_defs.next = 0;
+                write_scraps(file, &param_defs, global_indent + indent,
+			  indent_chars, debug_flag, tab_flag, indent_flag, 0);
 	      } else {
 	        /* ZZZ need error message here */
 	      }
@@ -3060,41 +3094,30 @@ return them somehow.
       int np;
       int sawend;
 
-printf("debug: starting to copy parameters\n");
       pp = parms;		
       np = 1;		
       ppp[np - 1] = pp; 
       c = pop(manager);
-printf("%c|", c);
-fflush(stdout);
       sawend = 0;
 
       while ( pp - parms < PLEN ) {
 	if ( c == nw_char ) {
-	  *pp++ = pop(manager);
-printf("%c*", pp[-1]);
-fflush(stdout);
-	  if ( pp[-1] == ',' ) {
-printf("Saw a comma, next param\n");
+	  c = pop(manager);
+	  if ( c == ',' ) {
+	    c = pop(manager);
 	    np++;
-	    pp[-1] = 0;
+	    *pp++ = 0;
 	    ppp[np - 1] = pp;
 	  }
-	  if ( pp[-1] == '>' ) {
-printf("Aha, an end...\n");
+	  if ( c == '>' ) {
 	    ppp[np] = 0;
-	    pp[-1] = 0;
-	    push(nw_char, manager);
-	    push('>', manager);
+	    *pp++ = 0;
 	    sawend = 1;
 	    break;
 	  }
-	} else {
-          *pp++ = c;
-          c = pop(manager);
-printf("%c+", c);
-fflush(stdout);
         }
+	*pp++ = c;
+	c = pop(manager);
       }
       if (!sawend) {
 	 fprintf(stderr, "%s: macro parameters too long (%s, line %d)\n",
@@ -3106,8 +3129,6 @@ fflush(stdout);
 	 c = pop(manager);
       } else {
 	 *parameters = copy_parameters(ppp); 
-	 printf("debug: got here with"); print_parameters(*parameters);
-         c = '>';
       }
   }
 @}
@@ -3129,7 +3150,6 @@ fflush(stdout);
       c = pop(manager);
     }
   }
-  printf("debug: pop_scrap_name"); print_parameters(*parameters);
 }
 @| pop_scrap_name @}
 
@@ -3169,7 +3189,6 @@ fflush(stdout);
      Parameters parameters;
 {
   int indent = 0;
-  printf("debug: write_scraps:"); print_parameters(parameters);
   while (defs) {
     @<Copy \verb|defs->scrap| to \verb|file|@>
     defs = defs->next;
@@ -3280,7 +3299,6 @@ fflush(stdout);
   }
   if (name->defs) {
     name->mark = TRUE;
-printf("debug: calling with"); print_parameters(local_parameters);
     indent = write_scraps(file, name->defs, global_indent + indent,
 			  indent_chars, debug_flag, tab_flag, indent_flag, 
 			  local_parameters);
