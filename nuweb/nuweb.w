@@ -548,7 +548,9 @@ recompilation during development.
 
 We'll need at least five of the standard system include files.
 @d Include files
-@{#include <stdlib.h>
+@{
+/* #include <fcntl.h> */
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -2374,12 +2376,12 @@ We call \verb|tempnam|, causing it to create a file name in the
 current directory.  This could cause a problem for \verb|rename| if
 the eventual output file will reside on a different file system.
 
-To avoid this, we set the environment variable \verb|TMPDIR| to \verb|"."|
-at the beginning of the program.
+To avoid this, we used to set the environment variable \verb|TMPDIR| 
+to \verb|"."| at the beginning of the program, but since we got rid of
+tempnam(), we no longer bother.
 
 @d Avoid rename() problems 
 @{
-  putenv("TMPDIR=."); 
 @}
 
 Note the call to \verb|remove| before \verb|rename| --
@@ -2392,21 +2394,37 @@ for Win32 with Borland C++ (assuming \verb|MSDOS| is defined). The second
 argument to \verb|tempname| cannot be null in that system.
 @d Write out \verb|files->spelling|
 @{{
+  static char temp_name[] = "nw000000";
+  static int temp_name_count = 0;
   char indent_chars[500];
+  int temp_file_fd;
   FILE *temp_file;
-  #ifdef MSDOS
-  char *temp_name = tempnam(".", "");
-  #else
-  char *temp_name = tempnam(".", 0);
-  #endif
-  temp_file = fopen(temp_name, "w");
+
+  for( temp_name_count = 0; temp_name_count < 10000; temp_name_count++) {
+    sprintf(temp_name,"nw%06d", temp_name_count);
+#ifdef O_EXCL
+    if (-1 != (temp_file_fd = open(temp_name, O_CREAT|O_WRONLY|O_EXCL))) {
+       temp_file = fdopen(temp_file_fd, "w");
+       break;
+    }
+#else
+    if (0 != (temp_file = fopen(temp_name, "a"))) {
+       if ( 0L == ftell(temp_file)) {
+          break;
+       } else {
+	  fclose(temp_file);
+          temp_file = 0;
+       }
+    }
+#endif
+  }
   if (!temp_file) {
     fprintf(stderr, "%s: can't create %s for a temporary file\n",
 	    command_name, temp_name);
     exit(-1);
   }  
   if (verbose_flag)
-    fprintf(stderr, "writing %s\n", files->spelling);
+    fprintf(stderr, "writing %s [%s]\n", files->spelling, temp_name);
   write_scraps(temp_file, files->defs, 0, indent_chars,
 	       files->debug_flag, files->tab_flag, files->indent_flag, 0);
   fclose(temp_file);
@@ -3063,7 +3081,7 @@ first character.
 @d Check for macro parameters
 @{
   if (c == '(') {
-    Parameters res = malloc(10 * sizeof(int));
+    Parameters res = arena_getmem(10 * sizeof(int));
     int *p2 = res;
     int count = 0;
     int scrapnum;
@@ -3094,7 +3112,7 @@ first character.
   }
 @}
 
-This is used in both write_tex and write_html to output the
+This is used in both \verb|write_tex| and \verb|write_html| to output the
 argument list for a macro.
 
 @d Format macro parameters
