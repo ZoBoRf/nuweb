@@ -280,6 +280,12 @@ Inside a scrap, we may invoke a macro.
 \item[\tt @@<{\em macro-name\/}@@>] Causes the macro 
   {\em macro-name\/} to be expanded inline as the code is written out
   to a file. It is an error to specify recursive macro invocations.
+\item[\tt @@<{\em macro-name\/}@@( {\em a1} @@, {\em a2} @@) @@>] Causes the macro 
+  {\em macro-name\/} to be expanded inline with the parameters {\em a1},
+    {\em a2}, etc. Up to 9 parameters may be given.
+\item[\tt @@1, @@2, ..., @@9] In a macro causes the n'th macro 
+      parameter to be substituted into the scrap.  If the parameter
+      is not passed, a null string is substituted.
 \end{description}
 Note that macro names may be abbreviated, either during invocation or
 definition. For example, it would be very tedious to have to
@@ -774,24 +780,24 @@ we've got to loop through the string, handling them all.
   while (c) {
     switch (c) {
       case 'c': compare_flag = FALSE;
-		break;
+                break;
       case 'd': dangling_flag = TRUE;
-		break;
+                break;
       case 'n': number_flag = TRUE;
-		break;
+                break;
       case 'o': output_flag = FALSE;
-		break;
+                break;
       case 's': scrap_flag = FALSE;
-		break;
+                break;
       case 't': tex_flag = FALSE;
-		break;
+                break;
       case 'v': verbose_flag = TRUE;
-		break;
+                break;
       default:  fprintf(stderr, "%s: unexpected argument ignored.  ",
-			command_name);
-		fprintf(stderr, "Usage is: %s [-cnotv] file...\n",
-			command_name);
-		break;
+                        command_name);
+                fprintf(stderr, "Usage is: %s [-cnotv] file...\n",
+                        command_name);
+                break;
     }
     c = *s++;
   }
@@ -976,20 +982,20 @@ discovered.
           break;
     case 'O':
     case 'o': @<Build output file definition@>
-	      break;
+              break;
     case 'D':
     case 'd': @<Build macro definition@>
-	      break;
+              break;
     case 'u':
     case 'm':
     case 'f': /* ignore during this pass */
-	      break;
+              break;
     default:  if (c==nw_char) /* ignore during this pass */
                 break;
               fprintf(stderr,
-		      "%s: unexpected @@ sequence ignored (%s, line %d)\n",
-		      command_name, source_name, source_line);
-	      break;
+                      "%s: unexpected @@ sequence ignored (%s, line %d)\n",
+                      command_name, source_name, source_line);
+              break;
   }
 }@}
 
@@ -1005,7 +1011,7 @@ We go through the same steps for both file names and macro names.
 @d Build output file definition
 @{{
   Name *name = collect_file_name(); /* returns a pointer to the name entry */
-  int scrap = collect_scrap();	    /* returns an index to the scrap */
+  int scrap = collect_scrap();      /* returns an index to the scrap */
   @<Add \verb|scrap| to...@>
 }@}
 
@@ -1043,6 +1049,177 @@ The code for \verb|reverse_lists| appears in Section~\ref{names}.
   reverse_lists(user_names);
 }@}
 
+\subsection{Dealing with macro parameters}
+
+Macro parameters were added on later in nuweb's development.
+There still is not, for example, an index of macro parameters.
+We need a data type to keep track of macro parameters.
+
+@o scraps.c
+@{typedef int *Parameters;
+@| Parameters @}
+
+
+When we are copying a scrap to the output, we can then pull
+the $n$th string from the \verb|Parameters| list when we
+see an \verb|@@1| \verb|@@2|, etc.
+
+@d Handle macro parameter substitution @{
+    case '1': case '2': case '3': 
+    case '4': case '5': case '6':
+    case '7': case '8': case '9':
+              if ( parameters && parameters[c - '1'] ) {
+                Scrap_Node param_defs;
+                param_defs.scrap = parameters[c - '1'];
+                param_defs.next = 0;
+                write_scraps(file, &param_defs, global_indent + indent,
+                          indent_chars, debug_flag, tab_flag, indent_flag, 0);
+              } else {
+                /* ZZZ need error message here */
+              }
+              break;
+@}
+Now onto actually parsing macro parameters from a call.
+We start off checking for macro parameters, an \verb|@@(| sequence 
+followed by parameters separated by \verb|@@,| sequences, and
+terminated by a \verb|@@)| sequence.
+
+We collect separate scraps for each parameter, and write the
+scrap numbers down in the text. For example, if the file has:
+\begin{verbatim}
+   @@<foo @@( param1 @@, param2 @@)@@>
+\end{verbatim}
+we actually make new scraps, say 10 and 11, for param1 and param2, 
+and write in the collected scrap:
+\begin{verbatim}
+   @@<foo @@(10@@,11@@)@@>
+\end{verbatim}
+
+@d Save macro parameters 
+@{{ 
+  int param_scrap;
+  char param_buf[10];
+
+  push(nw_char, &writer);
+  push('(', &writer);
+  do {
+     
+     param_scrap = collect_scrap();
+     sprintf(param_buf, "%d", param_scrap);
+     pushs(param_buf, &writer);
+     push(nw_char, &writer);
+     push(scrap_ended_with, &writer);
+     @<Add current scrap to...@>
+  } while( scrap_ended_with == ',' );
+  do
+    c = source_get();
+  while( ' ' == c );
+  if (c == nw_char) {
+    c = source_get();
+  }
+  if (c != '>') {
+    /* ZZZ print error */;
+  }
+}@}
+
+If we get inside, we have at least one parameter, which will be at
+the beginning of the parms buffer, and we prime the pump with the
+first character.
+
+@d Check for macro parameters
+@{
+  if (c == '(') {
+    Parameters res = arena_getmem(10 * sizeof(int));
+    int *p2 = res;
+    int count = 0;
+    int scrapnum;
+
+    while( c && c != ')' ) {
+      scrapnum = 0;
+      c = pop(manager);
+      while( '0' <= c && c <= '9' ) {
+        scrapnum = scrapnum  * 10 + c - '0';
+        c = pop(manager);
+      }
+      if ( c == nw_char ) {
+        c = pop(manager);
+      }
+      *p2++ = scrapnum;
+    }
+    while (count < 10) {
+      *p2++ = 0;
+      count++;
+    }
+    while( c && c != nw_char ) {
+        c = pop(manager);
+    }
+    if ( c == nw_char ) {
+      c = pop(manager);
+    }
+    *parameters = res;
+  }
+@}
+
+These are used in \verb|write_tex| and \verb|write_html| to output the
+argument list for a macro.
+
+@d Format macro parameters
+@{
+   char sep;
+
+   sep = '(';
+   do {
+     fputc(sep,file);
+
+     fputs("{\\footnotesize ", file);
+     write_single_scrap_ref(file, scraps);
+     fprintf(file, "\\label{scrap%d}\n", scraps);
+     fputs(" }", file);
+
+     source_last = '{';
+     copy_scrap(file);
+
+     ++scraps;
+
+     sep = ',';
+   } while ( source_last != ')' && source_last != EOF );
+   fputs(" ) ",file);
+   do 
+     c = source_get();
+   while(c != nw_char && c != EOF);
+   if (c == nw_char) {
+     c = source_get();
+   }
+@}
+
+@d Format HTML macro parameters
+@{
+   char sep;
+
+   sep = '(';
+   fputs("\\begin{rawhtml}", file);
+   do {
+
+     fputc(sep,file);
+     
+     fprintf(file, "%d <A NAME=\"#nuweb%d\"></A>", scraps, scraps);
+
+     source_last = '{';
+     copy_scrap(file);
+
+     ++scraps;
+     sep = ',';
+
+   } while ( source_last != ')' && source_last != EOF );
+   fputs(" ) ",file);
+   do 
+     c = source_get();
+   while(c != nw_char && c != EOF);
+   if (c == nw_char) {
+     c = source_get();
+   }
+   fputs("\\end{rawhtml}", file);
+@}
 
 
 \section{Writing the Latex File} \label{latex-file}
@@ -1066,9 +1243,9 @@ We need a few local function declarations before we get into the body
 of \verb|write_tex|.
 
 @o latex.c
-@{static void copy_scrap();		/* formats the body of a scrap */
-static void print_scrap_numbers();	/* formats a list of scrap numbers */
-static void format_entry();		/* formats an index entry */
+@{static void copy_scrap();             /* formats the body of a scrap */
+static void print_scrap_numbers();      /* formats a list of scrap numbers */
+static void format_entry();             /* formats an index entry */
 static void format_user_entry();
 @}
 
@@ -1146,21 +1323,21 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
           break;
     case 'O': big_definition = TRUE;
     case 'o': @<Write output file definition@>
-	      break;
+              break;
     case 'D': big_definition = TRUE;
     case 'd': @<Write macro definition@>
-	      break;
+              break;
     case 'f': @<Write index of file names@>
-	      break;
+              break;
     case 'm': @<Write index of macro names@>
-	      break;
+              break;
     case 'u': @<Write index of user-specified names@>
-	      break;
+              break;
     default:  
           if (c==nw_char)
             putc(c, tex_file); 
           c = source_get();
-	      break;
+              break;
   }
 }@}
 
@@ -1342,7 +1519,7 @@ a scrap will not be indented. Again, this is a matter of personal taste.
   else {
     fputs("\\item {\\NWtxtMacroNoRef}.\n", tex_file);
     fprintf(stderr, "%s: <%s> never referenced.\n",
-	    command_name, name->spelling);
+            command_name, name->spelling);
   }
   fputs("\\end{list}\n", tex_file);
 }@}
@@ -1401,8 +1578,8 @@ void update_delimit_scrap()
      /* make sure strings are writable first */
      for(i = 0; i < 3; i++) {
         for(j = 0; j < 5; j++) {
-	   delimit_scrap[i][j] = strdup(delimit_scrap[i][j]);
-	}
+           delimit_scrap[i][j] = strdup(delimit_scrap[i][j]);
+        }
      }
   }
   /* {}-mode begin */
@@ -1439,10 +1616,10 @@ static void copy_scrap(file)
                  fputs("\n", file);
                  fputs(delimit_scrap[scrap_type][3], file);
                  fputs(delimit_scrap[scrap_type][0], file);
-		 indent = 0;
-		 break;
+                 indent = 0;
+                 break;
       case '\t': @<Expand tab into spaces@>
-		 break;
+                 break;
       default:   
          if (c==nw_char)
            {
@@ -1450,8 +1627,8 @@ static void copy_scrap(file)
              break;
            }           
          putc(c, file);
-		 indent++;
-		 break;
+                 indent++;
+                 break;
     }
     c = source_get();
   }
@@ -1482,9 +1659,9 @@ static void copy_scrap(file)
     case ')':
     case ']':
     case '}': fputs(delimit_scrap[scrap_type][1], file);
-	      return;
+              return;
     case '<': @<Format macro name@>
-	      break;
+              break;
     case '%': @<Skip commented-out code@>
               break;
     case '_': @<Bold Keyword@>
@@ -1492,11 +1669,11 @@ static void copy_scrap(file)
     case '1': case '2': case '3': 
     case '4': case '5': case '6': 
     case '7': case '8': case '9': 
-	      fputs(delimit_scrap[scrap_type][1], file);
-	      fputc(nw_char, file);
-	      fputc(c,   file);
-	      fputs(delimit_scrap[scrap_type][0], file);
-	      break;
+              fputs(delimit_scrap[scrap_type][1], file);
+              fputc(nw_char, file);
+              fputc(c,   file);
+              fputs(delimit_scrap[scrap_type][0], file);
+              break;
     default:  
           if (c==nw_char)
             {
@@ -1504,7 +1681,7 @@ static void copy_scrap(file)
               break;
             }
           /* ignore these since pass1 will have warned about them */
-	      break;
+              break;
   }
 }@}
 
@@ -1557,7 +1734,7 @@ This scrap helps deal with bold keywords:
   else {
     putc('?', file);
     fprintf(stderr, "%s: never defined <%s>\n",
-	    command_name, name->spelling);
+            command_name, name->spelling);
   }
   fputs("}$\\,\\rangle$}", file);
   fputs(delimit_scrap[scrap_type][0], file);
@@ -1584,7 +1761,7 @@ This scrap helps deal with bold keywords:
 @{{
   if (file_names) {
     fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
-    	  tex_file);
+          tex_file);
     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
     format_entry(file_names, tex_file, TRUE);
     fputs("\\end{list}}", tex_file);
@@ -1597,7 +1774,7 @@ This scrap helps deal with bold keywords:
 @{{
   if (macro_names) {
     fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
-    	  tex_file);
+          tex_file);
     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
     format_entry(macro_names, tex_file, FALSE);
     fputs("\\end{list}}", tex_file);
@@ -1714,7 +1891,7 @@ This scrap helps deal with bold keywords:
 @{{
   if (user_names) {
     fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
-    	  tex_file);
+          tex_file);
     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
     format_user_entry(user_names, tex_file);
     fputs("\\end{list}}", tex_file);
@@ -1787,7 +1964,7 @@ This scrap helps deal with bold keywords:
       }
       else {
         if (uses && defs->scrap == uses->scrap)
-	  uses = uses->next;
+          uses = uses->next;
         fputs(", \\underline{", tex_file);
 
         fputs("\\NWlink{nuweb", tex_file);
@@ -1884,21 +2061,21 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
           break;
     case 'O': 
     case 'o': @<Write HTML output file definition@>
-	      break;
+              break;
     case 'D': 
     case 'd': @<Write HTML macro definition@>
-	      break;
+              break;
     case 'f': @<Write HTML index of file names@>
-	      break;
+              break;
     case 'm': @<Write HTML index of macro names@>
-	      break;
+              break;
     case 'u': @<Write HTML index of user-specified names@>
-	      break;
+              break;
     default:  
           if (c==nw_char)
             putc(c, html_file);
           c = source_get();
-	      break;
+              break;
   }
 }@}
 
@@ -2043,7 +2220,7 @@ end the paragraph.
   else {
     fputs("\\end{rawhtml}{\\NWtxtMacroNoRef}.\\begin{rawhtml}", html_file);
     fprintf(stderr, "%s: <%s> never referenced.\n",
-	    command_name, name->spelling);
+            command_name, name->spelling);
   }
   fputs("<br>\n", html_file);
 }@}
@@ -2100,19 +2277,19 @@ We must translate HTML special keywords into entities in scraps.
   while (1) {
     switch (c) {
       case '<' : fputs("&lt;", file);
-		 indent++;
-		 break;
+                 indent++;
+                 break;
       case '>' : fputs("&gt;", file);
-		 indent++;
-		 break;
+                 indent++;
+                 break;
       case '&' : fputs("&amp;", file);
-		 indent++;
-		 break;
+                 indent++;
+                 break;
       case '\n': fputc(c, file);
-		 indent = 0;
-		 break;
+                 indent = 0;
+                 break;
       case '\t': @<Expand tab into spaces@>
-		 break;
+                 break;
       default:   
          if (c==nw_char)
            {
@@ -2120,8 +2297,8 @@ We must translate HTML special keywords into entities in scraps.
              break;
            }
          putc(c, file);
-		 indent++;
-		 break;
+                 indent++;
+                 break;
     }
     c = source_get();
   }
@@ -2142,11 +2319,11 @@ We must translate HTML special keywords into entities in scraps.
     case '1': case '2': case '3': 
     case '4': case '5': case '6': 
     case '7': case '8': case '9': 
-	      fputc(nw_char, file);
-	      fputc(c,   file);
-	      break;
+              fputc(nw_char, file);
+              fputc(c,   file);
+              break;
     case '<': @<Format HTML macro name@>
-	      break;
+              break;
     case '%': @<Skip commented-out code@>
               break;
     default:  
@@ -2156,7 +2333,7 @@ We must translate HTML special keywords into entities in scraps.
              break;
            }
           /* ignore these since pass1 will have warned about them */
-	      break;
+              break;
   }
 }@}
 
@@ -2177,7 +2354,7 @@ pointed out any during the first pass.
   else {
     putc('?', file);
     fprintf(stderr, "%s: never defined <%s>\n",
-	    command_name, name->spelling);
+            command_name, name->spelling);
   }
   fputs("&gt;", file);
 }@}
@@ -2225,9 +2402,9 @@ pointed out any during the first pass.
      static int toggle;
      toggle = ~toggle;
      if( toggle ) {
-	fputs( "<b>", file );
+        fputs( "<b>", file );
      } else {
-	fputs( "</b>", file );
+        fputs( "</b>", file );
      }
 }@}
 
@@ -2329,7 +2506,7 @@ pointed out any during the first pass.
     }
     else {
       if (defs->scrap == uses->scrap)
-	uses = uses->next;
+        uses = uses->next;
       fputs("<strong>", html_file);
       display_scrap_ref(html_file, defs->scrap);
       fputs("</strong>", html_file);
@@ -2338,16 +2515,16 @@ pointed out any during the first pass.
     while (uses || defs) {
       fputs(", ", html_file);
       if (uses && (!defs || uses->scrap < defs->scrap)) {
-	display_scrap_ref(html_file, uses->scrap);
-	uses = uses->next;
+        display_scrap_ref(html_file, uses->scrap);
+        uses = uses->next;
       }
       else {
-	if (uses && defs->scrap == uses->scrap)
-	  uses = uses->next;
-	fputs("<strong>", html_file);
-	display_scrap_ref(html_file, defs->scrap);
-	fputs("</strong>", html_file);
-	defs = defs->next;
+        if (uses && defs->scrap == uses->scrap)
+          uses = uses->next;
+        fputs("<strong>", html_file);
+        display_scrap_ref(html_file, defs->scrap);
+        fputs("</strong>", html_file);
+        defs = defs->next;
       }
     }
     fputs(".\n", html_file);
@@ -2412,7 +2589,7 @@ argument to \verb|tempname| cannot be null in that system.
        if ( 0L == ftell(temp_file)) {
           break;
        } else {
-	  fclose(temp_file);
+          fclose(temp_file);
           temp_file = 0;
        }
     }
@@ -2420,13 +2597,13 @@ argument to \verb|tempname| cannot be null in that system.
   }
   if (!temp_file) {
     fprintf(stderr, "%s: can't create %s for a temporary file\n",
-	    command_name, temp_name);
+            command_name, temp_name);
     exit(-1);
   }  
   if (verbose_flag)
     fprintf(stderr, "writing %s [%s]\n", files->spelling, temp_name);
   write_scraps(temp_file, files->defs, 0, indent_chars,
-	       files->debug_flag, files->tab_flag, files->indent_flag, 0);
+               files->debug_flag, files->tab_flag, files->indent_flag, 0);
   fclose(temp_file);
   if (compare_flag)
     @<Compare the temp file and the old file@>
@@ -2525,7 +2702,7 @@ int source_get()
   source_last = c = source_peek;
   switch (c) {
     case EOF:  @<Handle \verb|EOF|@>
-	       return c;
+               return c;
     case '\n': source_line++;
     default:
            if (c==nw_char)
@@ -2534,7 +2711,7 @@ int source_get()
                return c;
              }
            source_peek = getc(source_file);
-	       return c;
+               return c;
   }
 }
 @| source_get source_last @}
@@ -2544,8 +2721,8 @@ int source_get()
 @{int source_ungetc(int *c)
 {       
         ungetc(source_peek, source_file);
-	if(*c == '\n') 
-		source_line--;
+        if(*c == '\n') 
+                source_line--;
    source_peek=*c;
 }
 @|source_ungetc @}
@@ -2567,7 +2744,7 @@ hence this whole unsatisfactory \verb|double_at| business.
   else
     switch (c) {
       case 'i': @<Open an include file@>
-		break;
+                break;
       case 'f': case 'm': case 'u':
       case 'd': case 'o': case 'D': case 'O':
       case '{': case '}': case '<': case '>': case '|':
@@ -2577,19 +2754,19 @@ hence this whole unsatisfactory \verb|double_at| business.
       case '1': case '2': case '3': case '4': case '5': 
       case '6': case '7': case '8': case '9': 
       case 'r':
-		source_peek = c;
-        	c = nw_char;        
-		break;
+                source_peek = c;
+                c = nw_char;        
+                break;
       default:  
             if (c==nw_char)
               {
                 source_peek = c;
-		double_at = TRUE;
-		break;
+                double_at = TRUE;
+                break;
               }
              fprintf(stderr, "%s: bad @@ sequence %c[%d] (%s, line %d)\n",
                      command_name, c, c, source_name, source_line);
-	     exit(-1);
+             exit(-1);
     }
 }@}
 
@@ -2598,7 +2775,7 @@ hence this whole unsatisfactory \verb|double_at| business.
   char name[100];
   if (include_depth >= 10) {
     fprintf(stderr, "%s: include nesting too deep (%s, %d)\n",
-	    command_name, source_name, source_line);
+            command_name, source_name, source_line);
     exit(-1);
   }
   @<Collect include-file name@>
@@ -2631,7 +2808,7 @@ hence this whole unsatisfactory \verb|double_at| business.
     *p = '\0';
     if (c != '\n') {
       fprintf(stderr, "%s: unexpected characters after file name (%s, %d)\n",
-	      command_name, source_name, source_line);
+              command_name, source_name, source_line);
       exit(-1);
     }
 }@}
@@ -2770,7 +2947,7 @@ extern void write_single_scrap_ref();
 @{{
   if (!already_warned) {
     fprintf(stderr, "%s: you'll need to rerun nuweb after running latex\n",
-	    command_name);
+            command_name);
     already_warned = TRUE;
   }
 }@}
@@ -2854,18 +3031,18 @@ extern void write_single_scrap_ref();
   while (1) {
     switch (c) {
       case EOF: fprintf(stderr, "%s: unexpect EOF in (%s, %d)\n",
-			command_name, scrap_array(current_scrap).file_name,
-			scrap_array(current_scrap).file_line);
-		exit(-1);
+                        command_name, scrap_array(current_scrap).file_name,
+                        scrap_array(current_scrap).file_line);
+                exit(-1);
       default:  
         if (c==nw_char)
           {
             @<Handle at-sign during scrap accumulation@>
-		break;
+                break;
           }
         push(c, &writer);
-		c = source_get();
-		break;
+                c = source_get();
+                break;
     }
   }
 }@}
@@ -2879,22 +3056,22 @@ extern void write_single_scrap_ref();
     case ')':
     case ']':
     case '}': push('\0', &writer);
-	      scrap_ended_with = c;
-	      return current_scrap;
+              scrap_ended_with = c;
+              return current_scrap;
     case '<': @<Handle macro invocation in scrap@>
-	      break;
+              break;
     case '%': @<Skip commented-out code@>
               /* emit line break to the output file to keep #line in sync. */
               push('\n', &writer); 
- 	      c = source_get();
+              c = source_get();
               break;
     case '1': case '2': case '3': 
     case '4': case '5': case '6':
     case '7': case '8': case '9':
               push(nw_char, &writer);
-	      break;
+              break;
     case '_': c = source_get();
-	      break;
+              break;
     default : 
           if (c==nw_char)
             {
@@ -2904,8 +3081,8 @@ extern void write_single_scrap_ref();
               break;
             }
           fprintf(stderr, "%s: unexpected @@%c in scrap (%s, %d)\n",
-		      command_name, c, source_name, source_line);
-	      exit(-1);
+                      command_name, c, source_name, source_line);
+              exit(-1);
   }
 }@}
 
@@ -2920,23 +3097,23 @@ extern void write_single_scrap_ref();
     if (c != nw_char) {
       Name *name;
       do {
-	*p++ = c;
-	c = source_get();
+        *p++ = c;
+        c = source_get();
       } while (c != nw_char && !isspace(c));
       *p = '\0';
       name = name_add(&user_names, new_name);
       if (!name->defs || name->defs->scrap != current_scrap) {
-	Scrap_Node *def = (Scrap_Node *) arena_getmem(sizeof(Scrap_Node));
-	def->scrap = current_scrap;
-	def->next = name->defs;
-	name->defs = def;
+        Scrap_Node *def = (Scrap_Node *) arena_getmem(sizeof(Scrap_Node));
+        def->scrap = current_scrap;
+        def->next = name->defs;
+        name->defs = def;
       }
     }
   } while (c != nw_char);
   c = source_get();
   if (c != '}' && c != ']' && c != ')' ) {
     fprintf(stderr, "%s: unexpected @@%c in index entry (%s, %d)\n",
-	    command_name, c, source_name, source_line);
+            command_name, c, source_name, source_line);
     exit(-1);
   }
 }@}
@@ -3000,179 +3177,6 @@ extern void write_single_scrap_ref();
 @| pop @}
 
 
-\subsubsection{Dealing with macro parameters}
-
-This next bit is under development, but so far it shouldn't hurt
-anything.
-
-We need a data type to keep track of macro parameters.
-
-@o scraps.c
-@{typedef int *Parameters;
-@| Parameters @}
-
-
-When we are copying a scrap to the output, we can then pull
-the $n$th string from the \verb|Parameters| list when we
-see an \verb|@@1| \verb|@@2|, etc.
-
-@d Handle macro parameter substitution @{
-    case '1': case '2': case '3': 
-    case '4': case '5': case '6':
-    case '7': case '8': case '9':
-	      if ( parameters && parameters[c - '1'] ) {
-		Scrap_Node param_defs;
-		param_defs.scrap = parameters[c - '1'];
-		param_defs.next = 0;
-                write_scraps(file, &param_defs, global_indent + indent,
-			  indent_chars, debug_flag, tab_flag, indent_flag, 0);
-	      } else {
-	        /* ZZZ need error message here */
-	      }
-	      break;
-@}
-Now onto actually parsing macro parameters from a call.
-We start off checking for macro parameters, an \verb|@@(| sequence 
-followed by parameters separated by \verb|@@,| sequences, and
-terminated by a \verb|@@)| sequence.
-
-We collect separate scraps for each parameter, and write the
-scrap numbers down in the text. For example, if the file has:
-\begin{verbatim}
-   @@<foo @@( param1 @@, param2 @@)@@>
-\end{verbatim}
-we actually make new scraps, say 10 and 11, for param1 and param2, 
-and write in the collected scrap:
-\begin{verbatim}
-   @@<foo @@(10@@,11@@)@@>
-\end{verbatim}
-
-@d Save macro parameters 
-@{{ 
-  int param_scrap;
-  char param_buf[10];
-
-  push(nw_char, &writer);
-  push('(', &writer);
-  do {
-     
-     param_scrap = collect_scrap();
-     sprintf(param_buf, "%d", param_scrap);
-     pushs(param_buf, &writer);
-     push(nw_char, &writer);
-     push(scrap_ended_with, &writer);
-     @<Add current scrap to...@>
-  } while( scrap_ended_with == ',' );
-  do
-    c = source_get();
-  while( ' ' == c );
-  if (c == nw_char) {
-    c = source_get();
-  }
-  if (c != '>') {
-    /* ZZZ print error */;
-  }
-}@}
-
-If we get inside, we have at least one parameter, which will be at
-the beginning of the parms buffer, and we prime the pump with the
-first character.
-
-@d Check for macro parameters
-@{
-  if (c == '(') {
-    Parameters res = arena_getmem(10 * sizeof(int));
-    int *p2 = res;
-    int count = 0;
-    int scrapnum;
-
-    while( c && c != ')' ) {
-      scrapnum = 0;
-      c = pop(manager);
-      while( '0' <= c && c <= '9' ) {
-	scrapnum = scrapnum  * 10 + c - '0';
-	c = pop(manager);
-      }
-      if ( c == nw_char ) {
-	c = pop(manager);
-      }
-      *p2++ = scrapnum;
-    }
-    while (count < 10) {
-      *p2++ = 0;
-      count++;
-    }
-    while( c && c != nw_char ) {
-	c = pop(manager);
-    }
-    if ( c == nw_char ) {
-      c = pop(manager);
-    }
-    *parameters = res;
-  }
-@}
-
-This is used in both \verb|write_tex| and \verb|write_html| to output the
-argument list for a macro.
-
-@d Format macro parameters
-@{
-   char sep;
-
-   sep = '(';
-   do {
-     fputc(sep,file);
-
-     fputs("{\\footnotesize ", file);
-     write_single_scrap_ref(file, scraps);
-     fputs("}", file);
-
-     source_last = '{';
-     copy_scrap(file);
-
-     fprintf(file, " \\label{scrap%d}\n", scraps);
-     ++scraps;
-
-     sep = ',';
-   } while ( source_last != ')' && source_last != EOF );
-   fputs(" ) ",file);
-   do 
-     c = source_get();
-   while(c != nw_char && c != EOF);
-   if (c == nw_char) {
-     c = source_get();
-   }
-@}
-
-@d Format HTML macro parameters
-@{
-   char sep;
-
-   sep = '(';
-   fputs("\\begin{rawhtml}", file);
-   do {
-
-     fputc(sep,file);
-     
-     fprintf(file, "%d <A NAME=\"#nuweb%d\"></A>", scraps, scraps);
-
-     source_last = '{';
-     copy_scrap(file);
-
-     ++scraps;
-     sep = ',';
-
-   } while ( source_last != ')' && source_last != EOF );
-   fputs(" ) ",file);
-   do 
-     c = source_get();
-   while(c != nw_char && c != EOF);
-   if (c == nw_char) {
-     c = source_get();
-   }
-   fputs("\\end{rawhtml}", file);
-@}
-
 @o scraps.c
 @{static Name *pop_scrap_name(manager, parameters)
      Manager *manager;
@@ -3219,7 +3223,7 @@ argument list for a macro.
 
 @o scraps.c
 @{int write_scraps(file, defs, global_indent, indent_chars,
-		   debug_flag, tab_flag, indent_flag, parameters)
+                   debug_flag, tab_flag, indent_flag, parameters)
      FILE *file;
      Scrap_Node *defs;
      int global_indent;
@@ -3252,11 +3256,11 @@ argument list for a macro.
   while (c) {
     switch (c) {
       case '\n': putc(c, file);
-		 line_number++;
-		 @<Insert appropriate indentation@>
-		 break;
+                 line_number++;
+                 @<Insert appropriate indentation@>
+                 break;
       case '\t': @<Handle tab...@>
-		 break;
+                 break;
       default:   
          if (c==nw_char)
            {
@@ -3264,9 +3268,9 @@ argument list for a macro.
              break;
            }         
          putc(c, file);
-		 indent_chars[global_indent + indent] = ' ';
-		 indent++;
-		 break;
+                 indent_chars[global_indent + indent] = ' ';
+                 indent++;
+                 break;
     }
     c = pop(&reader);
   }
@@ -3276,7 +3280,7 @@ argument list for a macro.
 @d Insert debugging information if required
 @{if (debug_flag) {
   fprintf(file, "\n#line %d \"%s\"\n",
-	  line_number, scrap_array(defs->scrap).file_name);
+          line_number, scrap_array(defs->scrap).file_name);
   @<Insert appropr...@>
 }@}
 
@@ -3286,10 +3290,10 @@ argument list for a macro.
   if (indent_flag) {
     if (tab_flag)
       for (indent=0; indent<global_indent; indent++)
-	putc(' ', file);
+        putc(' ', file);
     else
       for (indent=0; indent<global_indent; indent++)
-	putc(indent_chars[indent], file);
+        putc(indent_chars[indent], file);
   }
   indent = 0;
 }@}
@@ -3313,8 +3317,8 @@ argument list for a macro.
   switch (c) {
     case '_': break;
     case '<': @<Copy macro into \verb|file|@>
-	      @<Insert debugging information if required@>
-	      break;
+              @<Insert debugging information if required@>
+              break;
     @<Handle macro parameter substitution@>
     default:  
           if(c==nw_char)
@@ -3325,7 +3329,7 @@ argument list for a macro.
               break;
             }
           /* ignore, since we should already have a warning */
-	      break;
+              break;
   }
 }@}
 
@@ -3335,20 +3339,20 @@ argument list for a macro.
   Name *name = pop_scrap_name(&reader, &local_parameters);
   if (name->mark) {
     fprintf(stderr, "%s: recursive macro discovered involving <%s>\n",
-	    command_name, name->spelling);
+            command_name, name->spelling);
     exit(-1);
   }
   if (name->defs) {
     name->mark = TRUE;
     indent = write_scraps(file, name->defs, global_indent + indent,
-			  indent_chars, debug_flag, tab_flag, indent_flag, 
-			  local_parameters);
+                          indent_chars, debug_flag, tab_flag, indent_flag, 
+                          local_parameters);
     indent -= global_indent;
     name->mark = FALSE;
   }
   else if (!tex_flag)
     fprintf(stderr, "%s: macro never defined <%s>\n",
-	    command_name, name->spelling);
+            command_name, name->spelling);
 }@}
 
 
@@ -3377,11 +3381,11 @@ argument list for a macro.
         int page_number;
         char dummy[50];
         if (3 == sscanf(aux_line, "\\newlabel{scrap%d}{%[^}]}{%d}",
-			&scrap_number, dummy, &page_number)) {
-	  if (scrap_number < scraps)
-	    scrap_array(scrap_number).page = page_number;
-	  else
-	    @<Warn...@>
+                        &scrap_number, dummy, &page_number)) {
+          if (scrap_number < scraps)
+            scrap_array(scrap_number).page = page_number;
+          else
+            @<Warn...@>
         }
       }
       fclose(aux_file);
@@ -3506,14 +3510,14 @@ Name *prefix_add(root, spelling)
   while (node) {
     switch (compare(node->spelling, spelling)) {
     case GREATER:   root = &node->rlink;
-		    break;
+                    break;
     case LESS:      root = &node->llink;
-		    break;
+                    break;
     case EQUAL:     return node;
     case EXTENSION: node->spelling = save_string(spelling);
-		    return node;
+                    return node;
     case PREFIX:    @<Check for ambiguous prefix@>
-		    return node;
+                    return node;
     }
     node = *root;
   }
@@ -3530,8 +3534,8 @@ continue the search down {\em both\/} branches of the tree.
   if (ambiguous_prefix(node->llink, spelling) ||
       ambiguous_prefix(node->rlink, spelling))
     fprintf(stderr,
-	    "%s: ambiguous prefix @@<%s...@@> (%s, line %d)\n",
-	    command_name, spelling, source_name, source_line);
+            "%s: ambiguous prefix @@<%s...@@> (%s, line %d)\n",
+            command_name, spelling, source_name, source_line);
 }@}
 
 @o names.c
@@ -3542,9 +3546,9 @@ continue the search down {\em both\/} branches of the tree.
   while (node) {
     switch (compare(node->spelling, spelling)) {
     case GREATER:   node = node->rlink;
-		    break;
+                    break;
     case LESS:      node = node->llink;
-		    break;
+                    break;
     case EQUAL:
     case EXTENSION:
     case PREFIX:    return TRUE;
@@ -3657,7 +3661,7 @@ skipping white space until we reach scrap.
   }
   if (p == name) {
     fprintf(stderr, "%s: expected file name (%s, %d)\n",
-	    command_name, source_name, start_line);
+            command_name, source_name, start_line);
     exit(-1);
   }
   *p = '\0';
@@ -3666,7 +3670,7 @@ skipping white space until we reach scrap.
   c2 = source_get();
   if (c != nw_char || (c2 != '{' && c2 != '(' && c2 != '[')) {
     fprintf(stderr, "%s: expected @@{, @@[, or @@( after file name (%s, %d)\n",
-	    command_name, source_name, start_line);
+            command_name, source_name, start_line);
     exit(-1);
   }
   return new_name;
@@ -3681,18 +3685,18 @@ skipping white space until we reach scrap.
     if (c == '-') {
       c = source_get();
       do {
-	switch (c) {
-	  case 't': new_name->tab_flag = FALSE;
-		    break;
-	  case 'd': new_name->debug_flag = TRUE;
-		    break;
-	  case 'i': new_name->indent_flag = FALSE;
-		    break;
-	  default : fprintf(stderr, "%s: unexpected per-file flag (%s, %d)\n",
-			    command_name, source_name, source_line);
-		    break;
-	}
-	c = source_get();
+        switch (c) {
+          case 't': new_name->tab_flag = FALSE;
+                    break;
+          case 'd': new_name->debug_flag = TRUE;
+                    break;
+          case 'i': new_name->indent_flag = FALSE;
+                    break;
+          default : fprintf(stderr, "%s: unexpected per-file flag (%s, %d)\n",
+                            command_name, source_name, source_line);
+                    break;
+        }
+        c = source_get();
       } while (!isspace(c));
     }
     else break;
@@ -3715,10 +3719,10 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
     switch (c) {
       case '\t':
       case ' ':  *p++ = ' ';
-		 do
-		   c = source_get();
-		 while (c == ' ' || c == '\t');
-		 break;
+                 do
+                   c = source_get();
+                 while (c == ' ' || c == '\t');
+                 break;
       case '\n': @<Skip until scrap begins, then return name@>
       default:   
          if (c==nw_char)
@@ -3727,12 +3731,12 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
              break;
            }
          *p++ = c;
-		 c = source_get();
-		 break;
+                 c = source_get();
+                 break;
     }
   }
   fprintf(stderr, "%s: expected macro name (%s, %d)\n",
-	  command_name, source_name, start_line);
+          command_name, source_name, start_line);
   exit(-1);
   return NULL;  /* unreachable return to avoid warnings on some compilers */
 }
@@ -3753,9 +3757,9 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
               break;
             }
           fprintf(stderr,
-		      "%s: unexpected @@%c in macro definition name (%s, %d)\n",
-		      command_name, c, source_name, start_line);
-	      exit(-1);
+                      "%s: unexpected @@%c in macro definition name (%s, %d)\n",
+                      command_name, c, source_name, start_line);
+              exit(-1);
   }
 }@}
 
@@ -3770,7 +3774,7 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   }
   if (p == name || name[0] == ' ') {
     fprintf(stderr, "%s: empty name (%s, %d)\n",
-	    command_name, source_name, source_line);
+            command_name, source_name, source_line);
     exit(-1);
   }
   *p = '\0';
@@ -3785,7 +3789,7 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   c2 = source_get();
   if (c != nw_char || (c2 != '{' && c2 != '(' && c2 != '[')) {
     fprintf(stderr, "%s: expected @@{ after macro name (%s, %d)\n",
-	    command_name, source_name, start_line);
+            command_name, source_name, start_line);
     exit(-1);
   }
   @<Cleanup and install name@>
@@ -3805,10 +3809,10 @@ Terminated by \verb+@@>+
     switch (c) {
       case '\t':
       case ' ':  *p++ = ' ';
-		 do
-		   c = source_get();
-		 while (c == ' ' || c == '\t');
-		 break;
+                 do
+                   c = source_get();
+                 while (c == ' ' || c == '\t');
+                 break;
       default:   
          if (c==nw_char)
            {
@@ -3816,18 +3820,18 @@ Terminated by \verb+@@>+
              break;
            }
          if (!isgraph(c)) {
-		   fprintf(stderr,
-			   "%s: unexpected character in macro name (%s, %d)\n",
-			   command_name, source_name, source_line);
-		   exit(-1);
-		 }
-		 *p++ = c;
-		 c = source_get();
-		 break;
+                   fprintf(stderr,
+                           "%s: unexpected character in macro name (%s, %d)\n",
+                           command_name, source_name, source_line);
+                   exit(-1);
+                 }
+                 *p++ = c;
+                 c = source_get();
+                 break;
     }
   }
   fprintf(stderr, "%s: unexpected end of file (%s, %d)\n",
-	  command_name, source_name, source_line);
+          command_name, source_name, source_line);
   exit(-1);
   return NULL;  /* unreachable return to avoid warnings on some compilers */
 }
@@ -3839,29 +3843,29 @@ Terminated by \verb+@@>+
   switch (c) {
 
     case '(': 
-	scrap_name_has_parameters = 1;
-	@<Cleanup and install name@>
+        scrap_name_has_parameters = 1;
+        @<Cleanup and install name@>
     case '>': 
-	scrap_name_has_parameters = 0;
-	@<Cleanup and install name@>
+        scrap_name_has_parameters = 0;
+        @<Cleanup and install name@>
 
     default:  
        if (c==nw_char)
          {
            *p++ = c;
-	      c = source_get();
-	      break;
+              c = source_get();
+              break;
          } 
        fprintf(stderr,
-		      "%s: unexpected @@%c in macro invocation name (%s, %d)\n",
-		      command_name, c, source_name, source_line);
-	      exit(-1);
+                      "%s: unexpected @@%c in macro invocation name (%s, %d)\n",
+                      command_name, c, source_name, source_line);
+              exit(-1);
   }
 }@}
 
 
 @o names.c
-@{static Scrap_Node *reverse();	/* a forward declaration */
+@{static Scrap_Node *reverse(); /* a forward declaration */
 
 void reverse_lists(names)
      Name *names;
@@ -3915,10 +3919,10 @@ solution~\cite{aho:75}.
 
 @o scraps.c
 @{typedef struct goto_node {
-  Name_Node *output;		/* list of words ending in this state */
-  struct move_node *moves;	/* list of possible moves */
-  struct goto_node *fail;	/* and where to go when no move fits */
-  struct goto_node *next;	/* next goto node with same depth */
+  Name_Node *output;            /* list of words ending in this state */
+  struct move_node *moves;      /* list of possible moves */
+  struct goto_node *fail;       /* and where to go when no move fits */
+  struct goto_node *next;       /* next goto node with same depth */
 } Goto_Node;
 @| Goto_Node @}
 
@@ -4023,15 +4027,15 @@ void search()
       new_move->next = q->moves;
       q->moves = new_move;
       if (depth == max_depth) {
-	int i;
-	Goto_Node **new_depths =
-	    (Goto_Node **) arena_getmem(2*depth*sizeof(Goto_Node *));
-	max_depth = 2 * depth;
-	for (i=0; i<depth; i++)
-	  new_depths[i] = depths[i];
-	depths = new_depths;
-	for (i=depth; i<max_depth; i++)
-	  depths[i] = NULL;
+        int i;
+        Goto_Node **new_depths =
+            (Goto_Node **) arena_getmem(2*depth*sizeof(Goto_Node *));
+        max_depth = 2 * depth;
+        for (i=0; i<depth; i++)
+          new_depths[i] = depths[i];
+        depths = new_depths;
+        for (i=depth; i<max_depth; i++)
+          depths[i] = NULL;
       }
       new->next = depths[depth];
       depths[depth] = new;
@@ -4053,26 +4057,26 @@ void search()
     while (r) {
       Move_Node *m = r->moves;
       while (m) {
-	char a = m->c;
-	Goto_Node *s = m->state;
-	Goto_Node *state = r->fail;
-	while (state && !goto_lookup(a, state))
-	  state = state->fail;
-	if (state)
-	  s->fail = goto_lookup(a, state);
-	else
-	  s->fail = root[a];
-	if (s->fail) {
-	  Name_Node *p = s->fail->output;
-	  while (p) {
-	    Name_Node *q = (Name_Node *) arena_getmem(sizeof(Name_Node));
-	    q->name = p->name;
-	    q->next = s->output;
-	    s->output = q;
-	    p = p->next;
-	  }
-	}
-	m = m->next;
+        char a = m->c;
+        Goto_Node *s = m->state;
+        Goto_Node *state = r->fail;
+        while (state && !goto_lookup(a, state))
+          state = state->fail;
+        if (state)
+          s->fail = goto_lookup(a, state);
+        else
+          s->fail = root[a];
+        if (s->fail) {
+          Name_Node *p = s->fail->output;
+          while (p) {
+            Name_Node *q = (Name_Node *) arena_getmem(sizeof(Name_Node));
+            q->name = p->name;
+            q->next = s->output;
+            s->output = q;
+            p = p->next;
+          }
+        }
+        m = m->next;
       }
       r = r->next;
     }
@@ -4094,26 +4098,26 @@ void search()
     c = pop(&reader);
     while (c) {
       while (state && !goto_lookup(c, state))
-	state = state->fail;
+        state = state->fail;
       if (state)
-	state = goto_lookup(c, state);
+        state = goto_lookup(c, state);
       else
-	state = root[c];
+        state = root[c];
       c = pop(&reader);
       if (state && state->output) {
-	Name_Node *p = state->output;
-	do {
-	  Name *name = p->name;
-	  if (!reject_match(name, c, &reader) &&
-	      (!name->uses || name->uses->scrap != i)) {
-	    Scrap_Node *new_use =
-		(Scrap_Node *) arena_getmem(sizeof(Scrap_Node));
-	    new_use->scrap = i;
-	    new_use->next = name->uses;
-	    name->uses = new_use;
-	  }
-	  p = p->next;
-	} while (p);
+        Name_Node *p = state->output;
+        do {
+          Name *name = p->name;
+          if (!reject_match(name, c, &reader) &&
+              (!name->uses || name->uses->scrap != i)) {
+            Scrap_Node *new_use =
+                (Scrap_Node *) arena_getmem(sizeof(Scrap_Node));
+            new_use->scrap = i;
+            new_use->next = name->uses;
+            name->uses = new_use;
+          }
+          p = p->next;
+        } while (p);
       }
     }
   }
@@ -4224,7 +4228,7 @@ that returned pointers are always aligned.  We align to the nearest
 {
   char *q;
   char *p = arena->avail;
-  n = (n + 7) & ~7;		/* ensuring alignment to 8 bytes */
+  n = (n + 7) & ~7;             /* ensuring alignment to 8 bytes */
   q = p + n;
   if (q <= arena->limit) {
     arena->avail = q;
@@ -4393,20 +4397,20 @@ copy tabs untouched from input to output.
 .PP
 .SH MINOR COMMANDS
 .br
-@@@@ 	Causes a single ``at-sign'' to be copied into the output.
+@@@@    Causes a single ``at-sign'' to be copied into the output.
 .br
-@@\_ 	Causes the text between it and the next {\tt @@\_} to be made bold 
-	(for keywords, etc.) in the formatted document
+@@\_    Causes the text between it and the next {\tt @@\_} to be made bold 
+        (for keywords, etc.) in the formatted document
 .br
-@@% 	Comments out a line so that it doesn't appear in the output.
+@@%     Comments out a line so that it doesn't appear in the output.
 .br
-@@i 	\fBfilename\fR causes the file named to be included.
+@@i     \fBfilename\fR causes the file named to be included.
 .br
-@@f 	Creates an index of output files.
+@@f     Creates an index of output files.
 .br
-@@m 	Creates an index of macros.
+@@m     Creates an index of macros.
 .br
-@@u 	Creates an index of user-specified identifiers.
+@@u     Creates an index of user-specified identifiers.
 .PP
 To mark an identifier for inclusion in the index, it must be mentioned
 at the end of the scrap it was defined in. The line starts
