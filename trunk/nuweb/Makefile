@@ -11,6 +11,12 @@ OBJS = main.o pass1.o latex.o html.o output.o input.o scraps.o names.o \
 SRCS = main.c pass1.c latex.c html.c output.c input.c scraps.c names.c \
 	arena.c global.c
 
+HDRS = global.h
+
+DIST = Makefile README *.bib *.sty nuweb.w nuwebsty.w \
+		$(TARGET)doc.tex $(SRCS) $(HDRS)
+ 
+
 .SUFFIXES: .dvi .tex .w .hw
 
 .w.tex:
@@ -31,13 +37,10 @@ all:
 	$(MAKE) $(TARGET)
 
 shar:	$(TARGET)doc.tex
-	shar Makefile README *.bib *.sty nuweb.w \
-		$(TARGET)doc.tex $(SRCS) global.h \
-		 > $(TARGET)$(VERSION).sh
+	shar $(DIST) > $(TARGET)$(VERSION).sh
 
 tar:	$(TARGET)doc.tex
-	tar -cf $(TARGET)$(VERSION).tar Makefile README *.bib *.sty nuweb.w \
-		$(TARGET)doc.tex $(SRCS) global.h
+	tar -cf $(TARGET)$(VERSION).tar $(DIST)
 
 distribution: all shar tar nuwebhtml nuwebdoc 
 
