@@ -45,9 +45,18 @@
 % TEMPN -- Fix of the use of tempnam
 % LINE  -- Synchronizing #lines when @@% is used
 % MAC   -- definition of the macros used by LANG,DIAM,HYPER
+% CHAR  -- Introduce @@r to change the nuweb meta character (@@)
 % TIE   -- Replacement of ~ by "\nobreak\ "
 % SCRAPs-- Elimination of s
 % DNGL  -- Correction: option -d was not working and was misdocumented
+%  --after the CHAR modifications, to be able to specify non-ascii characters
+%    for the scape character, the program must be compiled with the -K
+%    option in Borland compilers or the -funsigned-char in GNU's gcc
+%    to treat char as an unsigned value when converted to int. 
+%    To make the program independen of those options, either char should be changed
+%    to unsigned char (bad solution, since unsigned char should be used for numerical
+%    purposes) or attention should be payed to all char-int conversions. (including
+%    comparisons)
 %  --2002-01-15: the TILDE modificiation is necessary because some ties have been
 %   introduced in version 0.93 in troublesome places when the babel package is used
 %   with the spanish.ldf option (which makes ~ an active character).
@@ -718,6 +727,15 @@ int scrap_flag = TRUE;
 int dangling_flag = FALSE;
 @}
 
+%JG-CHAR
+A global variable \verb|nw_char| will be used for the nuweb
+meta-character, which by default will be @@.
+@d Global variable dec...
+@{extern int nw_char;
+@| nw_char @}
+@d Global variable def...
+@{int nw_char='@@';
+@| nw_char @}
 
 
 We save the invocation name of the command in a global variable
@@ -935,36 +953,43 @@ cross-reference lists accumulated while scanning the scraps.
 
 The only thing we look for in the first pass are the command
 sequences. All ordinary text is skipped entirely.
+%JG-CHAR
 @d Scan the source file, look...
 @{{
   int c = source_get();
   while (c != EOF) {
-    if (c == '@@')
+    if (c == nw_char)
       @<Scan at-sequence@>
     c = source_get();
   }
 }@}
 
-
 Only four of the at-sequences are interesting during the first pass.
 We skip past others immediately; warning if unexpected sequences are
 discovered.
+%JG-CHAR
 @d Scan at-sequence
 @{{
   c = source_get();
   switch (c) {
+    case 'r':
+          c = source_get();
+          nw_char = c;
+          update_delimit_scrap();
+          break;
     case 'O':
     case 'o': @<Build output file definition@>
 	      break;
     case 'D':
     case 'd': @<Build macro definition@>
 	      break;
-    case '@@':
     case 'u':
     case 'm':
     case 'f': /* ignore during this pass */
 	      break;
-    default:  fprintf(stderr,
+    default:  if (c==nw_char) /* ignore during this pass */
+                break;
+              fprintf(stderr,
 		      "%s: unexpected @@ sequence ignored (%s, line %d)\n",
 		      command_name, source_name, source_line);
 	      break;
@@ -1099,13 +1124,16 @@ We make our second (and final) pass through the source web, this time
 copying characters straight into the \verb|.tex| file. However, we keep
 an eye peeled for \verb|@@|~characters, which signal a command sequence.
 
+%JG-CHAR
 @d Copy \verb|source_file| into \verb|tex_file|
 @{{
   int scraps = 1;
   int c = source_get();
   while (c != EOF) {
-    if (c == '@@')
+    if (c == nw_char)
+      {
       @<Interpret at-sequence@>
+      }
     else {
       putc(c, tex_file);
       c = source_get();
@@ -1113,11 +1141,17 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
   }
 }@}
 
+%JG-CHAR
 @d Interpret at-sequence
 @{{
   int big_definition = FALSE;
   c = source_get();
   switch (c) {
+    case 'r':
+          c = source_get();
+          nw_char = c;
+          update_delimit_scrap();
+          break;
     case 'O': big_definition = TRUE;
     case 'o': @<Write output file definition@>
 	      break;
@@ -1130,8 +1164,10 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
 	      break;
     case 'u': @<Write index of user-specified names@>
 	      break;
-    case '@@': putc(c, tex_file);
-    default:  c = source_get();
+    default:  
+          if (c==nw_char)
+            putc(c, tex_file); 
+          c = source_get();
 	      break;
   }
 }@}
@@ -1185,12 +1221,12 @@ handling of the \verb|@@| case in the switch statement).
 Macro and file definitions are formatted nearly identically.
 I've factored the common parts out into separate scraps.
 
-%JG-HYPER-TIE
+%JG-HYPER-CHAR-TIE
 @d Write output file definition
 @{{
   Name *name = collect_file_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "\\verb@@\"%s\"@@\\nobreak\\ {\\footnotesize ", name->spelling);
+  fprintf(tex_file, "\\verb%c\"%s\"%c\\nobreak\\ {\\footnotesize ", nw_char, name->spelling, nw_char);
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{", tex_file);
@@ -1359,13 +1395,35 @@ This is the only place we really care whether a scrap is
 delimited with \verb|@@{...@@}|, \verb|@@[...@@]|, or \verb|@@(...@@)|,
 and we base our output sequences on that.
 
+%JG-CHAR
 @o latex.c
 @{static char *delimit_scrap[3][5] = {
+  /* {} mode: begin, end, insert nw_char, prefix, suffix */
   { "\\verb@@", "@@", "@@{\\tt @@}\\verb@@", "\\mbox{}", "\\\\" },
+  /* [] mode: begin, end, insert nw_char, prefix, suffix */
   { "", "", "@@", "", "" },
+  /* () mode: begin, end, insert nw_char, prefix, suffix */
   { "$", "$", "@@", "", "" },
 };
 int scrap_type = 0;
+
+void update_delimit_scrap()
+{
+  /* {}-mode begin */
+  delimit_scrap[0][0][5] = nw_char;
+  /* {}-mode end */
+  delimit_scrap[0][1][0] = nw_char;
+  /* {}-mode insert nw_char */
+  delimit_scrap[0][2][0] = nw_char;
+  delimit_scrap[0][2][6] = nw_char;
+  delimit_scrap[0][2][13] = nw_char;
+  
+  /* []-mode insert nw_char */
+  delimit_scrap[1][2][0] = nw_char;
+
+  /* ()-mode insert nw_char */
+  delimit_scrap[2][2][0] = nw_char;
+}
 
 static void copy_scrap(file)
      FILE *file;
@@ -1380,8 +1438,6 @@ static void copy_scrap(file)
   fputs(delimit_scrap[scrap_type][0], file);
   while (1) {
     switch (c) {
-      case '@@':  @<Check at-sequence for end-of-scrap@>
-		 break;
       case '\n': fputs(delimit_scrap[scrap_type][1], file);
                  fputs(delimit_scrap[scrap_type][4], file);
                  fputs("\n", file);
@@ -1391,14 +1447,24 @@ static void copy_scrap(file)
 		 break;
       case '\t': @<Expand tab into spaces@>
 		 break;
-      default:   putc(c, file);
+      default:   
+         if (c==nw_char)
+           {
+             @<Check at-sequence for end-of-scrap@>
+             break;
+           }           
+         putc(c, file);
 		 indent++;
 		 break;
     }
     c = source_get();
   }
 }
-@| copy_scrap delimit_scrap scrap_type @}
+@| copy_scrap delimit_scrap scrap_type update_delimit_scrap @}
+
+@d Function prototypes
+@{void update_delimit_scrap();
+@}
 
 
 @d Expand tab into spaces
@@ -1411,12 +1477,11 @@ static void copy_scrap(file)
   }
 }@}
 
+%JG-CHAR
 @d Check at-sequence...
 @{{
   c = source_get();
   switch (c) {
-    case '@@': fputs(delimit_scrap[scrap_type][2], file);
-	      break;
     case '|': @<Skip over index entries@>
     case ')':
     case ']':
@@ -1428,19 +1493,26 @@ static void copy_scrap(file)
               break;
     case '_': @<Bold Keyword@>
               break;
-    default:  /* ignore these since pass1 will have warned about them */
+    default:  
+          if (c==nw_char)
+            {
+              fputs(delimit_scrap[scrap_type][2], file);
+              break;
+            }
+          /* ignore these since pass1 will have warned about them */
 	      break;
   }
 }@}
 
 There's no need to check for errors here, since we will have already
 pointed out any during the first pass.
+%JG-CHAR
 @d Skip over index entries
 @{{
   do {
     do
       c = source_get();
-    while (c != '@@');
+    while (c != nw_char);
     c = source_get();
   } while (c != '}' && c != ']' && c != ')' );
 }@}
@@ -1454,6 +1526,7 @@ pointed out any during the first pass.
 
 This scrap helps deal with bold keywords:
 
+%JG-CHAR
 @d Bold Keyword
 @{{
   fputs(delimit_scrap[scrap_type][1],file);
@@ -1462,7 +1535,7 @@ This scrap helps deal with bold keywords:
   do {
       fputc(c, file);
       c = source_get();
-  } while (c != '@@');
+  } while (c != nw_char);
   c = source_get();
   fprintf(file, "}");
   fputs(delimit_scrap[scrap_type][0], file);
@@ -1544,12 +1617,12 @@ This scrap helps deal with bold keywords:
 @| format_entry @}
 
 
-%JG-ADJ-TIE
+%JG-ADJ-CHAR-TIE
 @d Format an index entry
 @{{
   fputs("\\item ", tex_file);
   if (file_flag) {
-    fprintf(tex_file, "\\verb@@\"%s\"@@ ", name->spelling);
+    fprintf(tex_file, "\\verb%c\"%s\"%c ", nw_char, name->spelling, nw_char);
     @<Write file's defining scrap numbers@>
   }
   else {
@@ -1664,14 +1737,14 @@ This scrap helps deal with bold keywords:
 @| format_user_entry @}
 
 
-%JG-HYPER-DNGL
+%JG-HYPER-CHAR-DNGL
 @d Format a user index entry
 @{{
   Scrap_Node *uses = name->uses;
   if ( uses || dangling_flag ) {
     int page;
     Scrap_Node *defs = name->defs;
-    fprintf(tex_file, "\\item \\verb@@%s@@: ", name->spelling);
+    fprintf(tex_file, "\\item \\verb%c%s%c: ", nw_char,name->spelling,nw_char);
     if (!uses) {
         fputs("(\\underline{", tex_file);
         fputs("\\NWlink{nuweb", tex_file);
@@ -1681,7 +1754,9 @@ This scrap helps deal with bold keywords:
         fputs("})}", tex_file);
         page = -2;
         defs = defs->next;        
-    } else if (uses->scrap < defs->scrap) {
+    }
+    else
+      if (uses->scrap < defs->scrap) {    
       fputs("\\NWlink{nuweb", tex_file);
       write_scrap_ref(tex_file, uses->scrap, -1, &page);
       fputs("}{", tex_file);
@@ -1784,12 +1859,13 @@ We make our second (and final) pass through the source web, this time
 copying characters straight into the \verb|.tex| file. However, we keep
 an eye peeled for \verb|@@|~characters, which signal a command sequence.
 
+%JG-CHAR
 @d Copy \verb|source_file| into \verb|html_file|
 @{{
   int scraps = 1;
   int c = source_get();
   while (c != EOF) {
-    if (c == '@@')
+    if (c == nw_char)
       @<Interpret HTML at-sequence@>
     else {
       putc(c, html_file);
@@ -1798,10 +1874,16 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
   }
 }@}
 
+%JG-CHAR
 @d Interpret HTML at-sequence
 @{{
   c = source_get();
   switch (c) {
+    case 'r':
+          c = source_get();
+          nw_char = c;
+          update_delimit_scrap();
+          break;
     case 'O': 
     case 'o': @<Write HTML output file definition@>
 	      break;
@@ -1814,8 +1896,10 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
 	      break;
     case 'u': @<Write HTML index of user-specified names@>
 	      break;
-    case '@@': putc(c, html_file);
-    default:  c = source_get();
+    default:  
+          if (c==nw_char)
+            putc(c, html_file);
+          c = source_get();
 	      break;
   }
 }@}
@@ -1827,6 +1911,7 @@ We go through only a little amount of effort to format a definition.
 The HTML for the previous macro definition should look like this
 (perhaps modulo the scrap references):
 
+%JG-CHAR
 \begin{verbatim}
 <pre>
 <a name="nuweb68">&lt;Interpret HTML at-sequence 68&gt;</a> =
@@ -1845,8 +1930,10 @@ The HTML for the previous macro definition should look like this
               break;
     case 'u': &lt;Write HTML index of user-specified names <a href="#nuweb93">93</a>&gt;
               break;
-    case '@@': putc(c, html_file);
-    default:  c = source_get();
+    default:  
+         if (c==nw_char)
+           putc(c, html_file);
+         c = source_get();
               break;
   }
 }&lt;&gt;</pre>
@@ -2012,6 +2099,7 @@ end the paragraph.
 
 We must translate HTML special keywords into entities in scraps.
 
+%JG-CHAR
 @o html.c
 @{static void copy_scrap(file)
      FILE *file;
@@ -2020,8 +2108,6 @@ We must translate HTML special keywords into entities in scraps.
   int c = source_get();
   while (1) {
     switch (c) {
-      case '@@':  @<Check HTML at-sequence for end-of-scrap@>
-		 break;
       case '<' : fputs("&lt;", file);
 		 indent++;
 		 break;
@@ -2036,7 +2122,13 @@ We must translate HTML special keywords into entities in scraps.
 		 break;
       case '\t': @<Expand tab into spaces@>
 		 break;
-      default:   putc(c, file);
+      default:   
+         if (c==nw_char)
+           {
+             @<Check HTML at-sequence for end-of-scrap@>
+             break;
+           }
+         putc(c, file);
 		 indent++;
 		 break;
     }
@@ -2045,12 +2137,11 @@ We must translate HTML special keywords into entities in scraps.
 }
 @| copy_scrap @}
 
+%JG-CHAR
 @d Check HTML at-sequence...
 @{{
   c = source_get();
   switch (c) {
-    case '@@': fputc(c, file);
-	      break;
     case '|': @<Skip over index entries@>
     case '}': 
     case ']': 
@@ -2061,7 +2152,13 @@ We must translate HTML special keywords into entities in scraps.
 	      break;
     case '%': @<Skip commented-out code@>
               break;
-    default:  /* ignore these since pass1 will have warned about them */
+    default:  
+         if (c==nw_char)
+           {
+             fputc(c, file);
+             break;
+           }
+          /* ignore these since pass1 will have warned about them */
 	      break;
   }
 }@}
@@ -2408,6 +2505,7 @@ current source file. It notices newlines and keeps the line counter
 for \verb|@@|~characters. All other characters are immediately returned.
 We define \verb|source_last| to let us tell which type of scrap we
 are defining.
+%JG-CHAR
 @o input.c
 @{
 int source_last;
@@ -2418,10 +2516,14 @@ int source_get()
   switch (c) {
     case EOF:  @<Handle \verb|EOF|@>
 	       return c;
-    case '@@':  @<Handle an ``at'' character@>
-	       return c;
     case '\n': source_line++;
-    default:   source_peek = getc(source_file);
+    default:
+           if (c==nw_char)
+             {
+               @<Handle an ``at'' character@>
+               return c;
+             }
+           source_peek = getc(source_file);
 	       return c;
   }
 }
@@ -2444,13 +2546,14 @@ At the same time, it makes sense to recognize illegal \verb|@@|~sequences
 and complain; this avoids ever having to check anywhere else.
 Unfortunately, I need to avoid tripping over the \verb|@@@@|~sequence;
 hence this whole unsatisfactory \verb|double_at| business.
+%JG-CHAR
 @d Handle an ``at''...
 @{{
   c = getc(source_file);
   if (double_at) {
     source_peek = c;
     double_at = FALSE;
-    c = '@@';
+    c = nw_char;
   }
   else
     switch (c) {
@@ -2461,14 +2564,19 @@ hence this whole unsatisfactory \verb|double_at| business.
       case '{': case '}': case '<': case '>': case '|':
       case '(': case ')': case '[': case ']':
       case '%': case '_':
+      case 'r':
 		source_peek = c;
-		c = '@@';
+        c = nw_char;        
 		break;
-      case '@@': source_peek = c;
+      default:  
+            if (c==nw_char)
+              {
+                source_peek = c;
 		double_at = TRUE;
 		break;
-      default:  fprintf(stderr, "%s: bad @@ sequence (%s, line %d)\n",
-			command_name, source_name, source_line);
+              }
+            fprintf(stderr, "%s: bad @@ sequence %d (%s, line %d)\n",
+            command_name, c, source_name, source_line);
 		exit(-1);
     }
 }@}
@@ -2726,6 +2834,7 @@ extern void write_single_scrap_ref();
 }@}
 
 
+%JG-CHAR
 @d Accumulate scrap...
 @{{
   int c = source_get();
@@ -2735,23 +2844,24 @@ extern void write_single_scrap_ref();
 			command_name, scrap_array(scraps).file_name,
 			scrap_array(scraps).file_line);
 		exit(-1);
-      case '@@': @<Handle at-sign during scrap accumulation@>
+      default:  
+        if (c==nw_char)
+          {
+            @<Handle at-sign during scrap accumulation@>
 		break;
-      default:  push(c, &writer);
+          }
+        push(c, &writer);
 		c = source_get();
 		break;
     }
   }
 }@}
 
-%JG-LINE
+%JG-LINE-CHAR
 @d Handle at-sign during scrap accumulation
 @{{
   c = source_get();
   switch (c) {
-    case '@@': pushs("@@@@", &writer);
-	      c = source_get();
-	      break;
     case '|': @<Collect user-specified index entries@>
     case ')':
     case ']':
@@ -2766,13 +2876,21 @@ extern void write_single_scrap_ref();
               break;
     case '_': c = source_get();
 	      break;
-    default : fprintf(stderr, "%s: unexpected @@%c in (%s, %d)\n",
+    default : 
+          if (c==nw_char)
+            {
+              push(nw_char, &writer);
+              push(nw_char, &writer);
+              c = source_get();
+              break;
+            }
+          fprintf(stderr, "%s: unexpected @@%c in (%s, %d)\n",
 		      command_name, c, source_name, source_line);
 	      exit(-1);
   }
 }@}
 
-
+%JG-CHAR
 @d Collect user-specified index entries
 @{{
   do {
@@ -2781,12 +2899,12 @@ extern void write_single_scrap_ref();
     do 
       c = source_get();
     while (isspace(c));
-    if (c != '@@') {
+    if (c != nw_char) {
       Name *name;
       do {
 	*p++ = c;
 	c = source_get();
-      } while (c != '@@' && !isspace(c));
+      } while (c != nw_char && !isspace(c));
       *p = '\0';
       name = name_add(&user_names, new_name);
       if (!name->defs || name->defs->scrap != scraps) {
@@ -2796,7 +2914,7 @@ extern void write_single_scrap_ref();
 	name->defs = def;
       }
     }
-  } while (c != '@@');
+  } while (c != nw_char);
   c = source_get();
   if (c != '}' && c != ']' && c != ')' ) {
     fprintf(stderr, "%s: unexpected @@%c in (%s, %d)\n",
@@ -2815,11 +2933,13 @@ extern void write_single_scrap_ref();
 }@}
 
 
+%JG-CHAR
 @d Save macro name
 @{{
   char *s = name->spelling;
   int len = strlen(s) - 1;
-  pushs("@@<", &writer);
+  push(nw_char, &writer);
+  push('<', &writer);
   while (len > 0) {
     push(*s++, &writer);
     len--;
@@ -2828,7 +2948,8 @@ extern void write_single_scrap_ref();
     pushs("...", &writer);
   else
     push(*s, &writer);
-  pushs("@@>", &writer);
+  push(nw_char, &writer);
+  push('>', &writer);
 }@}
 
 
@@ -2841,7 +2962,6 @@ extern void write_single_scrap_ref();
     name->uses = use;
   }
 }@}
-
 
 @o scraps.c
 @{static char pop(manager)
@@ -2862,6 +2982,7 @@ extern void write_single_scrap_ref();
 
 
 
+%JG-CHAR
 @o scraps.c
 @{static Name *pop_scrap_name(manager)
      Manager *manager;
@@ -2870,7 +2991,7 @@ extern void write_single_scrap_ref();
   char *p = name;
   int c = pop(manager);
   while (TRUE) {
-    if (c == '@@')
+    if (c == nw_char)
       @<Check for end of scrap name and return@>
     else {
       *p++ = c;
@@ -2881,10 +3002,11 @@ extern void write_single_scrap_ref();
 @| pop_scrap_name @}
 
 
+%JG-CHAR
 @d Check for end of scrap name...
 @{{
   c = pop(manager);
-  if (c == '@@') {
+  if (c == nw_char) {
     *p++ = c;
     c = pop(manager);
   }
@@ -2924,6 +3046,7 @@ extern void write_single_scrap_ref();
 @| write_scraps @}
 
 
+%JG-CHAR
 @d Copy \verb|defs->scrap...
 @{{
   char c;
@@ -2935,15 +3058,19 @@ extern void write_single_scrap_ref();
   c = pop(&reader);
   while (c) {
     switch (c) {
-      case '@@':  @<Check for macro invocation in scrap@>
-		 break;
       case '\n': putc(c, file);
 		 line_number++;
 		 @<Insert appropriate indentation@>
 		 break;
       case '\t': @<Handle tab...@>
 		 break;
-      default:	 putc(c, file);
+      default:   
+         if (c==nw_char)
+           {
+             @<Check for macro invocation in scrap@>
+             break;
+           }         
+         putc(c, file);
 		 indent_chars[global_indent + indent] = ' ';
 		 indent++;
 		 break;
@@ -2987,20 +3114,24 @@ extern void write_single_scrap_ref();
 }@}
 
 
-
+%JG-CHAR
 @d Check for macro invocation...
 @{{
   c = pop(&reader);
   switch (c) {
-    case '@@': putc(c, file);
-	      indent_chars[global_indent + indent] = ' ';
-	      indent++;
-	      break;
     case '_': break;
     case '<': @<Copy macro into \verb|file|@>
 	      @<Insert debugging information if required@>
 	      break;
-    default:  /* ignore, since we should already have a warning */
+    default:  
+          if(c==nw_char)
+            {
+              putc(c, file);
+              indent_chars[global_indent + indent] = ' ';
+              indent++;
+              break;
+            }
+          /* ignore, since we should already have a warning */
 	      break;
   }
 }@}
@@ -3312,6 +3443,7 @@ The function \verb|robs_strcmp| implements the desired predicate.
 
 Name terminated by whitespace.  Also check for ``per-file'' flags. Keep
 skipping white space until we reach scrap.
+%JG-CHAR
 @o names.c
 @{Name *collect_file_name()
 {
@@ -3335,7 +3467,7 @@ skipping white space until we reach scrap.
   new_name = name_add(&file_names, name);
   @<Handle optional per-file flags@>
   c2 = source_get();
-  if (c != '@@' || (c2 != '{' && c2 != '(' && c2 != '[')) {
+  if (c != nw_char || (c2 != '{' && c2 != '(' && c2 != '[')) {
     fprintf(stderr, "%s: expected @@{, @@[, or @@( after file name (%s, %d)\n",
 	    command_name, source_name, start_line);
     exit(-1);
@@ -3373,6 +3505,7 @@ skipping white space until we reach scrap.
 
 
 Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
+%JG-CHAR
 @o names.c
 @{Name *collect_macro_name()
 {
@@ -3384,8 +3517,6 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
     c = source_get();
   while (c != EOF) {
     switch (c) {
-      case '@@':  @<Check for terminating at-sequence and return name@>
-		 break;
       case '\t':
       case ' ':  *p++ = ' ';
 		 do
@@ -3393,7 +3524,13 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
 		 while (c == ' ' || c == '\t');
 		 break;
       case '\n': @<Skip until scrap begins, then return name@>
-      default:	 *p++ = c;
+      default:   
+         if (c==nw_char)
+           {
+             @<Check for terminating at-sequence and return name@>
+             break;
+           }
+         *p++ = c;
 		 c = source_get();
 		 break;
     }
@@ -3406,16 +3543,21 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
 @| collect_macro_name @}
 
 
+%JG-CHAR
 @d Check for termina...
 @{{
   c = source_get();
   switch (c) {
-    case '@@': *p++ = c;
-	      break;
     case '(':
     case '[':
     case '{': @<Cleanup and install name@>
-    default:  fprintf(stderr,
+    default:  
+          if (c==nw_char)
+            {
+              *p++ = c;
+              break;
+            }
+          fprintf(stderr,
 		      "%s: unexpected @@%c in macro name (%s, %d)\n",
 		      command_name, c, source_name, start_line);
 	      exit(-1);
@@ -3440,14 +3582,14 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   return prefix_add(&macro_names, name);
 }@}
 
-
+%JG-CHAR
 @d Skip until scrap...
 @{{
   do
     c = source_get();
   while (isspace(c));
   c2 = source_get();
-  if (c != '@@' || (c2 != '{' && c2 != '(' && c2 != '[')) {
+  if (c != nw_char || (c2 != '{' && c2 != '(' && c2 != '[')) {
     fprintf(stderr, "%s: expected @@{ after macro name (%s, %d)\n",
 	    command_name, source_name, start_line);
     exit(-1);
@@ -3457,6 +3599,7 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
 
 
 Terminated by \verb+@@>+
+%JG-CHAR
 @o names.c
 @{Name *collect_scrap_name()
 {
@@ -3467,15 +3610,19 @@ Terminated by \verb+@@>+
     c = source_get();
   while (c != EOF) {
     switch (c) {
-      case '@@':  @<Look for end of scrap name and return@>
-		 break;
       case '\t':
       case ' ':  *p++ = ' ';
 		 do
 		   c = source_get();
 		 while (c == ' ' || c == '\t');
 		 break;
-      default:	 if (!isgraph(c)) {
+      default:   
+         if (c==nw_char)
+           {
+             @<Look for end of scrap name and return@>
+             break;
+           }
+         if (!isgraph(c)) {
 		   fprintf(stderr,
 			   "%s: unexpected character in macro name (%s, %d)\n",
 			   command_name, source_name, source_line);
@@ -3493,16 +3640,20 @@ Terminated by \verb+@@>+
 }
 @| collect_scrap_name @}
 
-
+%JG-CHAR
 @d Look for end of scrap name...
 @{{
   c = source_get();
   switch (c) {
-    case '@@': *p++ = c;
+    case '>': @<Cleanup and install name@>
+    default:  
+       if (c==nw_char)
+         {
+           *p++ = c;
 	      c = source_get();
 	      break;
-    case '>': @<Cleanup and install name@>
-    default:  fprintf(stderr,
+         } 
+       fprintf(stderr,
 		      "%s: unexpected @@%c in macro name (%s, %d)\n",
 		      command_name, c, source_name, source_line);
 	      exit(-1);
@@ -3780,6 +3931,7 @@ longer token. Of course, the concept of {\sl token\/} is
 language-dependent, so we may be occasionally mistaken.
 For the present, we'll consider the mechanism an experiment.
 
+%JG-CHAR
 @o scraps.c
 @{#define sym_char(c) (isalnum(c) || (c) == '_')
 
@@ -3787,12 +3939,12 @@ static int op_char(c)
      char c;
 {
   switch (c) {
-    case '!': case '@@': case '#': case '%': case '$': case '^': 
+    case '!':           case '#': case '%': case '$': case '^': 
     case '&': case '*': case '-': case '+': case '=': case '/':
     case '|': case '~': case '<': case '>':
       return TRUE;
     default:
-      return FALSE;
+      return c==nw_char ? TRUE : FALSE;
   }
 }
 @| sym_char op_char @}
