@@ -260,7 +260,9 @@ The definitions of macros may be similarly specified piecemeal.
 Scraps have specific begin markers and end markers to allow precise
 control over the contents and layout. Note that any amount of
 whitespace (including carriage returns) may appear between a name and
-the beginning of a scrap.
+the beginning of a scrap. Scraps may also appear in the running text
+where they are formatted (almost) identically to their use in definitions,
+but don't appear in any code output.
 \begin{description}
 \item[\tt @@\{{\em anything\/}@@\}] where the scrap body includes every
   character in {\em anything\/}---all the blanks, all the tabs, all the
@@ -286,6 +288,21 @@ Inside a scrap, we may invoke a macro.
 \item[\tt @@1, @@2, ..., @@9] In a macro causes the n'th macro 
       parameter to be substituted into the scrap.  If the parameter
       is not passed, a null string is substituted.
+\item[\tt @@h] This is replaced by the reference number of the current scrap.
+So, ``\verb+/* See @@h. */+'' may be expanded to ``\verb+/* See 23b. */+''
+\item[\tt @@x{\em label}@@x] Marks a place inside a scrap and
+associates it to the label (which can be any text not containing
+a @@). Expands to the reference number of the scrap followed by a
+numeric value. Outside scraps expands to the same value. It is
+used so that text outside scraps can refer to particular places
+within scraps. 
+\item[\tt @@f] Inside a scrap this is replaced by the name of the
+current output file.
+\item[\tt @@\#] At the beginning of a line in a scrap this will
+suppress the normal indentation for that line. Use this, for
+example, when you have a \verb|#ifdef| inside a nested scrap.
+Writing \verb|@@##ifdef| will cause it to be lined up on the left
+rather than indented with the rest of its code.
 \end{description}
 Note that macro names may be abbreviated, either during invocation or
 definition. For example, it would be very tedious to have to
@@ -348,7 +365,7 @@ single document. There are three ``per-file'' flags:
 
 \subsection{The Minor Commands\label{minorcommands}}
 
-We have two very low-level utility commands that may appear anywhere
+We have some very low-level utility commands that may appear anywhere
 in the web file.
 \begin{description}
 \item[\tt @@@@] Causes a single ``at sign'' to be copied into the output.
@@ -397,6 +414,57 @@ distinguished by underlining. Note that the identifier doesn't
 actually have to appear in the defining scrap; it just has to be in
 the list of definitions at the end of a scrap.
 
+\section{Sectioning commands}
+For larger documents the indexes and usage lists get rather
+unwieldy and problems arise in naming things so that different
+things in different parts of the document don't get confused. We
+have a sectioning command which keeps the macro names and user
+identifiers separate. Thus, you can give a macro in one section
+the same name as a macro in another and the two won't be confused
+or connected in any way. Nor will user identifiers in one section
+defined in one section be referenced in another. Except for the
+fact that scraps in successive sections can go into the same
+output file, this is the same as if the sections came from
+separate input files.
+
+However, occasionally you may really want macros from one section
+to be used in another. More often, you will want to identify a
+user identifier in one section with the same identifier in
+another (as, for example, a header file defined in one section is
+included in code in another). Extra commands allow a macro
+defined in one section to be accessible from all other sections.
+Similarly, you can have scraps which define user identifiers and
+export them so that they can be used in other sections.
+
+\begin{description}
+\item[{\tt @@s}] Divides sections.
+\item[{\tt @@d+} macro-name scrap] Define a macro which is
+accessible in all sections, a global macro.
+\item[{\tt @@m+}] Create an index of all such macros.
+\item[{\tt @@u+}] Create an index of globally accessible
+user identifiers.
+\end{description}
+
+Within a scrap:
+\begin{description}
+\item[\tt @@<+{\em macro-name\/}@@>]
+Expand the globally accessible macro with that name, rather than
+any local macro.
+\item[{\tt @@+}] Like \verb"@@|" except that the identifiers
+defined are exported to the global realm and are not directly
+referenced in any scrap in any section (not even the one where
+they are defined).
+\item[{\tt @@-}] Like \verb"@@|" except that the identifiers
+are imported to the local realm. The cross-references show where
+the global variables are defined and defines the same names as
+locally accesible. Uses of the names within the section will
+point to this scrap.
+\end{description}
+
+Note that the \verb"+" signs above are part of the commands. They
+are not part of the macro names. If you want a macro whose name
+begins with a plus sign, leave a space between the command and the
+name.
 
 \section{Running Nuweb}
 
@@ -444,6 +512,8 @@ There are several additional command-line flags:
   following each scrap.
 \item[\tt -d] Print "dangling" identifiers -- user identifiers which
   are never referenced, in indices, etc.
+\item[\tt -p \it path] Prepend \textit{path} to the filenames for
+all the output files.
 \end{description}
 
 \section{Generating HTML}
@@ -655,6 +725,7 @@ Finally, for best portability, I seem to need a file containing
 (useless!) definitions of all the global variables.
 @o global.c
 @{#include "global.h"
+@<Operating System Dependencies@>
 @<Global variable definitions@>
 @}
 
@@ -685,10 +756,16 @@ via "putenv" in \verb|stdlib.h|.
 @d Operating System Dependencies @{
 #if defined(VMS)
 #define PATH_SEP(c) (c==']'||c==':')
+#define PATH_SEP_CHAR ""
+#define DEFAULT_PATH ""
 #elif defined(MSDOS)
 #define PATH_SEP(c) (c=='\\')
+#define PATH_SEP_CHAR "\\"
+#define DEFAULT_PATH "."
 #else
 #define PATH_SEP(c) (c=='/')
+#define PATH_SEP_CHAR "/"
+#define DEFAULT_PATH "."
 #endif
 #include <stdlib.h>
 @}
@@ -706,6 +783,8 @@ There are numerous possible command-line arguments:
   numbers).
 \item[\tt -s] Doesn't print list of scraps making up file at end of
   each scrap.
+\item[\tt -p \it path] Prepend \textit{path} to the filenames for
+all the output files.
 \end{description}
 
 \noindent
@@ -719,6 +798,9 @@ extern int verbose_flag;  /* if TRUE, write progress information */
 extern int number_flag;   /* if TRUE, use a sequential numbering scheme */
 extern int scrap_flag;    /* if FALSE, don't print list of scraps */
 extern int dangling_flag;    /* if FALSE, don't print dangling flags */
+extern int prepend_flag;  /* If TRUE, prepend a path to the output file names */
+extern char * dirpath;    /* The prepended directory path */
+extern char * path_sep;   /* How to join path to filename */
 @| tex_flag html_flag output_flag compare_flag verbose_flag number_flag scrap_flag dangling_flag@}
 
 The flags are all initialized for correct default behavior.
@@ -732,6 +814,9 @@ int verbose_flag = FALSE;
 int number_flag = FALSE;
 int scrap_flag = TRUE;
 int dangling_flag = FALSE;
+int prepend_flag = FALSE;
+char * dirpath = DEFAULT_PATH; /* Default directory path */
+char * path_sep = PATH_SEP_CHAR;
 @}
 
 A global variable \verb|nw_char| will be used for the nuweb
@@ -767,6 +852,7 @@ command-line arguments.
   if (*s++ == '-') {
     @<Interpret the argument string \verb|s|@>
     arg++;
+    @<Perhaps get the prepend path@>
   }
   else break;
 }@}
@@ -793,15 +879,26 @@ we've got to loop through the string, handling them all.
                 break;
       case 'v': verbose_flag = TRUE;
                 break;
+      case 'p': prepend_flag = TRUE;
+                break;
       default:  fprintf(stderr, "%s: unexpected argument ignored.  ",
                         command_name);
-                fprintf(stderr, "Usage is: %s [-cnotv] file...\n",
+                fprintf(stderr, "Usage is: %s [-cnotv] [-p path] file...\n",
                         command_name);
                 break;
     }
     c = *s++;
   }
 }@}
+
+@d Perhaps get the prepend path
+@{if (prepend_flag)
+{
+  dirpath = argv[arg++];
+  prepend_flag = FALSE;
+}
+@}
+
 
 \subsection{File Names}
 
@@ -812,7 +909,7 @@ the usage convention.
 @{{
   if (arg >= argc) {
     fprintf(stderr, "%s: expected a file name.  ", command_name);
-    fprintf(stderr, "Usage is: %s [-cnotv] file-name...\n", command_name);
+    fprintf(stderr, "Usage is: %s [-cnotv] [-p path] file-name...\n", command_name);
     exit(-1);
   }
   do {
@@ -832,9 +929,9 @@ file will be written in the current directory; its name will be kept
 in the variable \verb|tex_name|.
 @d Handle the file...
 @{{
-  char source_name[100];
-  char tex_name[100];
-  char aux_name[100];
+  char source_name[FILENAME_MAX];
+  char tex_name[FILENAME_MAX];
+  char aux_name[FILENAME_MAX];
   @<Build \verb|source_name| and \verb|tex_name|@>
   @<Process a file@>
 }@}
@@ -874,13 +971,13 @@ this scrap.
   if (dot) {
     *dot = '\0'; /* produce HTML when the file extension is ".hw" */
     html_flag = dot[1] == 'h' && dot[2] == 'w' && dot[3] == '\0';
-    sprintf(tex_name, "%s.tex", trim);
-    sprintf(aux_name, "%s.aux", trim);
+    sprintf(tex_name, "%s%s%s.tex", dirpath, path_sep, trim);
+    sprintf(aux_name, "%s%s%s.aux", dirpath, path_sep, trim);
     *dot = '.';
   }
   else {
-    sprintf(tex_name, "%s.tex", trim);
-    sprintf(aux_name, "%s.aux", trim);
+    sprintf(tex_name, "%s%s%s.tex", dirpath, path_sep, trim);
+    sprintf(aux_name, "%s%s%s.aux", dirpath, path_sep, trim);
     *q++ = '.';
     *q++ = 'w';
     *q = '\0';
@@ -899,12 +996,13 @@ is forced when generating HTML.
 @d Process a file
 @{{
   pass1(source_name);
+  current_sector = 1;
   if (tex_flag) {
     if (html_flag) {
       int saved_number_flag = number_flag; 
       number_flag = TRUE;
       collect_numbers(aux_name);
-      write_html(source_name, tex_name);
+      write_html(source_name, tex_name, 0/*Dummy */);
       number_flag = saved_number_flag;
     }
     else {
@@ -986,6 +1084,14 @@ discovered.
     case 'D':
     case 'd': @<Build macro definition@>
               break;
+    case 's':
+              @<Step to next sector@>
+              break;
+    case '(':
+    case '[':
+    case '{': @<Skip over an in-text scrap@>
+              break;
+    case 'x': 
     case 'u':
     case 'm':
     case 'f': /* ignore during this pass */
@@ -993,11 +1099,27 @@ discovered.
     default:  if (c==nw_char) /* ignore during this pass */
                 break;
               fprintf(stderr,
-                      "%s: unexpected @@ sequence ignored (%s, line %d)\n",
-                      command_name, source_name, source_line);
+                      "%s: unexpected %c sequence ignored (%s, line %d)\n",
+                      command_name, nw_char, source_name, source_line);
               break;
   }
 }@}
+
+@d Step to next sector
+@{
+current_sector += 1;
+do
+   c = source_get();
+while (isspace(c));
+@}
+
+@d Global variable declar...
+@{unsigned char current_sector;
+@| current_sector @}
+
+@d Global variable def...
+@{unsigned char current_sector = 1;
+@}
 
 \subsection{Accumulating Definitions}
 
@@ -1035,6 +1157,46 @@ with each new definition being added to the head of the list.
   name->defs = def;
 }@}
 
+@d Skip over an in-text scrap
+@{
+{
+
+   int c;
+   while ((c = source_get()) != EOF) {
+      if (c == nw_char)
+         @<Skip over at-sign or go to skipped@>
+   }
+   fprintf(stderr, "%s: unexpected EOF in text at (%s, %d)\n",
+                    command_name, source_name, source_line);
+   exit(-1);
+
+skipped:
+}
+@}
+
+@d Skip over at-sign or go to skipped
+@{
+{
+   c = source_get();
+   switch (c) {
+     case '}': case ']': case ')':
+        goto skipped;
+     case 'x': case '|': case ',': case '<':
+     case '>': case '%': case '1': case '2':
+     case '3': case '4': case '5': case '6':
+     case '7': case '8': case '9': case '_':
+     case 'f': case '#': case '+': case '-':
+        break;
+     default:
+        if (c != nw_char) {
+	   fprintf(stderr, "%s: unexpected %c%c in text at (%s, %d)\n",
+	                   command_name, nw_char, c, source_name, source_line);
+	   exit(-1);
+	}
+        break;
+   }
+}
+@}
 
 \subsection{Fixing the Cross References}
 
@@ -1072,7 +1234,7 @@ see an \verb|@@1| \verb|@@2|, etc.
                 Scrap_Node param_defs;
                 param_defs.scrap = parameters->p[c - '1'];
                 param_defs.next = 0;
-                write_scraps(file, &param_defs, global_indent + indent,
+                write_scraps(file, spelling, &param_defs, global_indent + indent,
                           indent_chars, debug_flag, tab_flag, indent_flag, 
 				parameters? parameters->parent : 0);
               } else {
@@ -1175,12 +1337,12 @@ argument list for a macro.
      fputc(sep,file);
 
      fputs("{\\footnotesize ", file);
-     write_single_scrap_ref(file, scraps);
-     fprintf(file, "\\label{scrap%d}\n", scraps);
+     write_single_scrap_ref(file, scraps + 1);
+     fprintf(file, "\\label{scrap%d}\n", scraps + 1);
      fputs(" }", file);
 
      source_last = '{';
-     copy_scrap(file);
+     copy_scrap(file, TRUE);
 
      ++scraps;
 
@@ -1208,7 +1370,7 @@ argument list for a macro.
      fprintf(file, "%d <A NAME=\"#nuweb%d\"></A>", scraps, scraps);
 
      source_last = '{';
-     copy_scrap(file);
+     copy_scrap(file, TRUE);
 
      ++scraps;
      sep = ',';
@@ -1256,9 +1418,10 @@ static void format_user_entry();
 The routine \verb|write_tex| takes two file names as parameters: the
 name of the web source file and the name of the \verb|.tex| output file.
 @o latex.c
-@{void write_tex(file_name, tex_name)
+@{void write_tex(file_name, tex_name, sector)
      char *file_name;
      char *tex_name;
+     unsigned char sector;
 {
   FILE *tex_file = fopen(tex_name, "w");
   if (tex_file) {
@@ -1290,6 +1453,9 @@ fputs("\\newcommand{\\NWtxtDefBy}{Defined by}\n", tex_file);
 fputs("\\newcommand{\\NWtxtRefIn}{Referenced in}\n", tex_file);
 fputs("\\newcommand{\\NWtxtNoRef}{Not referenced}\n", tex_file);
 fputs("\\newcommand{\\NWtxtFileDefBy}{File defined by}\n", tex_file);
+fputs("\\newcommand{\\NWtxtIdentsUsed}{Uses:}\n", tex_file);
+fputs("\\newcommand{\\NWtxtIdentsNotUsed}{Never used}\n", tex_file);
+fputs("\\newcommand{\\NWtxtIdentsDefed}{Defines:}\n", tex_file);
 fputs("\\newcommand{\\NWsep}{${\\diamond}$}\n", tex_file);
 @}
 
@@ -1329,6 +1495,15 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
               break;
     case 'D': big_definition = TRUE;
     case 'd': @<Write macro definition@>
+              break;
+    case 's':
+              @<Step to next sector@>
+              break;
+    case '{':
+    case '[':
+    case '(': @<Write in-text scrap@>
+              break;
+    case 'x': @<Copy label from source into@(tex_file@)@>
               break;
     case 'f': @<Write index of file names@>
               break;
@@ -1401,7 +1576,7 @@ I've factored the common parts out into separate scraps.
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{", tex_file);
-  write_single_scrap_ref(tex_file, scraps++);
+  write_single_scrap_ref(tex_file, scraps);
   fputs("}", tex_file);
   fputs(" }$\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
@@ -1419,11 +1594,11 @@ might want to use italics or bold face in the midst of the name.
 @{{
   Name *name = collect_macro_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "$\\langle\\,$%s\\nobreak\\ {\\footnotesize ", name->spelling);
+  fprintf(tex_file, "$\\langle\\,${\\it %s}\\nobreak\\ {\\footnotesize ", name->spelling);
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{", tex_file);
-  write_single_scrap_ref(tex_file, scraps++);
+  write_single_scrap_ref(tex_file, scraps);
   fputs("}", tex_file);
   fputs("}$\\,\\rangle\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
@@ -1449,7 +1624,7 @@ empirically; they may be adjusted to taste.
 @d Fill in the middle of the scrap environment
 @{{
   fputs("\\vspace{-1ex}\n\\begin{list}{}{} \\item\n", tex_file);
-  copy_scrap(tex_file);
+  copy_scrap(tex_file, TRUE);
   fputs("{\\NWsep}\n\\end{list}\n", tex_file);
 }@}
 
@@ -1464,6 +1639,8 @@ a scrap will not be indented. Again, this is a matter of personal taste.
 
 @d Finish the scrap environment
 @{{
+  format_defs_refs(tex_file, scraps);
+  format_uses_refs(tex_file, scraps++);
   if (!big_definition)
     fputs("\\end{minipage}\\\\[4ex]\n", tex_file);
   fputs("\\end{flushleft}\n", tex_file);
@@ -1472,6 +1649,10 @@ a scrap will not be indented. Again, this is a matter of personal taste.
   while (isspace(c));
 }@}
 
+@d Write in-text scrap
+@{copy_scrap(tex_file, FALSE);
+c = source_get();
+@}
 
 \subsubsection{Formatting Cross References}
 
@@ -1551,7 +1732,6 @@ a scrap will not be indented. Again, this is a matter of personal taste.
 }
 @| print_scrap_numbers @}
 
-
 \subsubsection{Formatting a Scrap}
 
 We add a \verb|\mbox{}| at the beginning of each line to avoid
@@ -1560,7 +1740,7 @@ This is the only place we really care whether a scrap is
 delimited with \verb|@@{...@@}|, \verb|@@[...@@]|, or \verb|@@(...@@)|,
 and we base our output sequences on that.
 
-@o latex.c
+@O latex.c
 @{static char *delimit_scrap[3][5] = {
   /* {} mode: begin, end, insert nw_char, prefix, suffix */
   { "\\verb@@", "@@", "@@{\\tt @@}\\verb@@", "\\mbox{}", "\\\\" },
@@ -1601,8 +1781,9 @@ void update_delimit_scrap()
   delimit_scrap[2][2][0] = nw_char;
 }
 
-static void copy_scrap(file)
+static void copy_scrap(file, prefix)
      FILE *file;
+     int prefix;
 {
   int indent = 0;
   int c;
@@ -1610,14 +1791,14 @@ static void copy_scrap(file)
   if (source_last == '[') scrap_type = 1;
   if (source_last == '(') scrap_type = 2;
   c = source_get();
-  fputs(delimit_scrap[scrap_type][3], file);
+  if (prefix) fputs(delimit_scrap[scrap_type][3], file);
   fputs(delimit_scrap[scrap_type][0], file);
   while (1) {
     switch (c) {
       case '\n': fputs(delimit_scrap[scrap_type][1], file);
-                 fputs(delimit_scrap[scrap_type][4], file);
+                 if (prefix) fputs(delimit_scrap[scrap_type][4], file);
                  fputs("\n", file);
-                 fputs(delimit_scrap[scrap_type][3], file);
+                 if (prefix) fputs(delimit_scrap[scrap_type][3], file);
                  fputs(delimit_scrap[scrap_type][0], file);
                  indent = 0;
                  break;
@@ -1657,6 +1838,10 @@ static void copy_scrap(file)
 @{{
   c = source_get();
   switch (c) {
+    case 'x': @<Copy label from source into@(file@)@>
+              break;
+    case '+':
+    case '-':
     case '|': @<Skip over index entries@>
     case ',':
     case ')':
@@ -1668,6 +1853,8 @@ static void copy_scrap(file)
     case '%': @<Skip commented-out code@>
               break;
     case '_': @<Bold Keyword@>
+              break;
+    case 'f': @<Italic "file name"@>
               break;
     case '1': case '2': case '3': 
     case '4': case '5': case '6': 
@@ -1687,6 +1874,13 @@ static void copy_scrap(file)
               break;
   }
 }@}
+
+@d Copy label from source into
+@{{
+   @<Get label from@(source_get()@)@>
+   write_label(label_name, @1);
+}@}
+
 
 There's no need to check for errors here, since we will have already
 pointed out any during the first pass.
@@ -1723,11 +1917,20 @@ This scrap helps deal with bold keywords:
   fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
+@d Italic "file name"
+@{{
+  fputs(delimit_scrap[scrap_type][1],file);
+  fprintf(file, "\\hbox{\\sffamily\\slshape file name}");
+  fputs(delimit_scrap[scrap_type][0], file);
+}@}
+
 @d Format macro name
 @{{
   Name *name = collect_scrap_name();
   fputs(delimit_scrap[scrap_type][1],file);
-  fprintf(file, "\\hbox{$\\langle\\,$%s\\nobreak\\ ", name->spelling);
+  if (prefix)
+    fputs("\\hbox{", file);
+  fprintf(file, "$\\langle\\,${\\it %s}\\nobreak\\ ", name->spelling);
   if (scrap_name_has_parameters) {
     @<Format macro parameters@>
   }
@@ -1739,7 +1942,9 @@ This scrap helps deal with bold keywords:
     fprintf(stderr, "%s: never defined <%s>\n",
             command_name, name->spelling);
   }
-  fputs("}$\\,\\rangle$}", file);
+  fputs("}$\\,\\rangle$", file);
+  if (prefix)
+     fputs("}", file);
   fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
@@ -1766,7 +1971,7 @@ This scrap helps deal with bold keywords:
     fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
           tex_file);
     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
-    format_entry(file_names, tex_file, TRUE);
+    format_entry(file_names, tex_file, TRUE, 0);
     fputs("\\end{list}}", tex_file);
   }
   c = source_get();
@@ -1776,10 +1981,17 @@ This scrap helps deal with bold keywords:
 @d Write index of macro names
 @{{
   if (macro_names) {
+    unsigned char sector = current_sector;
+    int c = source_get();
+    if (c == '+')
+       sector = 0;
+    else
+       source_ungetc(&c);
+
     fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
           tex_file);
     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
-    format_entry(macro_names, tex_file, FALSE);
+    format_entry(macro_names, tex_file, FALSE, sector);
     fputs("\\end{list}}", tex_file);
   }
   c = source_get();
@@ -1787,13 +1999,14 @@ This scrap helps deal with bold keywords:
 
 
 @o latex.c
-@{static void format_entry(name, tex_file, file_flag)
+@{static void format_entry(name, tex_file, file_flag, sector)
      Name *name;
      FILE *tex_file;
      int file_flag;
+     unsigned char sector;
 {
   while (name) {
-    format_entry(name->llink, tex_file, file_flag);
+    format_entry(name->llink, tex_file, file_flag, sector);
     @<Format an index entry@>
     name = name->rlink;
   }
@@ -1802,7 +2015,7 @@ This scrap helps deal with bold keywords:
 
 
 @d Format an index entry
-@{{
+@{if (name->sector == sector){
   fputs("\\item ", tex_file);
   if (file_flag) {
     fprintf(tex_file, "\\verb%c\"%s\"%c ", nw_char, name->spelling, nw_char);
@@ -1889,27 +2102,48 @@ This scrap helps deal with bold keywords:
   putc('}', tex_file);
 }@}
 
+@o latex.c
+@{int has_sector(name, sector)
+Name * name;
+unsigned char sector;
+{
+  while(name) {
+    if (name->sector == sector)
+       return TRUE;
+    if (has_sector(name->llink, sector))
+       return TRUE;
+     name = name->rlink;
+   }
+   return FALSE;
+}
+@}
 
 @d Write index of user-specified names
 @{{
-  if (user_names) {
-    fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
-          tex_file);
-    fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
-    format_user_entry(user_names, tex_file);
-    fputs("\\end{list}}", tex_file);
-  }
-  c = source_get();
+    unsigned char sector = current_sector;
+    c = source_get();
+    if (c == '+') {
+       sector = 0;
+       c = source_get();
+    }
+    if (has_sector(user_names, sector)) {
+       fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
+	     tex_file);
+       fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
+	 format_user_entry(user_names, tex_file, sector);
+       fputs("\\end{list}}", tex_file);
+    }
 }@}
 
 
 @o latex.c
-@{static void format_user_entry(name, tex_file)
+@{static void format_user_entry(name, tex_file, sector)
      Name *name;
      FILE *tex_file;
+     unsigned char sector;
 {
   while (name) {
-    format_user_entry(name->llink, tex_file);
+    format_user_entry(name->llink, tex_file, sector);
     @<Format a user index entry@>
     name = name->rlink;
   }
@@ -1917,8 +2151,8 @@ This scrap helps deal with bold keywords:
 @| format_user_entry @}
 
 
-@d Format a user index entry
-@{{
+@D Format a user index entry
+@{if (name->sector == sector){
   Scrap_Node *uses = name->uses;
   if ( uses || dangling_flag ) {
     int page;
@@ -2180,7 +2414,7 @@ HTML formatting, the \verb|rawhtml| environment should be used.
 The end of a scrap is marked with the characters \verb|<>|.
 @d Fill in the middle of HTML scrap environment
 @{{
-  copy_scrap(html_file);
+  copy_scrap(html_file, TRUE);
   fputs("&lt;&gt;</pre>\n", html_file);
 }@}
 
@@ -2272,7 +2506,7 @@ end the paragraph.
 We must translate HTML special keywords into entities in scraps.
 
 @o html.c
-@{static void copy_scrap(file)
+@{static void copy_scrap(file, prefix)
      FILE *file;
 {
   int indent = 0;
@@ -2312,6 +2546,8 @@ We must translate HTML special keywords into entities in scraps.
 @{{
   c = source_get();
   switch (c) {
+    case '+':
+    case '-':
     case '|': @<Skip over index entries@>
     case ',': 
     case '}': 
@@ -2475,7 +2711,7 @@ pointed out any during the first pass.
   if (user_names) {
     fputs("\\begin{rawhtml}\n", html_file);
     fputs("<dl compact>\n", html_file);
-    format_user_entry(user_names, html_file);
+    format_user_entry(user_names, html_file, 0/* Dummy */);
     fputs("</dl>\n", html_file);
     fputs("\\end{rawhtml}\n", html_file);
   }
@@ -2484,12 +2720,12 @@ pointed out any during the first pass.
 
 
 @o html.c
-@{static void format_user_entry(name, html_file)
+@{static void format_user_entry(name, html_file, sector)
      Name *name;
      FILE *html_file;
 {
   while (name) {
-    format_user_entry(name->llink, html_file);
+    format_user_entry(name->llink, html_file, sector);
     @<Format a user HTML index entry@>
     name = name->rlink;
   }
@@ -2579,21 +2815,22 @@ argument to \verb|tempname| cannot be null in that system.
 
 @d Write out \verb|files->spelling|
 @{{
-  static char temp_name[] = "nw000000";
+  static char temp_name[FILENAME_MAX];
+  static char real_name[FILENAME_MAX];
   static int temp_name_count = 0;
   char indent_chars[MAX_INDENT];
   int temp_file_fd;
   FILE *temp_file;
 
   for( temp_name_count = 0; temp_name_count < 10000; temp_name_count++) {
-    sprintf(temp_name,"nw%06d", temp_name_count);
+    sprintf(temp_name,"%s%snw%06d", dirpath, path_sep, temp_name_count);
 #ifdef O_EXCL
     if (-1 != (temp_file_fd = open(temp_name, O_CREAT|O_WRONLY|O_EXCL))) {
        temp_file = fdopen(temp_file_fd, "w");
        break;
     }
 #else
-    if (0 != (temp_file = fopen(temp_name, "w"))) {
+    if (0 != (temp_file = fopen(temp_name, "a"))) {
        if ( 0L == ftell(temp_file)) {
           break;
        } else {
@@ -2608,24 +2845,24 @@ argument to \verb|tempname| cannot be null in that system.
             command_name, temp_name);
     exit(-1);
   }  
+  sprintf(real_name, "%s%s%s", dirpath, path_sep, files->spelling);
   if (verbose_flag)
     fprintf(stderr, "writing %s [%s]\n", files->spelling, temp_name);
-  write_scraps(temp_file, files->defs, 0, indent_chars,
+  write_scraps(temp_file, files->spelling, files->defs, 0, indent_chars,
                files->debug_flag, files->tab_flag, files->indent_flag, 0);
   fclose(temp_file);
   if (compare_flag)
     @<Compare the temp file and the old file@>
   else {
-    remove(files->spelling);
-    if (rename(temp_name, files->spelling) == -1)
-	remove(temp_name);
+    remove(real_name);
+    rename(temp_name, real_name);
   }
 }@}
 
 Again, we use a call to \verb|remove| before \verb|rename|.
 @d Compare the temp file...
 @{{
-  FILE *old_file = fopen(files->spelling, "r");
+  FILE *old_file = fopen(real_name, "r");
   if (old_file) {
     int x, y;
     temp_file = fopen(temp_name, "r");
@@ -2638,12 +2875,12 @@ Again, we use a call to \verb|remove| before \verb|rename|.
     if (x == y)
       remove(temp_name);
     else {
-      remove(files->spelling);
-      rename(temp_name, files->spelling);
+      remove(real_name);
+      rename(temp_name, real_name);
     }
   }
   else
-    rename(temp_name, files->spelling);
+    rename(temp_name, real_name);
 }@}
 
 
@@ -2754,12 +2991,14 @@ hence this whole unsatisfactory \verb|double_at| business.
     switch (c) {
       case 'i': @<Open an include file@>
                 break;
-      case 'f': case 'm': case 'u':
-      case 'd': case 'o': case 'D': case 'O':
+      case '#': case 'f': case 'm': case 'u':
+      case 'd': case 'o': case 'D': case 'O': case 's':
+      case '+':
+      case '-':
       case '{': case '}': case '<': case '>': case '|':
       case '(': case ')': case '[': case ']':
       case '%': case '_':
-      case ':': case ',': 
+      case ':': case ',': case 'x':
       case '1': case '2': case '3': case '4': case '5': 
       case '6': case '7': case '8': case '9': 
       case 'r':
@@ -2773,8 +3012,8 @@ hence this whole unsatisfactory \verb|double_at| business.
                 double_at = TRUE;
                 break;
               }
-             fprintf(stderr, "%s: bad @@ sequence %c[%d] (%s, line %d)\n",
-                     command_name, c, c, source_name, source_line);
+             fprintf(stderr, "%s: bad %c sequence %c[%d] (%s, line %d)\n",
+                     command_name, nw_char, c, c, source_name, source_line);
              exit(-1);
     }
 }@}
@@ -2877,14 +3116,16 @@ typedef struct slab {
 } Slab;
 @| Slab SLAB_SIZE @}
 
-
 @o scraps.c
 @{typedef struct {
   char *file_name;
+  Slab *slab;
+  struct uses *uses;
+  struct uses *defs;
   int file_line;
   int page;
   char letter;
-  Slab *slab;
+  unsigned char sector;
 } ScrapEntry;
 @| ScrapEntry @}
 
@@ -2894,6 +3135,7 @@ typedef struct slab {
 #define scrap_array(i) SCRAP[(i) >> 8][(i) & 255]
 
 static int scraps;
+@<Forward declarations for scraps.c@>
 @| scraps scrap_array SCRAP @}
 
 
@@ -3011,7 +3253,8 @@ extern void write_single_scrap_ref();
 @o scraps.c
 @{int collect_scrap()
 {
-  int current_scrap;
+  int current_scrap, lblseq = 0;
+  int depth = 1;
   Manager writer;
   @<Create new scrap...@>
   @<Accumulate scrap and return \verb|scraps++|@>
@@ -3028,6 +3271,9 @@ extern void write_single_scrap_ref();
   scrap_array(scraps).file_line = source_line;
   scrap_array(scraps).page = -1;
   scrap_array(scraps).letter = 0;
+  scrap_array(scraps).uses = NULL;
+  scrap_array(scraps).defs = NULL;
+  scrap_array(scraps).sector = current_sector;
   writer.scrap = scrap;
   writer.index = 0;
   current_scrap = scraps++;
@@ -3060,11 +3306,21 @@ extern void write_single_scrap_ref();
 @{{
   c = source_get();
   switch (c) {
+    case '(':
+    case '[':
+    case '{': depth++;
+              break;
+    case '+':
+    case '-':
     case '|': @<Collect user-specified index entries@>
-    case ',':
+              /* Fall through */
     case ')':
     case ']':
-    case '}': push('\0', &writer);
+    case '}': if (--depth > 0)
+                break;
+	      /* else fall through */
+    case ',':
+              push('\0', &writer);
               scrap_ended_with = c;
               return current_scrap;
     case '<': @<Handle macro invocation in scrap@>
@@ -3074,9 +3330,12 @@ extern void write_single_scrap_ref();
               push('\n', &writer); 
               c = source_get();
               break;
+    case 'x': @<Get label while collecting scrap@>
+              break;
     case '1': case '2': case '3': 
     case '4': case '5': case '6':
     case '7': case '8': case '9':
+    case 'f': case '#':
               push(nw_char, &writer);
               break;
     case '_': c = source_get();
@@ -3089,17 +3348,31 @@ extern void write_single_scrap_ref();
               c = source_get();
               break;
             }
-          fprintf(stderr, "%s: unexpected @@%c in scrap (%s, %d)\n",
-                      command_name, c, source_name, source_line);
+          fprintf(stderr, "%s: unexpected %c%c in scrap (%s, %d)\n",
+                      command_name, nw_char, c, source_name, source_line);
               exit(-1);
   }
 }@}
 
+@d Get label while collecting scrap
+@{{
+   @<Get label from@(source_get()@)@>
+   @<Save label to label store@>
+   push(nw_char, &writer);
+   push('x', &writer);
+   pushs(label_name, &writer);
+   push(nw_char, &writer);
+}@}
+
+
 @d Collect user-specified index entries
 @{{
   do {
+    do {
+      int type = c;
     char new_name[100];
     char *p = new_name;
+      unsigned int sector = 0;
     do 
       c = source_get();
     while (isspace(c));
@@ -3110,23 +3383,46 @@ extern void write_single_scrap_ref();
         c = source_get();
       } while (c != nw_char && !isspace(c));
       *p = '\0';
-      name = name_add(&user_names, new_name);
-      if (!name->defs || name->defs->scrap != current_scrap) {
-        Scrap_Node *def = (Scrap_Node *) arena_getmem(sizeof(Scrap_Node));
-        def->scrap = current_scrap;
-        def->next = name->defs;
-        name->defs = def;
+        switch (type) {
+        case '-':
+           @<Add user identifier use@>
+           /* Fall through */
+        case '|': sector = current_sector;
+           /* Fall through */
+        case '+':
+           @<Add user identifier definition@>
+           break;
       }
     }
   } while (c != nw_char);
   c = source_get();
-  if (c != '}' && c != ']' && c != ')' ) {
-    fprintf(stderr, "%s: unexpected @@%c in index entry (%s, %d)\n",
-            command_name, c, source_name, source_line);
+  }while (c == '+' || c == '-' || c == '|');
+  if (c != '}' && c != ']' && c != ')') {
+    fprintf(stderr, "%s: unexpected %c%c in index entry (%s, %d)\n",
+            command_name, nw_char, c, source_name, source_line);
     exit(-1);
   }
 }@}
 
+@d Add user identifier use
+@{name = name_add(&user_names, new_name, 0);
+if (!name->uses || name->uses->scrap != current_scrap) {
+  Scrap_Node *use = (Scrap_Node *) arena_getmem(sizeof(Scrap_Node));
+  use->scrap = current_scrap;
+  use->next = name->uses;
+  name->uses = use;
+  add_uses(&(scrap_array(current_scrap).uses), name);
+}@}
+
+@d Add user identifier definition
+@{name = name_add(&user_names, new_name, sector);
+if (!name->defs || name->defs->scrap != current_scrap) {
+  Scrap_Node *def = (Scrap_Node *) arena_getmem(sizeof(Scrap_Node));
+  def->scrap = current_scrap;
+  def->next = name->defs;
+  name->defs = def;
+  add_uses(&(scrap_array(current_scrap).defs), name);
+}@}
 
 @d Handle macro invocation in scrap
 @{{
@@ -3148,6 +3444,7 @@ extern void write_single_scrap_ref();
   int len = strlen(s) - 1;
   push(nw_char, &writer);
   push('<', &writer);
+  push(name->sector, &writer);
   while (len > 0) {
     push(*s++, &writer);
     len--;
@@ -3185,6 +3482,23 @@ extern void write_single_scrap_ref();
 }
 @| pop @}
 
+@o scraps.c
+@{static void backup(n, manager)
+     int n;
+     Manager *manager;
+{
+  Slab *scrap = manager->scrap;
+  int index = manager->index;
+  if (n > index
+      && manager->prev != NULL)
+  {
+     manager->scrap = manager->prev;
+     manager->prev = NULL;
+     index += SLAB_SIZE;
+  }
+  manager->index = (n <= index ? index - n : 0);
+}
+@| backup @}
 
 @o scraps.c
 @{static Name *pop_scrap_name(manager, parameters)
@@ -3193,7 +3507,9 @@ extern void write_single_scrap_ref();
 {
   char name[100];
   char *p = name;
+  int sector = pop(manager);
   int c = pop(manager);
+
   while (TRUE) {
     if (c == nw_char)
       @<Check for end of scrap name and return@>
@@ -3221,7 +3537,7 @@ extern void write_single_scrap_ref();
       p -= 2;
     }
     *p = '\0';
-    pn = prefix_add(&macro_names, name);
+    pn = prefix_add(&macro_names, name, sector);
     return pn;
   }
   else {
@@ -3231,9 +3547,10 @@ extern void write_single_scrap_ref();
 }@}
 
 @o scraps.c
-@{int write_scraps(file, defs, global_indent, indent_chars,
+@{int write_scraps(file, spelling, defs, global_indent, indent_chars,
                    debug_flag, tab_flag, indent_flag, parameters)
      FILE *file;
+     char * spelling;
      Scrap_Node *defs;
      int global_indent;
      char *indent_chars;
@@ -3242,6 +3559,7 @@ extern void write_single_scrap_ref();
      char indent_flag;
      Parameters parameters;
 {
+  /* This is in file @f */
   int indent = 0;
   while (defs) {
     @<Copy \verb|defs->scrap| to \verb|file|@>
@@ -3251,6 +3569,9 @@ extern void write_single_scrap_ref();
 }
 @| write_scraps @}
 
+@d Forward declarations for scraps.c
+@{int delayed_indent = 0;
+@| delayed_indent @}
 
 @d Copy \verb|defs->scrap...
 @{{
@@ -3261,6 +3582,11 @@ extern void write_single_scrap_ref();
   @<Insert debugging information if required@>
   reader.scrap = scrap_array(defs->scrap).slab;
   reader.index = 0;
+  if (delayed_indent)
+  {
+    @<Insert appropriate indentation@>
+    delayed_indent--;
+  }
   c = pop(&reader);
   while (c) {
     switch (c) {
@@ -3298,7 +3624,10 @@ extern void write_single_scrap_ref();
 
 @d Insert approp...
 @{{
-  if (indent_flag) {
+  char c1 = pop(&reader);
+  char c2 = pop(&reader);
+
+  if (indent_flag && !(@<Indent suppressed@>)) {
     if (tab_flag)
       for (indent=0; indent<global_indent; indent++)
         putc(' ', file);
@@ -3307,8 +3636,17 @@ extern void write_single_scrap_ref();
         putc(indent_chars[indent], file);
   }
   indent = 0;
+  backup(2, &reader);
 }@}
 
+Indent will be suppressed if the next character is a newline or
+if the next two characters are \verb|@@#|. If the next two characters
+are \verb|@@<|, we suppress the indent for now but mark that it
+may be needed when the next macro is started.
+
+@d Indent suppressed
+@{c1 == '\n'
+|| c1 == nw_char && (c2 == '#' || (delayed_indent += (c2 == '<')))@}
 
 @d Handle tab characters on output
 @{{
@@ -3328,6 +3666,9 @@ extern void write_single_scrap_ref();
 @{{
   c = pop(&reader);
   switch (c) {
+    case 'f': @<Copy file name into file@>
+              break;
+    case 'x': @<Copy label from scrap into file@>
     case '_': break;
     case '<': @<Copy macro into \verb|file|@>
               @<Insert debugging information if required@>
@@ -3348,6 +3689,15 @@ extern void write_single_scrap_ref();
   }
 }@}
 
+@d Copy label from scrap into file
+@{{
+   @<Get label from@(pop(&reader)@)@>
+   write_label(label_name, file);
+}@}
+
+@d Copy file name into file
+@{fputs(spelling, file);
+@}
 
 @d Copy macro into...
 @{{
@@ -3362,15 +3712,24 @@ extern void write_single_scrap_ref();
   }
   if (name->defs) {
     name->mark = TRUE;
-    indent = write_scraps(file, name->defs, global_indent + indent,
+    indent = write_scraps(file, spelling, name->defs, global_indent + indent,
                           indent_chars, debug_flag, tab_flag, indent_flag, 
                           local_parameters);
     indent -= global_indent;
     name->mark = FALSE;
   }
-  else if (!tex_flag)
+  else
+  {
+    int ln = fprintf(file, "%c<%s%c>",  nw_char, name->spelling, nw_char);
+    for (; --ln >= 0;)
+    {
+      indent_chars[global_indent + indent] = ' ';
+      indent++;
+    }
+    if (!tex_flag)
     fprintf(stderr, "%s: macro never defined <%s>\n",
             command_name, name->spelling);
+  }
 }@}
 
 
@@ -3447,6 +3806,7 @@ extern void write_single_scrap_ref();
   char tab_flag;
   char indent_flag;
   char debug_flag;
+  unsigned char sector;
 } Name;
 @| Name @}
 
@@ -3520,24 +3880,39 @@ static int compare(x, y)
 @o names.c
 @{static int ambiguous_prefix();
 
-Name *prefix_add(root, spelling)
-     Name **root;
+static char * found_name = NULL;
+
+Name *prefix_add(rt, spelling, sector)
+     Name **rt;
      char *spelling;
+     unsigned char sector;
 {
-  Name *node = *root;
+  Name *node = *rt;
+  int cmp;
+
   while (node) {
-    switch (compare(node->spelling, spelling)) {
-    case GREATER:   root = &node->rlink;
+    switch ((cmp = compare(node->spelling, spelling))) {
+    case GREATER:   rt = &node->rlink;
                     break;
-    case LESS:      root = &node->llink;
+    case LESS:      rt = &node->llink;
                     break;
-    case EQUAL:     return node;
-    case EXTENSION: node->spelling = save_string(spelling);
+    case EQUAL:
+                    found_name = node->spelling;
+    case EXTENSION: if (node->sector > sector) {
+                       rt = &node->rlink;
+                       break;
+                    }
+                    else if (node->sector < sector) {
+                       rt = &node->llink;
+                       break;
+                    }
+                    if (cmp == EXTENSION)
+                       node->spelling = save_string(spelling);
                     return node;
     case PREFIX:    @<Check for ambiguous prefix@>
                     return node;
     }
-    node = *root;
+    node = *rt;
   }
   @<Create new name entry@>
 }
@@ -3549,17 +3924,18 @@ continue the search down {\em both\/} branches of the tree.
 
 @d Check for ambiguous prefix
 @{{
-  if (ambiguous_prefix(node->llink, spelling) ||
-      ambiguous_prefix(node->rlink, spelling))
+  if (ambiguous_prefix(node->llink, spelling, sector) ||
+      ambiguous_prefix(node->rlink, spelling, sector))
     fprintf(stderr,
-            "%s: ambiguous prefix @@<%s...@@> (%s, line %d)\n",
-            command_name, spelling, source_name, source_line);
+            "%s: ambiguous prefix %c<%s...%c> (%s, line %d)\n",
+            command_name, nw_char, spelling, nw_char, source_name, source_line);
 }@}
 
 @o names.c
-@{static int ambiguous_prefix(node, spelling)
+@{static int ambiguous_prefix(node, spelling, sector)
      Name *node;
      char *spelling;
+     unsigned char sector;
 {
   while (node) {
     switch (compare(node->spelling, spelling)) {
@@ -3567,9 +3943,17 @@ continue the search down {\em both\/} branches of the tree.
                     break;
     case LESS:      node = node->llink;
                     break;
-    case EQUAL:
     case EXTENSION:
-    case PREFIX:    return TRUE;
+    case PREFIX:
+    case EQUAL:     if (node->sector > sector) {
+                       node = node->rlink;
+                       break;
+                    }
+                    else if (node->sector < sector) {
+                       node = node->llink;
+                       break;
+                    }
+                    return TRUE;
     }
   }
   return FALSE;
@@ -3592,7 +3976,7 @@ atoms
 The function \verb|robs_strcmp| implements the desired predicate.
 
 @o names.c
-@{static int robs_strcmp(x, y)
+@{int robs_strcmp(x, y)
      char *x;
      char *y;
 {
@@ -3624,20 +4008,29 @@ The function \verb|robs_strcmp| implements the desired predicate.
 @| robs_strcmp @}
 
 @o names.c
-@{Name *name_add(root, spelling)
-     Name **root;
+@{Name *name_add(rt, spelling, sector)
+     Name **rt;
      char *spelling;
+     unsigned char sector;
 {
-  Name *node = *root;
+  Name *node = *rt;
   while (node) {
     int result = robs_strcmp(node->spelling, spelling);
     if (result > 0)
-      root = &node->llink;
+      rt = &node->llink;
     else if (result < 0)
-      root = &node->rlink;
+      rt = &node->rlink;
+    else
+    {
+       found_name = node->spelling;
+       if (node->sector > sector)
+         rt = &node->llink;
+       else if (node->sector < sector)
+         rt = &node->rlink;
     else
       return node;
-    node = *root;
+    }
+    node = *rt;
   }
   @<Create new name entry@>
 }
@@ -3647,7 +4040,10 @@ The function \verb|robs_strcmp| implements the desired predicate.
 @d Create new name...
 @{{
   node = (Name *) arena_getmem(sizeof(Name));
-  node->spelling = save_string(spelling);
+  if (found_name && robs_strcmp(found_name, spelling) == 0)
+     node->spelling = found_name;
+  else
+     node->spelling = save_string(spelling);
   node->mark = FALSE;
   node->llink = NULL;
   node->rlink = NULL;
@@ -3656,7 +4052,8 @@ The function \verb|robs_strcmp| implements the desired predicate.
   node->tab_flag = TRUE;
   node->indent_flag = TRUE;
   node->debug_flag = FALSE;
-  *root = node;
+  node->sector = sector;
+  *rt = node;
   return node;
 }@}
 
@@ -3683,12 +4080,13 @@ skipping white space until we reach scrap.
     exit(-1);
   }
   *p = '\0';
-  new_name = name_add(&file_names, name);
+  /* File names are always global. */
+  new_name = name_add(&file_names, name, 0);
   @<Handle optional per-file flags@>
   c2 = source_get();
   if (c != nw_char || (c2 != '{' && c2 != '(' && c2 != '[')) {
-    fprintf(stderr, "%s: expected @@{, @@[, or @@( after file name (%s, %d)\n",
-            command_name, source_name, start_line);
+    fprintf(stderr, "%s: expected %c{, %c[, or %c( after file name (%s, %d)\n",
+            command_name, nw_char, nw_char, nw_char, source_name, start_line);
     exit(-1);
   }
   return new_name;
@@ -3731,6 +4129,12 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   char *p = name;
   int start_line = source_line;
   int c = source_get(), c2;
+  unsigned char sector = current_sector;
+
+  if (c == '+') {
+    sector = 0;
+    c = source_get();
+  }
   while (isspace(c))
     c = source_get();
   while (c != EOF) {
@@ -3775,8 +4179,8 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
               break;
             }
           fprintf(stderr,
-                      "%s: unexpected @@%c in macro definition name (%s, %d)\n",
-                      command_name, c, source_name, start_line);
+                      "%s: unexpected %c%c in macro definition name (%s, %d)\n",
+                      command_name, nw_char, c, source_name, start_line);
               exit(-1);
   }
 }@}
@@ -3796,7 +4200,7 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
     exit(-1);
   }
   *p = '\0';
-  return prefix_add(&macro_names, name);
+  return prefix_add(&macro_names, name, sector);
 }@}
 
 @d Skip until scrap...
@@ -3806,8 +4210,8 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   while (isspace(c));
   c2 = source_get();
   if (c != nw_char || (c2 != '{' && c2 != '(' && c2 != '[')) {
-    fprintf(stderr, "%s: expected @@{ after macro name (%s, %d)\n",
-            command_name, source_name, start_line);
+    fprintf(stderr, "%s: expected %c{ after macro name (%s, %d)\n",
+            command_name, nw_char, source_name, start_line);
     exit(-1);
   }
   @<Cleanup and install name@>
@@ -3821,6 +4225,13 @@ Terminated by \verb+@@>+
   char name[100];
   char *p = name;
   int c = source_get();
+  unsigned char sector = current_sector;
+
+  if (c == '+')
+  {
+    sector = 0;
+    c = source_get();
+  }
   while (c == ' ' || c == '\t')
     c = source_get();
   while (c != EOF) {
@@ -3875,8 +4286,8 @@ Terminated by \verb+@@>+
               break;
          } 
        fprintf(stderr,
-                      "%s: unexpected @@%c in macro invocation name (%s, %d)\n",
-                      command_name, c, source_name, source_line);
+                      "%s: unexpected %c%c in macro invocation name (%s, %d)\n",
+                      command_name, nw_char, c, source_name, source_line);
               exit(-1);
   }
 }@}
@@ -3985,6 +4396,7 @@ static Goto_Node **depths;
 @o scraps.c
 @{static void build_gotos();
 static int reject_match();
+static void add_uses();
 
 void search()
 {
@@ -4107,7 +4519,7 @@ void search()
 @d Search scraps
 @{{
   for (i=1; i<scraps; i++) {
-    signed char c;
+    signed char c, last = '\0';
     Manager reader;
     Goto_Node *state = NULL;
     reader.prev = NULL;
@@ -4121,18 +4533,22 @@ void search()
         state = goto_lookup(c, state);
       else
         state = root[c];
+      @<Skip over a scrap use@>
       c = pop(&reader);
       if (state && state->output) {
         Name_Node *p = state->output;
         do {
           Name *name = p->name;
           if (!reject_match(name, c, &reader) &&
+              scrap_array(i).sector == name->sector &&
               (!name->uses || name->uses->scrap != i)) {
             Scrap_Node *new_use =
                 (Scrap_Node *) arena_getmem(sizeof(Scrap_Node));
             new_use->scrap = i;
             new_use->next = name->uses;
             name->uses = new_use;
+            if (!scrap_is_in(name->defs, i))
+	      add_uses(&(scrap_array(i).uses), name);
           }
           p = p->next;
         } while (p);
@@ -4141,6 +4557,169 @@ void search()
   }
 }@}
 
+@d Skip over a scrap use
+@{if (last == nw_char && c == '<')
+{
+   int n = 1;
+   c = pop(&reader);
+   do {
+      last = c;
+      c = pop(&reader);
+      if (last == nw_char)
+      {
+         if (c == '>')
+	    n--;
+	 else if (c == '<')
+	    n++;
+      }
+   }while (n > 0);
+}
+last = c;@}
+
+@d Forward declarations for scraps.c
+@{
+static void add_uses();
+static int scrap_is_in();
+@}
+
+@o scraps.c
+@{
+static int scrap_is_in(Scrap_Node * list, int i)
+{
+  while (list != NULL) {
+    if (list->scrap == i)
+      return TRUE;
+    list = list->next;
+  }
+  return FALSE;
+}
+@| scrap_is_in@}
+
+@o scraps.c
+@{
+static void add_uses(Uses * * root, Name *name)
+{
+   int cmp;
+   Uses *p, **q = root;
+
+   while ((p = *q, p != NULL)
+          && (cmp = robs_strcmp(p->defn->spelling, name->spelling)) < 0)
+      q = &(p->next);
+   if (p == NULL || cmp > 0)
+   {
+      Uses *new = arena_getmem(sizeof(Uses));
+      new->next = p;
+      new->defn = name;
+      *q = new;
+   }
+}
+@| add_uses @}
+
+@d Type dec...
+@{typedef struct uses {
+  struct uses *next;
+  Name *defn;
+} Uses;
+@| Uses @}
+
+@o scraps.c
+@{
+void
+format_uses_refs(FILE * tex_file, int scrap)
+{
+  Uses * p = scrap_array(scrap).uses;
+  if (p != NULL)
+    @<Write uses references@>
+}
+@| format_uses_refs @}
+
+@d Write uses ...
+@{{
+  char join = ' ';
+  fputs("\\vspace{-2ex}\n", tex_file);
+  fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
+  fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
+  fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
+  fputs("\\item \\NWtxtIdentsUsed\\nobreak\\", tex_file);
+  do {
+    @<Write one use reference@>
+    join = ',';
+    p = p->next;
+  }while (p != NULL);
+  fputs(".", tex_file);
+  fputs("\\end{list}\n", tex_file);
+}@}
+
+@d Write one use reference
+@{Name * name = p->defn;
+Scrap_Node *defs = name->defs;
+int first = TRUE, page = -1;
+fprintf(tex_file,
+        "%c \\verb%c%s%c\\nobreak\\ ",
+        join, nw_char, name->spelling, nw_char);
+do {
+  @<Write one referenced scrap@>
+  first = FALSE;
+  defs = defs->next;
+}while (defs!= NULL);
+@}
+
+@d Write one referenced scrap
+@{fputs("\\NWlink{nuweb", tex_file);
+write_scrap_ref(tex_file, defs->scrap, -1, &page);
+fputs("}{", tex_file);
+write_scrap_ref(tex_file, defs->scrap, first, &page);
+fputs("}", tex_file);@}
+
+@o scraps.c
+@{
+void
+format_defs_refs(FILE * tex_file, int scrap)
+{
+  Uses * p = scrap_array(scrap).defs;
+  if (p != NULL)
+    @<Write defs references@>
+}
+@| format_defs_refs @}
+
+@d Write defs ...
+@{{
+  char join = ' ';
+  fputs("\\vspace{-2ex}\n", tex_file);
+  fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
+  fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
+  fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
+  fputs("\\item \\NWtxtIdentsDefed\\nobreak\\", tex_file);
+  do {
+    @<Write one def reference@>
+    join = ',';
+    p = p->next;
+  }while (p != NULL);
+  fputs(".", tex_file);
+  fputs("\\end{list}\n", tex_file);
+}@}
+
+@d Write one def reference
+@{Name * name = p->defn;
+Scrap_Node *defs = name->uses;
+int first = TRUE, page = -1;
+fprintf(tex_file,
+        "%c \\verb%c%s%c\\nobreak\\ ",
+        join, nw_char, name->spelling, nw_char);
+if (defs == NULL
+    || (defs->scrap == scrap && defs->next == NULL)) {
+  fputs("\\NWtxtIdentsNotUsed", tex_file);
+}
+else {
+  do {
+    if (defs->scrap != scrap) {
+       @<Write one referenced scrap@>
+       first = FALSE;
+    }
+    defs = defs->next;
+  }while (defs!= NULL);
+}
+@}
 
 \subsubsection{Rejecting Matches}
 
@@ -4188,12 +4767,112 @@ static int op_char(c)
   if (sym_char(first) && sym_char(prev)) return TRUE;
   if (op_char(last) && op_char(post)) return TRUE;
   if (op_char(first) && op_char(prev)) return TRUE;
-  return FALSE;
+  return FALSE; /* Here is @xother@x */
 }
 @| reject_match @}
 
 
+\section{Labels}
 
+Refer to @xlabel@x.
+And another one @xother@x.
+
+@d Get label from
+@{char  label_name[100];
+char * p = label_name;
+while (c = @1, c != nw_char) /* Here is @xlabel@x */
+   *p++ = c;
+*p = '\0';
+c = @1;
+@}
+
+@o scraps.c
+@{void
+write_label(char label_name[], FILE * file)
+@<Search for label@(@<Write the label to file@>@,@<Complain about missing label@>@)@>
+@| write_label@}
+
+@d Function prototypes
+@{void write_label(char label_name[], FILE * file);
+@}
+
+@d Write the label to file
+@{write_single_scrap_ref(file, lbl->scrap);
+fprintf(file, "-%02d", lbl->seq);@}
+
+@d Complain about missing label
+@{fprintf(stderr, "Can't find label %s.\n", label_name);@}
+
+@d Save label to label store
+@{if (label_name[0])
+@<Search for label@(@<Complain about duplicate labels@>@,@<Create a new label entry@>@)@>
+else
+{
+   @<Complain about empty label@>
+}@}
+
+@d Create a new label en...
+@{lbl = (label_node *)arena_getmem(sizeof(label_node) + (p - label_name));
+lbl->left = lbl->right = NULL;
+strcpy(lbl->name, label_name);
+lbl->scrap = current_scrap;
+lbl->seq = ++lblseq;
+*plbl = lbl;@}
+
+@d Complain about duplicate labels
+@{fprintf(stderr, "Duplicate label %s.\n", label_name);@}
+
+@d Complain about empty label
+@{fprintf(stderr, "Empty label.\n");@}
+
+@d Search for label
+@{{
+   label_node * * plbl = &label_tab;
+   for (;;)
+   {
+      label_node * lbl = *plbl;
+
+      if (lbl)
+      {
+         int cmp = label_name[0] - lbl->name[0];
+
+         if (cmp == 0)
+	    cmp = strcmp(label_name + 1, lbl->name + 1);
+	 if (cmp < 0)
+	    plbl = &lbl->left;
+	 else if (cmp > 0)
+	    plbl = &lbl->right;
+	 else
+	 {
+	    @1
+	    break;
+	 }
+      }
+      else
+      {
+          @2
+	  break;
+      }
+   }
+}
+@}
+
+@o global.c
+@{label_node * label_tab = NULL;
+@| label_tab@}
+
+@d Type declarations
+@{typedef struct l_node
+{
+   struct l_node * left, * right;
+   int scrap, seq;
+   char name[1];
+} label_node;
+@| label_node@}
+
+@d Global variable declarations
+@{extern label_node * label_tab;
+@}
 
 
 \section{Memory Management} \label{memory-management}
@@ -4237,7 +4916,7 @@ static Chunk *arena = &first;
 The routine \verb|arena_getmem(n)| returns a pointer to (at least) 
 \verb|n| bytes of memory. Note that \verb|n| is rounded up to ensure
 that returned pointers are always aligned.  We align to the nearest
-8~byte segment, since that'll satisfy the more common 2-byte and
+8-byte segment, since that'll satisfy the more common 2-byte and
 4-byte alignment restrictions too.
 
 @o arena.c
@@ -4310,7 +4989,7 @@ back to the first empty chunk.
 
 Here is the UNIX man page for nuweb:
 
-@O nuweb.1 -t @{.TH NUWEB 1 "local 3/22/95"
+@O nuweb.1 @{.TH NUWEB 1 "local 3/22/95"
 .SH NAME
 Nuweb, a literate programming tool
 .SH SYNOPSIS
@@ -4335,30 +5014,24 @@ produces,
 .I LaTeX
 source for typeset documentation.
 .SH COMMAND LINE OPTIONS
-.TP
-\fB-t\fP 
-Suppresses generation of the {\tt .tex} file.
-.TP
-\fB-o\fP 
-Suppresses generation of the output files.
-.TP
-\fB-d\fP 
-list dangling identifier references in indexes.
-.TP
-\fB-c\fP 
-Forces output files to overwrite old files of the same
-name without comparing for equality first.
-.TP
-\fB-v\fP 
-The verbose flag. Forces output of progress reports.
-.TP
-\fB-n\fP 
-Forces sequential numbering of scraps (instead of page
+.br
+\fB-t\fP Suppresses generation of the {\tt .tex} file.
+.br
+\fB-o\fP Suppresses generation of the output files.
+.br
+\fB-d\fP list dangling identifier references in indexes.
+.br
+\fB-c\fP Forces output files to overwrite old files of the same
+  name without comparing for equality first.
+.br
+\fB-v\fP The verbose flag. Forces output of progress reports.
+.br
+\fB-n\fP Forces sequential numbering of scraps (instead of page
   numbers).
-.TP
-\fB-s\fP 
-Doesn't print list of scraps making up file at end of
-each scrap.
+.br
+\fB-s\fP Doesn't print list of scraps making up file at end of
+  each scrap.
+\fB-p path\fP Prepend path to the filenames for all the output files.
 .SH FORMAT OF NUWEB FILES
 A 
 .I nuweb 
@@ -4370,48 +5043,29 @@ command is encountered. All
 .I nuweb
 commands start with an ``at-sign'' (@@). 
 Files and macros are defined with the following commands:
-.TP
-@@o \fIfile-name flags  scrap\fP  
-where scrap is smaller than one page.
-.TP
-@@O \fIfile-name flags  scrap\fP  
-where scrap is bigger than one page.
-.TP
-@@d \fImacro-name scrap\fP. 
-Where scrap is smallar than one page.
-.TP
-@@D \fImacro-name scrap\fP. 
-Where scrap is bigger than one page.
+.PP
+@@o \fIfile-name flags  scrap\fP  where scrap is smaller than one page.
+.br
+@@O \fIfile-name flags  scrap\fP  where scrap is bigger than one page.
+.br
+@@d \fImacro-name scrap\fP. Where scrap is smallar than one page.
+.br
+@@D \fImacro-name scrap\fP. Where scrap is bigger than one page.
 .PP
 Scraps have specific begin and end 
 markers;
 which begin and end marker you use determines how the scrap will be
 typeset in the .tex file:
-.TP
-\fB@@{\fP...\fB@@}\fP 
-for verbatim "terminal style" formatting
-.TP
-\fB@@[\fP...\fB@@]\fP 
-for LaTeX paragraph mode formatting, and
-.TP
-\fB@@(\fP...\fB@@)\fP 
-for LaTeX math mode formmating.
-.PP
+.br
+\fB@@{\fP...\fB@@}\fP for verbatim "terminal style" formatting
+.br
+\fB@@[\fP...\fB@@]\fP for LaTeX paragraph mode formatting, and
+.br
+\fB@@(\fP...\fB@@)\fP for LaTeX math mode formmating.
+.br
 Any amount of whitespace
 (including carriage returns) may appear between a name and the
 begining of a scrap.
-.PP
-Within a scrap the following commands may be used:
-.TP
-\fB@@<\fP\fImacro-name\fP\fB@@>\fP 
-Causes the macro macro-name to be expanded inline as the code is written out to a file. It is an error to specify recursive macro invocations.
-.TP
-\fB@@<\fP\fImacro-name\fP\fB@@(\fP\fI a1 \fP\fB@@,\fP\fI a2 \fP\fB@@)\fP\fB@@>\fP
-Causes the macro macro-name to be expanded inline with the parameters a1, a2, etc. Up to 9 parameters may be given.
-.TP
-\fB@@1\fP,\fB@@2\fP,...,\fB@@9\fP
-In a macro causes the n'th macro parameter to be substituted into the scrap. If the parameter is not passed, a null string is substituted.
-
 .PP
 Several code/file scraps may have the same name;
 .I nuweb
@@ -4427,42 +5081,34 @@ scraps with respect to the scraps in which they appear.
 .SH PER FILE OPTIONS
 When defining an output file, the programmer has the option of using flags
 to control the output.
-.TP
+.PP
 \fB-d\fR option, 
 .I Nuweb
 will emit line number indications at scrap boundaries.
-.TP
+.br
 \fB-i\fR option, 
 .I Nuweb
 supresses the indentation of macros (useful for \fBFortran\fR).
-.TP
-\fB-t\fP option 
-makes \fInuweb\fP 
+.br
+\fB-t\fP option makes \fInuweb\fP 
 copy tabs untouched from input to output.
 .PP
 .SH MINOR COMMANDS
-.TP
-@@@@ 
-Causes a single ``at-sign'' to be copied into the output.
-.TP
-@@\_
-Causes the text between it and the next {\tt @@\_} to be made bold 
-(for keywords, etc.) in the formatted document
-.TP
-@@% 
-Comments out a line so that it doesn't appear in the output.
-.TP
-@@i \fBfilename\fR 
-causes the file named to be included.
-.TP
-@@f
-Creates an index of output files.
-.TP
-@@m
-Creates an index of macros.
-.TP
-@@u
-Creates an index of user-specified identifiers.
+.br
+@@@@    Causes a single ``at-sign'' to be copied into the output.
+.br
+@@\_    Causes the text between it and the next {\tt @@\_} to be made bold 
+        (for keywords, etc.) in the formatted document
+.br
+@@%     Comments out a line so that it doesn't appear in the output.
+.br
+@@i     \fBfilename\fR causes the file named to be included.
+.br
+@@f     Creates an index of output files.
+.br
+@@m     Creates an index of macros.
+.br
+@@u     Creates an index of user-specified identifiers.
 .PP
 To mark an identifier for inclusion in the index, it must be mentioned
 at the end of the scrap it was defined in. The line starts
