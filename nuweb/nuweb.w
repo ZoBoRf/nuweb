@@ -60,7 +60,7 @@
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 0.92 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 0.93 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.} 
@@ -68,8 +68,13 @@ through ONR grant N00014-91-J-1989.}
 \\ HTML scrap generator by John D. Ramsdell
 \\ \sl ramsdell@@mitre.org
 \\ scrap formatting and continuing maintenance by Marc W. Mengel
-\\ \sl mengel@@fnal.gov}
-
+\\ \sl mengel@@fnal.gov
+\\ internationalization from Javier Goizueta 
+\\ sl javiergoizueta@@terra.es
+\\ patches contributed by 
+\\ Walter Brown \sl wb@fnal.gov
+\\ Alan Karp \sl karp@@hpl.hp.com
+}
 \begin{document}
 \pagenumbering{roman}
 \maketitle
@@ -409,13 +414,15 @@ Thus, the command
 \end{quote}
 would simply scan the input and produce no output at all.
 
-There are two additional command-line flags:
+There are three additional command-line flags:
 \begin{description}
 \item[\tt -v] For ``verbose,'' causes nuweb to write information about
   its progress to \verb|stderr|.
 \item[\tt -n] Forces scraps to be numbered sequentially from~1
   (instead of using page numbers). This form is perhaps more desirable
   for small webs.
+\item[\tt -s] Doesn't print list of scraps making up each file
+  following each scrap.
 \end{description}
 
 \section{Generating HTML}
@@ -524,12 +531,13 @@ recompilation during development.
 @<Function prototypes@>
 @}
 
-We'll need at least three of the standard system include files.
+We'll need at least five of the standard system include files.
 @d Include files
 @{#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <signal.h>
 @| FILE stderr exit fprintf fputs fopen fclose getc putc strlen
 toupper isupper islower isgraph isspace tempnam remove malloc size_t @}
 
@@ -660,15 +668,18 @@ via "putenv" in \verb|stdlib.h|.
 @}
 \subsection{Command-Line Arguments}
 
-There are five possible command-line arguments:
+There are numerous possible command-line arguments:
 \begin{description}
 \item[\tt -t] Suppresses generation of the {\tt .tex} file.
 \item[\tt -o] Suppresses generation of the output files.
+\item[\tt -d] list dangling scrap references in indexes.
 \item[\tt -c] Forces output files to overwrite old files of the same
   name without comparing for equality first.
 \item[\tt -v] The verbose flag. Forces output of progress reports.
 \item[\tt -n] Forces sequential numbering of scraps (instead of page
   numbers).
+\item[\tt -s] Doesn't print list of scraps making up file at end of
+  each scrap.
 \end{description}
 
 \noindent
@@ -680,7 +691,9 @@ extern int output_flag;   /* if FALSE, don't emit the output files */
 extern int compare_flag;  /* if FALSE, overwrite without comparison */
 extern int verbose_flag;  /* if TRUE, write progress information */
 extern int number_flag;   /* if TRUE, use a sequential numbering scheme */
-@| tex_flag html_flag output_flag compare_flag verbose_flag number_flag @}
+extern int scrap_flag;    /* if FALSE, don't print list of scraps */
+extern int dangling_flag;    /* if FALSE, don't print dangling flags */
+@| tex_flag html_flag output_flag compare_flag verbose_flag number_flag scrap_flag dangling_flag@}
 
 The flags are all initialized for correct default behavior.
 
@@ -691,6 +704,8 @@ int output_flag = TRUE;
 int compare_flag = TRUE;
 int verbose_flag = FALSE;
 int number_flag = FALSE;
+int scrap_flag = TRUE;
+int dangling_flag = FALSE;
 @}
 
 
@@ -731,9 +746,13 @@ we've got to loop through the string, handling them all.
     switch (c) {
       case 'c': compare_flag = FALSE;
 		break;
+      case 'd': dangling_flag = FALSE;
+		break;
       case 'n': number_flag = TRUE;
 		break;
       case 'o': output_flag = FALSE;
+		break;
+      case 's': scrap_flag = FALSE;
 		break;
       case 't': tex_flag = FALSE;
 		break;
@@ -1164,7 +1183,9 @@ I've factored the common parts out into separate scraps.
   fputs("}", tex_file);
   fputs(" }$\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
-  @<Write file defs@>
+  if ( scrap_flag ) {
+    @<Write file defs@>
+  }
   @<Finish the scrap environment@>
 }@}
 
@@ -1177,7 +1198,7 @@ might want to use italics or bold face in the midst of the name.
 @{{
   Name *name = collect_macro_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "$\\langle\\,$%s {\\footnotesize ", name->spelling);
+  fprintf(tex_file, "$\\langle\\,$%s{\\footnotesize ", name->spelling);
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{", tex_file);
@@ -1437,7 +1458,7 @@ This scrap helps deal with bold keywords:
 @{{
   Name *name = collect_scrap_name();
   fputs(delimit_scrap[scrap_type][1],file);
-  fprintf(file, "\\hbox{$\\langle\\,$%s {\\footnotesize ", name->spelling);
+  fprintf(file, "\\hbox{$\\langle\\,$%s{\\footnotesize ", name->spelling);
   if (name->defs)
     @<Write abbreviated definition list@>
   else {
@@ -1628,7 +1649,7 @@ This scrap helps deal with bold keywords:
 @d Format a user index entry
 @{{
   Scrap_Node *uses = name->uses;
-  if (uses) {
+  if ( uses || dangling_flag ) {
     int page;
     Scrap_Node *defs = name->defs;
     fprintf(tex_file, "\\item \\verb@@%s@@: ", name->spelling);
