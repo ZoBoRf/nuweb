@@ -58,6 +58,7 @@
 \newif\ifshowcode
 \showcodetrue
 
+\usepackage{latexsym}
 %\usepackage{html}
 
 \setlength{\oddsidemargin}{0in}
@@ -506,7 +507,7 @@ have been made by:
 \item Walter Brown \verb|<wb@@fnal.gov>|
 \item Nicky van Foreest \verb|<n.d.vanforeest@@math.utwente.nl>|
 \item Javier Goizueta \verb|<jgoizueta@@jazzfree.com>|
-\item Alan Karp \verb|<karp@@hpl.hp.com>|
+\item Alan Karp \verb|<karp@@hp.com>|
 \end{itemize}
 
 \ifshowcode
