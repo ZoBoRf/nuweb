@@ -352,8 +352,8 @@ in the web file.
   nested, though there is currently a limit of 10~levels. The file name
   should be complete (no extension will be appended) and should be
   terminated by a carriage return.
-\item[{\tt @@r}$x$] Changes the escape character '@@' to '$x$' for the
-		remainder of the file.
+\item[{\tt @@r}$x$] Changes the escape character '@@' to '$x$'.  
+  This must appear before any scrap definitions.
 \end{description}
 Finally, there are three commands used to create indices to the macro
 names, file definitions, and user-specified identifiers.
@@ -1485,6 +1485,14 @@ static void copy_scrap(file)
               break;
     case '_': @<Bold Keyword@>
               break;
+    case '1': case '2': case '3': 
+    case '4': case '5': case '6': 
+    case '7': case '8': case '9': 
+	      fputs(delimit_scrap[scrap_type][1], file);
+	      fputc(nw_char, file);
+	      fputc(c,   file);
+	      fputs(delimit_scrap[scrap_type][0], file);
+	      break;
     default:  
           if (c==nw_char)
             {
@@ -1537,7 +1545,7 @@ This scrap helps deal with bold keywords:
   fputs(delimit_scrap[scrap_type][1],file);
   fprintf(file, "\\hbox{$\\langle\\,$%s\\nobreak\\ ", name->spelling);
   if (scrap_name_has_parameters) {
-     fputs("{\\tt ", file);
+     fputs("\\textbf{: }{\\tt ", file);
      do {
        do {
           c = source_get();
@@ -2160,7 +2168,7 @@ pointed out any during the first pass.
   fputs("&lt;\\end{rawhtml}", file);
   fputs(name->spelling, file);
   if (scrap_name_has_parameters) {
-     fputs("{\\tt ",file);
+     fputs("\\textbf{: }{\\tt ",file);
      do {
        do {
           c = source_get();
@@ -2822,13 +2830,32 @@ extern void write_single_scrap_ref();
   char *s;
 {
   Manager writer;
-  int c;
+  char namebuf[100];
+  char *p;
+  int c, oldc;
+  int in_name = 0;
+  Name *name;
+
   @<Create new scrap...@>
+  oldc = 0;
   while (0 != (c = *s++)) {
     push(c, &writer);
+    if (oldc == nw_char && c == '>' || c == ':' ) {
+        p--;
+	*p = 0;
+	name = prefix_add(&macro_names, namebuf);
+	@<Add current scrap to \verb|name|'s uses@>
+    }
+    if (in_name) {
+	*p++ = c;
+    }
+    if (oldc == nw_char && c == '<' ) {
+	in_name = 1;
+        p = namebuf;
+    }
+    oldc = c;
   }
   push(0, &writer);
-  /* ZZZ this should add references if macro references are present */
   return scraps++;
 }
 @| collect_scrap_from_string @}
@@ -3138,8 +3165,7 @@ return them somehow.
 	    np++;
 	    *pp++ = 0;
 	    ppp[np - 1] = pp;
-	  }
-	  if ( c == '>' ) {
+	  } else if ( c == '>' ) {
 	    ppp[np] = 0;
 	    *pp++ = 0;
 	    sawend = 1;
@@ -3155,7 +3181,6 @@ return them somehow.
 	 while(nw_char != pop(manager)) {
 	     ;
          }
-	 c = nw_char;
 	 c = pop(manager);
       } else {
 	 *parameters = copy_parameters(ppp); 
@@ -3186,6 +3211,7 @@ return them somehow.
 
 @d Check for end of scrap name...
 @{{
+  Name *pn;
   c = pop(manager);
   if (c == nw_char) {
     *p++ = c;
@@ -3198,7 +3224,8 @@ return them somehow.
       p -= 2;
     }
     *p = '\0';
-    return prefix_add(&macro_names, name);
+    pn = prefix_add(&macro_names, name);
+    return pn;
   }
   else {
     fprintf(stderr, "%s: found an internal problem (1)\n", command_name);

@@ -1,6 +1,6 @@
-Here's an intermediate version of nuweb.  I've simply bundled up the
-web source (nuweb.w), the generated .c files, an abbreviated nuweb.tex
-file, and the assorted auxiliary files for latex'ing.
+Here's an intermediate version of nuweb.  We've bundled up the
+web source (nuweb.w), the generated .c files, file, and the assorted 
+auxiliary files for latex'ing with a Makefile.
 
 Note that it's still not completely portable to every system without
 change.  In particular, it expect file-names to use '/' to delimit
