@@ -2383,7 +2383,7 @@ argument to \verb|tempname| cannot be null in that system.
   if (verbose_flag)
     fprintf(stderr, "writing %s\n", files->spelling);
   write_scraps(temp_file, files->defs, 0, indent_chars,
-	       files->debug_flag, files->tab_flag, files->indent_flag);
+	       files->debug_flag, files->tab_flag, files->indent_flag, 0);
   fclose(temp_file);
   if (compare_flag)
     @<Compare the temp file and the old file@>
@@ -2530,6 +2530,9 @@ hence this whole unsatisfactory \verb|double_at| business.
       case '{': case '}': case '<': case '>': case '|':
       case '(': case ')': case '[': case ']':
       case '%': case '_':
+      case ':': case ',': 
+      case '1': case '2': case '3': case '4': case '5': 
+      case '6': case '7': case '8': case '9': 
       case 'r':
 		source_peek = c;
         	c = nw_char;        
@@ -2838,6 +2841,9 @@ extern void write_single_scrap_ref();
               push('\n', &writer); 
  	      c = source_get();
               break;
+    case '1': case '2': case '3': 
+    case '4': case '5': case '6':
+    case '7': case '8': case '9':
     case '_': c = source_get();
 	      break;
     default : 
@@ -2848,7 +2854,7 @@ extern void write_single_scrap_ref();
               c = source_get();
               break;
             }
-          fprintf(stderr, "%s: unexpected @@%c in (%s, %d)\n",
+          fprintf(stderr, "%s: unexpected @@%c in scrap (%s, %d)\n",
 		      command_name, c, source_name, source_line);
 	      exit(-1);
   }
@@ -2880,7 +2886,7 @@ extern void write_single_scrap_ref();
   } while (c != nw_char);
   c = source_get();
   if (c != '}' && c != ']' && c != ')' ) {
-    fprintf(stderr, "%s: unexpected @@%c in (%s, %d)\n",
+    fprintf(stderr, "%s: unexpected @@%c in index entry (%s, %d)\n",
 	    command_name, c, source_name, source_line);
     exit(-1);
   }
@@ -2891,6 +2897,9 @@ extern void write_single_scrap_ref();
 @{{
   Name *name = collect_scrap_name();
   @<Save macro name@>
+  if (scrap_name_has_parameters) {
+    @<Save macro parameters @>
+  }
   @<Add current scrap to \verb|name|'s uses@>
   c = source_get();
 }@}
@@ -2910,10 +2919,25 @@ extern void write_single_scrap_ref();
     pushs("...", &writer);
   else
     push(*s, &writer);
-  push(nw_char, &writer);
-  push('>', &writer);
+  if (!scrap_name_has_parameters) {
+      push(nw_char, &writer);
+      push('>', &writer);
+  }
 }@}
 
+@d Save macro parameters 
+@{
+  push(nw_char, &writer);
+  push(':', &writer);
+  do {
+     do {
+	c=source_get();
+        push(c, &writer);
+     } while (c != nw_char && c != EOF);
+     c=source_get();
+     push(c, &writer);
+  } while (c != '>' && c != EOF);
+@}
 
 @d Add current scrap to...
 @{{
@@ -2943,10 +2967,156 @@ extern void write_single_scrap_ref();
 @| pop @}
 
 
+\subsubsection{Dealing with macro parameters}
+
+This next bit is under development, but so far it shouldn't hurt
+anything.
+
+We need a data type to keep track of macro parameters.
 
 @o scraps.c
-@{static Name *pop_scrap_name(manager)
+@{typedef char **Parameters;
+@| Parameters @}
+
+And a routine to generate one of them from a array of character
+pointers:
+
+@o scraps.c
+@{
+Parameters
+copy_parameters(char **ppp) {
+    Parameters res = malloc(10 * sizeof(char *));
+    char **p = ppp;
+    int count = 0;
+
+    while (p && *p) {
+        *res++ = strdup(*p++);
+	count++;
+    }
+    while (count < 10) {
+        *res++ = 0;
+	count++;
+    }
+    return res;
+}
+
+Parameters
+print_parameters( parameters ) 
+  Parameters parameters;
+{
+  char **p = parameters;
+  printf("debug: parameters: ");
+  while (p && *p) {
+    printf("%s,", *p++);
+  }
+  printf("\n");
+}
+@| copy_parameters @}
+
+When we are copying a scrap to the output, we can then pull
+the $n$th string from the \verb|Parameters| list when we
+see an \verb|@@1| \verb|@@2|, etc.
+
+@d Handle macro parameter substitution @{
+    case '1': case '2': case '3': 
+    case '4': case '5': case '6':
+    case '7': case '8': case '9':
+	      if ( parameters && parameters[c - '0'] ) {
+	        pushs(parameters[c - '0'], &reader);
+	      } else {
+	        /* ZZZ need error message here */
+	      }
+	      break;
+@}
+Now onto actually parsing macro parameters from a call.
+We start off checking for macro parameters, an \verb|@@:| sequence 
+followed by parameters separated by \verb|@@|, sequences.  
+
+We have a \verb|parms| buffer to hold parameters, an array of pointers
+to paramters \verb|ppp|, and a pointer into the paramter buffer
+\verb|pp|, and a count of parameters \verb|np|.
+
+If we get inside, we have at least one parameter, which will be at
+the beginning of the parms buffer, and we prime the pump with the
+first character.
+
+Then we go into a loop, putting characters into the buffer,
+and checking for \verb|@@|, and \verb|@@>| seqences.  In
+the case of the former, we move on to the next parameter,
+in the case of the latter, we end the parameter list, and
+push back the sequence for the other code to find.
+
+This needs work for the case where we run out of room in the
+parameter buffer, and needs to copy the parameters and 
+return them somehow.
+
+@d Check for macro parameters
+@{
+  if (c == ':') {
+#define PLEN 256
+      static char parms[PLEN]; 
+      char *ppp[10];
+      char *pp;
+      int np;
+      int sawend;
+
+printf("debug: starting to copy parameters\n");
+      pp = parms;		
+      np = 1;		
+      ppp[np - 1] = pp; 
+      c = pop(manager);
+printf("%c|", c);
+fflush(stdout);
+      sawend = 0;
+
+      while ( pp - parms < PLEN ) {
+	if ( c == nw_char ) {
+	  *pp++ = pop(manager);
+printf("%c*", pp[-1]);
+fflush(stdout);
+	  if ( pp[-1] == ',' ) {
+printf("Saw a comma, next param\n");
+	    np++;
+	    pp[-1] = 0;
+	    ppp[np - 1] = pp;
+	  }
+	  if ( pp[-1] == '>' ) {
+printf("Aha, an end...\n");
+	    ppp[np] = 0;
+	    pp[-1] = 0;
+	    push(nw_char, manager);
+	    push('>', manager);
+	    sawend = 1;
+	    break;
+	  }
+	} else {
+          *pp++ = c;
+          c = pop(manager);
+printf("%c+", c);
+fflush(stdout);
+        }
+      }
+      if (!sawend) {
+	 fprintf(stderr, "%s: macro parameters too long (%s, line %d)\n",
+		 command_name, source_name, source_line);
+	 while(nw_char != pop(manager)) {
+	     ;
+         }
+	 c = nw_char;
+	 c = pop(manager);
+      } else {
+	 *parameters = copy_parameters(ppp); 
+	 printf("debug: got here with"); print_parameters(*parameters);
+         c = '>';
+      }
+  }
+@}
+
+
+@o scraps.c
+@{static Name *pop_scrap_name(manager, parameters)
      Manager *manager;
+     Parameters *parameters;
 {
   char name[100];
   char *p = name;
@@ -2959,6 +3129,7 @@ extern void write_single_scrap_ref();
       c = pop(manager);
     }
   }
+  printf("debug: pop_scrap_name"); print_parameters(*parameters);
 }
 @| pop_scrap_name @}
 
@@ -2970,7 +3141,8 @@ extern void write_single_scrap_ref();
     *p++ = c;
     c = pop(manager);
   }
-  else if (c == '>') {
+  @<Check for macro parameters@>
+  if (c == '>') {
     if (p - name > 3 && p[-1] == '.' && p[-2] == '.' && p[-3] == '.') {
       p[-3] = ' ';
       p -= 2;
@@ -2984,10 +3156,9 @@ extern void write_single_scrap_ref();
   }
 }@}
 
-
 @o scraps.c
 @{int write_scraps(file, defs, global_indent, indent_chars,
-		   debug_flag, tab_flag, indent_flag)
+		   debug_flag, tab_flag, indent_flag, parameters)
      FILE *file;
      Scrap_Node *defs;
      int global_indent;
@@ -2995,8 +3166,10 @@ extern void write_single_scrap_ref();
      char debug_flag;
      char tab_flag;
      char indent_flag;
+     Parameters parameters;
 {
   int indent = 0;
+  printf("debug: write_scraps:"); print_parameters(parameters);
   while (defs) {
     @<Copy \verb|defs->scrap| to \verb|file|@>
     defs = defs->next;
@@ -3010,6 +3183,7 @@ extern void write_single_scrap_ref();
 @{{
   char c;
   Manager reader;
+  Parameters local_parameters = 0;
   int line_number = scrap_array(defs->scrap).file_line;
   @<Insert debugging information if required@>
   reader.scrap = scrap_array(defs->scrap).slab;
@@ -3081,6 +3255,7 @@ extern void write_single_scrap_ref();
     case '<': @<Copy macro into \verb|file|@>
 	      @<Insert debugging information if required@>
 	      break;
+    @<Handle macro parameter substitution@>
     default:  
           if(c==nw_char)
             {
@@ -3097,7 +3272,7 @@ extern void write_single_scrap_ref();
 
 @d Copy macro into...
 @{{
-  Name *name = pop_scrap_name(&reader);
+  Name *name = pop_scrap_name(&reader, &local_parameters);
   if (name->mark) {
     fprintf(stderr, "%s: recursive macro discovered involving <%s>\n",
 	    command_name, name->spelling);
@@ -3105,8 +3280,10 @@ extern void write_single_scrap_ref();
   }
   if (name->defs) {
     name->mark = TRUE;
+printf("debug: calling with"); print_parameters(local_parameters);
     indent = write_scraps(file, name->defs, global_indent + indent,
-			  indent_chars, debug_flag, tab_flag, indent_flag);
+			  indent_chars, debug_flag, tab_flag, indent_flag, 
+			  local_parameters);
     indent -= global_indent;
     name->mark = FALSE;
   }
@@ -3196,12 +3373,14 @@ extern void write_single_scrap_ref();
 @{extern Name *file_names;
 extern Name *macro_names;
 extern Name *user_names;
+extern int scrap_name_has_parameters;
 @| file_names macro_names user_names @}
 
 @d Global variable def...
 @{Name *file_names = NULL;
 Name *macro_names = NULL;
 Name *user_names = NULL;
+int scrap_name_has_parameters;
 @}
 
 @d Function pro...
@@ -3513,7 +3692,7 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
               break;
             }
           fprintf(stderr,
-		      "%s: unexpected @@%c in macro name (%s, %d)\n",
+		      "%s: unexpected @@%c in macro definition name (%s, %d)\n",
 		      command_name, c, source_name, start_line);
 	      exit(-1);
   }
@@ -3597,7 +3776,14 @@ Terminated by \verb+@@>+
 @{{
   c = source_get();
   switch (c) {
-    case '>': @<Cleanup and install name@>
+
+    case ':': 
+	scrap_name_has_parameters = 1;
+	@<Cleanup and install name@>
+    case '>': 
+	scrap_name_has_parameters = 0;
+	@<Cleanup and install name@>
+
     default:  
        if (c==nw_char)
          {
@@ -3606,7 +3792,7 @@ Terminated by \verb+@@>+
 	      break;
          } 
        fprintf(stderr,
-		      "%s: unexpected @@%c in macro name (%s, %d)\n",
+		      "%s: unexpected @@%c in macro invocation name (%s, %d)\n",
 		      command_name, c, source_name, source_line);
 	      exit(-1);
   }
