@@ -29,8 +29,9 @@
 % NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 % SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 % 
+
 % Note:
-% This file has been changed by Javier Goizueta <javiergoizueta@@terra.es>
+% This file has been changed by Javier Goizueta <jgoizueta@@jazzfree.es>
 % on 2001-02-15. 
 % The places where it has been modified are tagged by a Latex comment
 % starting with %JG-
@@ -44,6 +45,14 @@
 % TEMPN -- Fix of the use of tempnam
 % LINE  -- Synchronizing #lines when @@% is used
 % MAC   -- definition of the macros used by LANG,DIAM,HYPER
+% TIE   -- Replacement of ~ by "\nobreak\ "
+% SCRAPs-- Elimination of s
+% DNGL  -- Correction: option -d was not working and was misdocumented
+%  --2002-01-15: the TILDE modificiation is necessary because some ties have been
+%   introduced in version 0.93 in troublesome places when the babel package is used
+%   with the spanish.ldf option (which makes ~ an active character).
+%  --2002-01-15: an ``s'' was being added to the NWtxtDefBy and NWtxtDefBy
+%   messages when followed by more than one reference.
 
 \documentclass{report}
 \newif\ifshowcode
@@ -60,7 +69,7 @@
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 0.93 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 0.93c \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.} 
@@ -69,6 +78,7 @@ through ONR grant N00014-91-J-1989.}
 \\ \sl ramsdell@@mitre.org
 \\ scrap formatting and continuing maintenance by Marc W. Mengel
 \\ \sl mengel@@fnal.gov}
+
 \begin{document}
 \pagenumbering{roman}
 \maketitle
@@ -417,7 +427,8 @@ There are several additional command-line flags:
   for small webs.
 \item[\tt -s] Doesn't print list of scraps making up each file
   following each scrap.
-\item[\tt -d] Doesn't print "dangling" identifiers -- scraps which
+%JG-DNGL
+\item[\tt -d] Print "dangling" identifiers -- user identifiers which
   are never referenced, in indices, etc.
 \end{description}
 
@@ -494,7 +505,7 @@ have been made by:
 \begin{itemize}
 \item Walter Brown \verb|<wb@@fnal.gov>|
 \item Nicky van Foreest \verb|<n.d.vanforeest@@math.utwente.nl>|
-\item Javier Goizueta \verb|<javiergoizueta@@terra.es>|
+\item Javier Goizueta \verb|<jgoizueta@@jazzfree.com>|
 \item Alan Karp \verb|<karp@@hpl.hp.com>|
 \end{itemize}
 
@@ -536,6 +547,7 @@ We'll need at least five of the standard system include files.
 #include <signal.h>
 @| FILE stderr exit fprintf fputs fopen fclose getc putc strlen
 toupper isupper islower isgraph isspace tempnam remove malloc size_t @}
+
 
 \newpage
 \noindent
@@ -668,7 +680,8 @@ There are numerous possible command-line arguments:
 \begin{description}
 \item[\tt -t] Suppresses generation of the {\tt .tex} file.
 \item[\tt -o] Suppresses generation of the output files.
-\item[\tt -d] list dangling scrap references in indexes.
+%JG-DNGL
+\item[\tt -d] list dangling identifier references in indexes.
 \item[\tt -c] Forces output files to overwrite old files of the same
   name without comparing for equality first.
 \item[\tt -v] The verbose flag. Forces output of progress reports.
@@ -705,6 +718,7 @@ int dangling_flag = FALSE;
 @}
 
 
+
 We save the invocation name of the command in a global variable
 \verb|command_name| for use in error messages.
 @d Global variable dec...
@@ -735,6 +749,7 @@ command-line arguments.
 
 Several flags can be stacked behind a single minus sign; therefore,
 we've got to loop through the string, handling them all.
+%JG-DNGL
 @d Interpret the...
 @{{
   char c = *s++;
@@ -742,7 +757,7 @@ we've got to loop through the string, handling them all.
     switch (c) {
       case 'c': compare_flag = FALSE;
 		break;
-      case 'd': dangling_flag = FALSE;
+      case 'd': dangling_flag = TRUE;
 		break;
       case 'n': number_flag = TRUE;
 		break;
@@ -1057,6 +1072,7 @@ name of the web source file and the name of the \verb|.tex| output file.
 }
 @| write_tex @}
 
+
 %JG-MAC
 Now that the \verb|\NW...| macros are used, it seems convenient
 to write default definitions for those macros so that source files
@@ -1072,9 +1088,11 @@ fputs("\\newcommand{\\NWtxtMacroNoRef}{Macro never referenced}\n", tex_file);
 fputs("\\newcommand{\\NWtxtDefBy}{Defined by}\n", tex_file);
 fputs("\\newcommand{\\NWtxtRefIn}{Referenced in}\n", tex_file);
 fputs("\\newcommand{\\NWtxtNoRef}{Not referenced}\n", tex_file);
-fputs("\\newcommand{\\NWtxtFileDefBy}{Macro defined by}\n", tex_file);
+fputs("\\newcommand{\\NWtxtFileDefBy}{File defined by}\n", tex_file);
 fputs("\\newcommand{\\NWsep}{${\\diamond}$}\n", tex_file);
 @}
+
+
 
 We make our second (and final) pass through the source web, this time
 copying characters straight into the \verb|.tex| file. However, we keep
@@ -1166,12 +1184,12 @@ handling of the \verb|@@| case in the switch statement).
 Macro and file definitions are formatted nearly identically.
 I've factored the common parts out into separate scraps.
 
-%JG-HYPER
+%JG-HYPER-TIE
 @d Write output file definition
 @{{
   Name *name = collect_file_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "\\verb@@\"%s\"@@~{\\footnotesize ", name->spelling);
+  fprintf(tex_file, "\\verb@@\"%s\"@@\\nobreak\\ {\\footnotesize ", name->spelling);
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{", tex_file);
@@ -1189,12 +1207,12 @@ I've factored the common parts out into separate scraps.
 I don't format a macro name at all specially, figuring the programmer
 might want to use italics or bold face in the midst of the name.
 
-%JG-HYPER-ADJ
+%JG-HYPER-ADJ-TIE
 @d Write macro definition
 @{{
   Name *name = collect_macro_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "$\\langle\\,$%s~{\\footnotesize ", name->spelling);
+  fprintf(tex_file, "$\\langle\\,$%s\\nobreak\\ {\\footnotesize ", name->spelling);
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{", tex_file);
@@ -1449,12 +1467,12 @@ This scrap helps deal with bold keywords:
   fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
-%JG-ADJ
+%JG-ADJ-TIE
 @d Format macro name
 @{{
   Name *name = collect_scrap_name();
   fputs(delimit_scrap[scrap_type][1],file);
-  fprintf(file, "\\hbox{$\\langle\\,$%s~{\\footnotesize ", name->spelling);
+  fprintf(file, "\\hbox{$\\langle\\,$%s\\nobreak\\ {\\footnotesize ", name->spelling);
   if (name->defs)
     @<Write abbreviated definition list@>
   else {
@@ -1524,7 +1542,8 @@ This scrap helps deal with bold keywords:
 }
 @| format_entry @}
 
-%JG-ADJ
+
+%JG-ADJ-TIE
 @d Format an index entry
 @{{
   fputs("\\item ", tex_file);
@@ -1533,7 +1552,7 @@ This scrap helps deal with bold keywords:
     @<Write file's defining scrap numbers@>
   }
   else {
-    fprintf(tex_file, "$\\langle\\,$%s~{\\footnotesize ", name->spelling);
+    fprintf(tex_file, "$\\langle\\,$%s\\nobreak\\ {\\footnotesize ", name->spelling);
     @<Write defining scrap numbers@>
     fputs("}$\\,\\rangle$ ", tex_file);
     @<Write referencing scrap numbers@>
@@ -1542,13 +1561,14 @@ This scrap helps deal with bold keywords:
 }@}
 
 
-%JG-LANG-HYPER
+%JG-LANG-HYPER-SCRAPs
 @d Write file's defining scrap numbers
 @{{
   Scrap_Node *p = name->defs;
   fputs("{\\footnotesize {\\NWtxtDefBy}", tex_file);
   if (p->next) {
-    fputs("s ", tex_file);
+    /* fputs("s ", tex_file); */
+      putc(' ', tex_file);
     print_scrap_numbers(tex_file, p);
   }
   else {
@@ -1588,7 +1608,7 @@ This scrap helps deal with bold keywords:
     putc('?', tex_file);
 }@}
 
-%JG-LANG-HYPER
+%JG-LANG-HYPER-SCRAPs
 @d Write referencing scrap numbers
 @{{
   Scrap_Node *p = name->uses;
@@ -1596,7 +1616,8 @@ This scrap helps deal with bold keywords:
   if (p) {
     fputs("{\\NWtxtRefIn}", tex_file);
     if (p->next) {
-      fputs("s ", tex_file);
+      /* fputs("s ", tex_file); */
+      putc(' ', tex_file);
       print_scrap_numbers(tex_file, p);
     }
     else {
@@ -1641,7 +1662,8 @@ This scrap helps deal with bold keywords:
 }
 @| format_user_entry @}
 
-%JG-HYPER
+
+%JG-HYPER-DNGL
 @d Format a user index entry
 @{{
   Scrap_Node *uses = name->uses;
@@ -1649,7 +1671,16 @@ This scrap helps deal with bold keywords:
     int page;
     Scrap_Node *defs = name->defs;
     fprintf(tex_file, "\\item \\verb@@%s@@: ", name->spelling);
-    if (uses->scrap < defs->scrap) {
+    if (!uses) {
+        fputs("(\\underline{", tex_file);
+        fputs("\\NWlink{nuweb", tex_file);
+        write_single_scrap_ref(tex_file, defs->scrap);
+        fputs("}{", tex_file);
+        write_single_scrap_ref(tex_file, defs->scrap);
+        fputs("})}", tex_file);
+        page = -2;
+        defs = defs->next;        
+    } else if (uses->scrap < defs->scrap) {
       fputs("\\NWlink{nuweb", tex_file);
       write_scrap_ref(tex_file, uses->scrap, -1, &page);
       fputs("}{", tex_file);
@@ -1687,7 +1718,6 @@ This scrap helps deal with bold keywords:
         fputs("\\NWlink{nuweb", tex_file);
         write_single_scrap_ref(tex_file, defs->scrap);
         fputs("}{", tex_file);
-
         write_single_scrap_ref(tex_file, defs->scrap);
         fputs("}", tex_file);
  
@@ -1862,7 +1892,8 @@ might want to use italics or bold face in the midst of the name.  Note
 that in this implementation, programmers may only use directives in
 macro names that are recognized in preformatted text elements (PRE).
 
-Modification by Javier Goizueta: I'm interpreting the macro name
+%JG-NAME
+Modification 2001--02--15.: I'm interpreting the macro name
 as regular LaTex, so that any formatting can be used in it. To use
 HTML formatting, the \verb|rawhtml| environment should be used.
 
@@ -2264,15 +2295,19 @@ The ANSI/ISO C standard does {\em not}
 guarantee that renaming a file to an existing filename 
 will overwrite the file. 
 
+%JG-TEMPN
+Note: I've modified this on 2001-02-15 for compilation
+for Win32 with Borland C++ (assuming \verb|MSDOS| is defined). The second
+argument to \verb|tempname| cannot be null in that system.
 @d Write out \verb|files->spelling|
 @{{
   char indent_chars[500];
   FILE *temp_file;
-#ifdef MSDOS
+  #ifdef MSDOS
   char *temp_name = tempnam(".", "");
-#else
+  #else
   char *temp_name = tempnam(".", 0);
-#endif
+  #endif
   temp_file = fopen(temp_name, "w");
   if (!temp_file) {
     fprintf(stderr, "%s: can't create %s for a temporary file\n",
@@ -3902,6 +3937,7 @@ back to the first empty chunk.
 
 Here is the UNIX man page for nuweb:
 
+%JG-DNGL
 @O nuweb.1 @{.TH NUWEB 1 "local 3/22/95"
 .SH NAME
 Nuweb, a literate programming tool
@@ -3932,7 +3968,7 @@ source for typeset documentation.
 .br
 \fB-o\fP Suppresses generation of the output files.
 .br
-\fB-d\fP list dangling scrap references in indexes.
+\fB-d\fP list dangling identifier references in indexes.
 .br
 \fB-c\fP Forces output files to overwrite old files of the same
   name without comparing for equality first.
