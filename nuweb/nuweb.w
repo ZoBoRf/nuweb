@@ -1171,7 +1171,7 @@ I've factored the common parts out into separate scraps.
 @{{
   Name *name = collect_file_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "\\verb@@\"%s\"@@ {\\footnotesize ", name->spelling);
+  fprintf(tex_file, "\\verb@@\"%s\"@@~{\\footnotesize ", name->spelling);
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{", tex_file);
@@ -1194,7 +1194,7 @@ might want to use italics or bold face in the midst of the name.
 @{{
   Name *name = collect_macro_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "$\\langle\\,$%s\\ {\\footnotesize ", name->spelling);
+  fprintf(tex_file, "$\\langle\\,$%s~{\\footnotesize ", name->spelling);
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{", tex_file);
@@ -1454,7 +1454,7 @@ This scrap helps deal with bold keywords:
 @{{
   Name *name = collect_scrap_name();
   fputs(delimit_scrap[scrap_type][1],file);
-  fprintf(file, "\\hbox{$\\langle\\,$%s\\ {\\footnotesize ", name->spelling);
+  fprintf(file, "\\hbox{$\\langle\\,$%s~{\\footnotesize ", name->spelling);
   if (name->defs)
     @<Write abbreviated definition list@>
   else {
@@ -1533,7 +1533,7 @@ This scrap helps deal with bold keywords:
     @<Write file's defining scrap numbers@>
   }
   else {
-    fprintf(tex_file, "$\\langle\\,$%s\\ {\\footnotesize ", name->spelling);
+    fprintf(tex_file, "$\\langle\\,$%s~{\\footnotesize ", name->spelling);
     @<Write defining scrap numbers@>
     fputs("}$\\,\\rangle$ ", tex_file);
     @<Write referencing scrap numbers@>
