@@ -92,11 +92,13 @@ assembly, Postscript, and so forth. The need to support arbitrary
 programming languages has many consequences:
 \begin{description}
 \item[No pretty printing] Both \verb|WEB| and \verb|CWEB| are able to
-  pretty print the code sections of their documents because they
+  automatically pretty print the code sections of their documents because they
   understand the language well enough to parse it. Since we want to use
   {\em any\/} language, we've got to abandon this feature.
   However, we do allow particular individual formulas or fragments
   of \LaTeX\ code to be formatted and still be parts of output files.
+  Also, keywords in scraps can be surrounded by \verb|@@_| to 
+  have them be bold in the output.
 \item[No index of identifiers] Because \verb|WEB| knows about Pascal,
   it is able to construct an index of all the identifiers occurring in
   the code sections (filtering out keywords and the standard type
@@ -280,6 +282,8 @@ We have two very low-level utility commands that may appear anywhere
 in the web file.
 \begin{description}
 \item[\tt @@@@] Causes a single ``at sign'' to be copied into the output.
+\item[\tt @@\_] Causes the text between it and the next {\tt @@\_}
+      to be made bold (for keywords, etc.)
 \item[\tt @@i {\em file-name\/}] Includes a file. Includes may be
   nested, though there is currently a limit of 10~levels. The file name
   should be complete (no extension will be appended) and should be
@@ -1279,7 +1283,9 @@ static void copy_scrap(file)
     case '<': @<Format macro name@>
 	      break;
     case '%': @<Skip out-commented code@>
-         break;
+              break;
+    case '_': @<Bold Keyword@>
+              break;
     default:  /* ignore these since pass1 will have warned about them */
 	      break;
   }
@@ -1303,6 +1309,22 @@ pointed out any during the first pass.
                 c = source_get();
         while (c != '\n');
         source_ungetc(&c);
+}@}
+
+This scrap helps deal with bold keywords:
+
+@d Bold Keyword
+@{{
+  fputs(delimit_scrap[scrap_type][1],file);
+  fprintf(file, "\\hbox{\\sffamily\\bfseries ");
+  c = source_get();
+  do {
+      fputc(c, file);
+      c = source_get();
+  } while (c != '@@');
+  c = source_get();
+  fprintf(file, "}");
+  fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
 @d Format macro name
@@ -2198,7 +2220,7 @@ hence this whole unsatisfactory \verb|double_at| business.
       case 'd': case 'o': case 'D': case 'O':
       case '{': case '}': case '<': case '>': case '|':
       case '(': case ')': case '[': case ']':
-		case '%':
+      case '%': case '_':
 		source_peek = c;
 		c = '@@';
 		break;
@@ -2496,9 +2518,11 @@ extern void write_single_scrap_ref();
 	      return scraps++;
     case '<': @<Handle macro invocation in scrap@>
 	      break;
-	 case '%': @<Skip out-commented code@>
-			c = source_get();
-         break;
+    case '%': @<Skip out-commented code@>
+ 	      c = source_get();
+              break;
+    case '_': c = source_get();
+	      break;
     default : fprintf(stderr, "%s: unexpected @@%c in scrap (%s, %d)\n",
 		      command_name, c, source_name, source_line);
 	      exit(-1);
@@ -2729,6 +2753,7 @@ extern void write_single_scrap_ref();
 	      indent_chars[global_indent + indent] = ' ';
 	      indent++;
 	      break;
+    case '_': break;
     case '<': @<Copy macro into \verb|file|@>
 	      @<Insert debugging information if required@>
 	      break;
