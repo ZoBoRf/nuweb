@@ -30,7 +30,14 @@
 % SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 % 
 
-% Note:
+% Notes:
+% Updates on 2003-04-24 from Keith Harwood <vitalmis@bigpond.net.au>
+% -- sectioning commands (@@s and global-plus-sign in scrap names)
+% -- @@x..@@x labelling
+% -- @@f current file macro
+% -- @@h current scrap name
+% -- @@\# suppress indent
+%
 % This file has been changed by Javier Goizueta <jgoizueta@@jazzfree.es>
 % on 2001-02-15. 
 % These are the changes:
@@ -591,6 +598,7 @@ have been made by:
 \item Nicky van Foreest \verb|<n.d.vanforeest@@math.utwente.nl>|
 \item Javier Goizueta \verb|<jgoizueta@@jazzfree.com>|
 \item Alan Karp \verb|<karp@@hp.com>|
+\item Keith Harwood \verb|<vitalmis@bigpond.net.au>|
 \end{itemize}
 
 \ifshowcode
