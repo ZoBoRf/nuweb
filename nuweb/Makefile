@@ -39,8 +39,26 @@ tar:	$(TARGET)doc.tex
 	tar -cf $(TARGET)$(VERSION).tar Makefile README misc.bib nuweb.w \
 		$(TARGET)doc.tex $(SRCS) global.h
 
+distribution: all shar tar nuwebhtml nuwebdoc 
+
+nuwebdoc: nuwebdoc.tex
+	-latex nuwebdoc
+	-bibtex nuwebdoc
+	-latex nuwebdoc
+	dvips nuwebdoc
+	latex2html -split 0 nuwebdoc.tex
+
+nuwebhtml: nuweb
+	sed -e 's/%\\usepackage{html}/\\usepackage{html}/' < nuweb.w > nuwebhtml.hw
+	nuweb nuwebhtml.hw
+	-latex nuwebhtml.tex
+	-bibtex nuwebhtml
+	-nuweb nuwebhtml.hw
+	-latex nuwebhtml.tex
+	latex2html -split 0 nuwebhtml.tex
+	
 $(TARGET)doc.tex:	$(TARGET).tex
-	sed 's/\\showcodetrue/\\showcodefalse/' $(TARGET).tex > $@
+	sed -e '/^\\ifshowcode$$/,/^\\fi$$/d' $(TARGET).tex > $@
 
 clean:
 	-rm -f *.o *.tex *.log *.dvi *~ *.blg *.lint
