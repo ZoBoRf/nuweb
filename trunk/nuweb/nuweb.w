@@ -1535,7 +1535,22 @@ This scrap helps deal with bold keywords:
 @{{
   Name *name = collect_scrap_name();
   fputs(delimit_scrap[scrap_type][1],file);
-  fprintf(file, "\\hbox{$\\langle\\,$%s\\nobreak\\ {\\footnotesize ", name->spelling);
+  fprintf(file, "\\hbox{$\\langle\\,$%s\\nobreak\\ ", name->spelling);
+  if (scrap_name_has_parameters) {
+     fputs("{\\tt ", file);
+     do {
+       do {
+          c = source_get();
+	  if (c != nw_char)
+ 	     fputc(c,file);
+       } while ( c != nw_char );
+       c = source_get();
+       if (c != '>')
+ 	     fputc(c,file);
+     } while ( c != '>' );
+     fputs("}",file);
+  }
+  fprintf(file, "{\\footnotesize ");
   if (name->defs)
     @<Write abbreviated definition list@>
   else {
