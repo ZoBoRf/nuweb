@@ -29,6 +29,22 @@
 % NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 % SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 % 
+% Note:
+% This file has been changed by Javier Goizueta <javiergoizueta@@terra.es>
+% on 2001-02-15. 
+% The places where it has been modified are tagged by a Latex comment
+% starting with %JG-
+% Each modification also includes a code that identifies which change
+% has originated the modification. These are the changes:
+% LANG  -- Introduction of \NW macros to substitue language dependent text
+% DIAM  -- Introduction of \NWsep instead of the \diamond separator
+% HYPER -- Introduction of hyper-references
+% NAME  -- LaTeX formatting of macro names in HTML output
+% ADJ   -- Adjust of the spacing between < and a macro name
+% TEMPN -- Fix of the use of tempnam
+% LINE  -- Synchronizing #lines when @@% is used
+% MAC   -- definition of the macros used by LANG,DIAM,HYPER
+
 \documentclass{report}
 \newif\ifshowcode
 \showcodetrue
@@ -1006,6 +1022,7 @@ static void format_user_entry();
 
 The routine \verb|write_tex| takes two file names as parameters: the
 name of the web source file and the name of the \verb|.tex| output file.
+%JG-MAC
 @o latex.c
 @{void write_tex(file_name, tex_name)
      char *file_name;
@@ -1016,6 +1033,7 @@ name of the web source file and the name of the \verb|.tex| output file.
     if (verbose_flag)
       fprintf(stderr, "writing %s\n", tex_name);
     source_open(file_name);
+    @<Write LaTeX limbo definitions@>
     @<Copy \verb|source_file| into \verb|tex_file|@>
     fclose(tex_file);
   }
@@ -1024,6 +1042,24 @@ name of the web source file and the name of the \verb|.tex| output file.
 }
 @| write_tex @}
 
+%JG-MAC
+Now that the \verb|\NW...| macros are used, it seems convenient
+to write default definitions for those macros so that source files
+need not define anything new. If a user wants to change any of 
+the macros (to use hyperref or to write in some language other than
+english) he or she can redefine the commands.
+@d Write LaTeX limbo definitions
+@{fputs("\\newcommand{\\NWtarget}[2]{#2}\n", tex_file);
+fputs("\\newcommand{\\NWlink}[2]{#2}\n", tex_file);
+fputs("\\newcommand{\\NWtxtMacroDefBy}{Macro defined by}\n", tex_file);
+fputs("\\newcommand{\\NWtxtMacroRefIn}{Macro referenced in}\n", tex_file);
+fputs("\\newcommand{\\NWtxtMacroNoRef}{Macro never referenced}\n", tex_file);
+fputs("\\newcommand{\\NWtxtDefBy}{Defined by}\n", tex_file);
+fputs("\\newcommand{\\NWtxtRefIn}{Referenced in}\n", tex_file);
+fputs("\\newcommand{\\NWtxtNoRef}{Not referenced}\n", tex_file);
+fputs("\\newcommand{\\NWtxtFileDefBy}{Macro defined by}\n", tex_file);
+fputs("\\newcommand{\\NWsep}{${\\diamond}$}\n", tex_file);
+@}
 
 We make our second (and final) pass through the source web, this time
 copying characters straight into the \verb|.tex| file. However, we keep
@@ -1115,12 +1151,17 @@ handling of the \verb|@@| case in the switch statement).
 Macro and file definitions are formatted nearly identically.
 I've factored the common parts out into separate scraps.
 
+%JG-HYPER
 @d Write output file definition
 @{{
   Name *name = collect_file_name();
   @<Begin the scrap environment@>
   fprintf(tex_file, "\\verb@@\"%s\"@@ {\\footnotesize ", name->spelling);
+  fputs("\\NWtarget{nuweb", tex_file);
+  write_single_scrap_ref(tex_file, scraps);
+  fputs("}{", tex_file);
   write_single_scrap_ref(tex_file, scraps++);
+  fputs("}", tex_file);
   fputs(" }$\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
   @<Write file defs@>
@@ -1131,13 +1172,18 @@ I've factored the common parts out into separate scraps.
 I don't format a macro name at all specially, figuring the programmer
 might want to use italics or bold face in the midst of the name.
 
+%JG-HYPER-ADJ
 @d Write macro definition
 @{{
   Name *name = collect_macro_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "$\\langle$%s {\\footnotesize ", name->spelling);
+  fprintf(tex_file, "$\\langle\\,$%s {\\footnotesize ", name->spelling);
+  fputs("\\NWtarget{nuweb", tex_file);
+  write_single_scrap_ref(tex_file, scraps);
+  fputs("}{", tex_file);
   write_single_scrap_ref(tex_file, scraps++);
-  fputs("}$\\rangle\\equiv$\n", tex_file);
+  fputs("}", tex_file);
+  fputs("}$\\,\\rangle\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
   @<Write macro defs@>
   @<Write macro refs@>
@@ -1158,11 +1204,12 @@ each scrap and the various spacing commands. The diamond helps to
 clearly indicate the end of a scrap. The spacing commands were derived
 empirically; they may be adjusted to taste.
 
+%JG-DIAM
 @d Fill in the middle of the scrap environment
 @{{
   fputs("\\vspace{-1ex}\n\\begin{list}{}{} \\item\n", tex_file);
   copy_scrap(tex_file);
-  fputs("$\\diamond$\n\\end{list}\n", tex_file);
+  fputs("{\\NWsep}\n\\end{list}\n", tex_file);
 }@}
 
 \newpage
@@ -1187,6 +1234,7 @@ a scrap will not be indented. Again, this is a matter of personal taste.
 
 \subsubsection{Formatting Cross References}
 
+%JG-LANG
 @d Write file defs
 @{{
   if (name->defs->next) {
@@ -1194,7 +1242,7 @@ a scrap will not be indented. Again, this is a matter of personal taste.
     fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
     fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
-    fputs("\\item File defined by ", tex_file);
+    fputs("\\item \\NWtxtFileDefBy\ ", tex_file);
     print_scrap_numbers(tex_file, name->defs);
     fputs("\\end{list}\n", tex_file);
   }
@@ -1202,6 +1250,7 @@ a scrap will not be indented. Again, this is a matter of personal taste.
     fputs("\\vspace{-2ex}\n", tex_file);
 }@}
 
+%JG-LANG
 @d Write macro defs
 @{{
   fputs("\\vspace{-1ex}\n", tex_file);
@@ -1209,44 +1258,57 @@ a scrap will not be indented. Again, this is a matter of personal taste.
   fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
   fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
   if (name->defs->next) {
-    fputs("\\item Macro defined by ", tex_file);
+    fputs("\\item \\NWtxtMacroDefBy\\ ", tex_file);
     print_scrap_numbers(tex_file, name->defs);
   }
 }@}
 
+%JG-LANG-HYPER
 @d Write macro refs
 @{{
   if (name->uses) {
     if (name->uses->next) {
-      fputs("\\item Macro referenced in ", tex_file);
+      fputs("\\item \\NWtxtMacroRefIn\\ ", tex_file);
       print_scrap_numbers(tex_file, name->uses);
     }
     else {
-      fputs("\\item Macro referenced in ", tex_file);
+      fputs("\\item \\NWtxtMacroRefIn\\ ", tex_file);
+      fputs("\\NWlink{nuweb", tex_file);
       write_single_scrap_ref(tex_file, name->uses->scrap);
+      fputs("}{", tex_file);
+      write_single_scrap_ref(tex_file, name->uses->scrap);
+      fputs("}", tex_file);
       fputs(".\n", tex_file);
     }
   }
   else {
-    fputs("\\item Macro never referenced.\n", tex_file);
+    fputs("\\item {\\NWtxtMacroNoRef}.\n", tex_file);
     fprintf(stderr, "%s: <%s> never referenced.\n",
 	    command_name, name->spelling);
   }
   fputs("\\end{list}\n", tex_file);
 }@}
 
-
+%JG-HYPER
 @o latex.c
 @{static void print_scrap_numbers(tex_file, scraps)
      FILE *tex_file;
      Scrap_Node *scraps;
 {
   int page;
+  fputs("\\NWlink{nuweb", tex_file);
+  write_scrap_ref(tex_file, scraps->scrap, -1, &page);
+  fputs("}{", tex_file);
   write_scrap_ref(tex_file, scraps->scrap, TRUE, &page);
+  fputs("}", tex_file);
   scraps = scraps->next;
   while (scraps) {
+    fputs("\\NWlink{nuweb", tex_file);
+    write_scrap_ref(tex_file, scraps->scrap, -1, &page);
+    fputs("}{", tex_file);
     write_scrap_ref(tex_file, scraps->scrap, FALSE, &page);
     scraps = scraps->next;
+    fputs("}", tex_file);
   }
   fputs(".\n", tex_file);
 }
@@ -1370,11 +1432,12 @@ This scrap helps deal with bold keywords:
   fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
+%JG-ADJ
 @d Format macro name
 @{{
   Name *name = collect_scrap_name();
   fputs(delimit_scrap[scrap_type][1],file);
-  fprintf(file, "\\hbox{$\\langle$%s {\\footnotesize ", name->spelling);
+  fprintf(file, "\\hbox{$\\langle\\,$%s {\\footnotesize ", name->spelling);
   if (name->defs)
     @<Write abbreviated definition list@>
   else {
@@ -1382,15 +1445,20 @@ This scrap helps deal with bold keywords:
     fprintf(stderr, "%s: never defined <%s>\n",
 	    command_name, name->spelling);
   }
-  fputs("}$\\rangle$}", file);
+  fputs("}$\\,\\rangle$}", file);
   fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
 
+%JG-HYPER
 @d Write abbreviated definition list
 @{{
   Scrap_Node *p = name->defs;
+  fputs("\\NWlink{nuweb", file);
   write_single_scrap_ref(file, p->scrap);
+  fputs("}{", file);
+  write_single_scrap_ref(file, p->scrap);
+  fputs("}", file);
   p = p->next;
   if (p)
     fputs(", \\ldots\\ ", file);
@@ -1439,7 +1507,7 @@ This scrap helps deal with bold keywords:
 }
 @| format_entry @}
 
-
+%JG-ADJ
 @d Format an index entry
 @{{
   fputs("\\item ", tex_file);
@@ -1448,40 +1516,54 @@ This scrap helps deal with bold keywords:
     @<Write file's defining scrap numbers@>
   }
   else {
-    fprintf(tex_file, "$\\langle$%s {\\footnotesize ", name->spelling);
+    fprintf(tex_file, "$\\langle\\,$%s {\\footnotesize ", name->spelling);
     @<Write defining scrap numbers@>
-    fputs("}$\\rangle$ ", tex_file);
+    fputs("}$\\,\\rangle$ ", tex_file);
     @<Write referencing scrap numbers@>
   }
   putc('\n', tex_file);
 }@}
 
 
+%JG-LANG-HYPER
 @d Write file's defining scrap numbers
 @{{
   Scrap_Node *p = name->defs;
-  fputs("{\\footnotesize Defined by", tex_file);
+  fputs("{\\footnotesize {\\NWtxtDefBy}", tex_file);
   if (p->next) {
     fputs("s ", tex_file);
     print_scrap_numbers(tex_file, p);
   }
   else {
     putc(' ', tex_file);
+    fputs("\\NWlink{nuweb", tex_file);
     write_single_scrap_ref(tex_file, p->scrap);
+    fputs("}{", tex_file);
+    write_single_scrap_ref(tex_file, p->scrap);
+    fputs("}", tex_file);
     putc('.', tex_file);
   }
   putc('}', tex_file);
 }@}
 
+%JG-HYPER
 @d Write defining scrap numbers
 @{{
   Scrap_Node *p = name->defs;
   if (p) {
     int page;
+    fputs("\\NWlink{nuweb", tex_file);
+    write_scrap_ref(tex_file, p->scrap, -1, &page);
+    fputs("}{", tex_file);
     write_scrap_ref(tex_file, p->scrap, TRUE, &page);
+    fputs("}", tex_file);
     p = p->next;
     while (p) {
+      fputs("\\NWlink{nuweb", tex_file);
+      write_scrap_ref(tex_file, p->scrap, -1, &page);
+      fputs("}{", tex_file);
       write_scrap_ref(tex_file, p->scrap, FALSE, &page);
+      fputs("}", tex_file);
       p = p->next;
     }
   }
@@ -1489,24 +1571,29 @@ This scrap helps deal with bold keywords:
     putc('?', tex_file);
 }@}
 
+%JG-LANG-HYPER
 @d Write referencing scrap numbers
 @{{
   Scrap_Node *p = name->uses;
   fputs("{\\footnotesize ", tex_file);
   if (p) {
-    fputs("Referenced in", tex_file);
+    fputs("{\\NWtxtRefIn}", tex_file);
     if (p->next) {
       fputs("s ", tex_file);
       print_scrap_numbers(tex_file, p);
     }
     else {
       putc(' ', tex_file);
+      fputs("\\NWlink{nuweb", tex_file);
       write_single_scrap_ref(tex_file, p->scrap);
+      fputs("}{", tex_file);
+      write_single_scrap_ref(tex_file, p->scrap);
+      fputs("}", tex_file);
       putc('.', tex_file);
     }
   }
   else
-    fputs("Not referenced.", tex_file);
+    fputs("{\\NWtxtNoRef}.", tex_file);
   putc('}', tex_file);
 }@}
 
@@ -1537,7 +1624,7 @@ This scrap helps deal with bold keywords:
 }
 @| format_user_entry @}
 
-
+%JG-HYPER
 @d Format a user index entry
 @{{
   Scrap_Node *uses = name->uses;
@@ -1546,28 +1633,47 @@ This scrap helps deal with bold keywords:
     Scrap_Node *defs = name->defs;
     fprintf(tex_file, "\\item \\verb@@%s@@: ", name->spelling);
     if (uses->scrap < defs->scrap) {
+      fputs("\\NWlink{nuweb", tex_file);
+      write_scrap_ref(tex_file, uses->scrap, -1, &page);
+      fputs("}{", tex_file);
       write_scrap_ref(tex_file, uses->scrap, TRUE, &page);
+      fputs("}", tex_file);
       uses = uses->next;
     }
     else {
       if (defs->scrap == uses->scrap)
         uses = uses->next;
       fputs("\\underline{", tex_file);
+
+      fputs("\\NWlink{nuweb", tex_file);
       write_single_scrap_ref(tex_file, defs->scrap);
-      putc('}', tex_file);
+      fputs("}{", tex_file);
+      write_single_scrap_ref(tex_file, defs->scrap);
+      fputs("}}", tex_file);
       page = -2;
       defs = defs->next;
     }
     while (uses || defs) {
       if (uses && (!defs || uses->scrap < defs->scrap)) {
+        fputs("\\NWlink{nuweb", tex_file);
+        write_scrap_ref(tex_file, uses->scrap, -1, &page);
+        fputs("}{", tex_file);
         write_scrap_ref(tex_file, uses->scrap, FALSE, &page);
+        fputs("}", tex_file);
         uses = uses->next;
       }
       else {
         if (uses && defs->scrap == uses->scrap)
 	  uses = uses->next;
         fputs(", \\underline{", tex_file);
+
+        fputs("\\NWlink{nuweb", tex_file);
         write_single_scrap_ref(tex_file, defs->scrap);
+        fputs("}{", tex_file);
+
+        write_single_scrap_ref(tex_file, defs->scrap);
+        fputs("}", tex_file);
+ 
         putc('}', tex_file);
         page = -2;
         defs = defs->next;
@@ -1739,10 +1845,17 @@ might want to use italics or bold face in the midst of the name.  Note
 that in this implementation, programmers may only use directives in
 macro names that are recognized in preformatted text elements (PRE).
 
+Modification by Javier Goizueta: I'm interpreting the macro name
+as regular LaTex, so that any formatting can be used in it. To use
+HTML formatting, the \verb|rawhtml| environment should be used.
+
+%JG-NAME
 @d Write HTML macro declaration
 @{  fputs("<a name=\"nuweb", html_file);
   write_single_scrap_ref(html_file, scraps);
-  fprintf(html_file, "\">&lt;%s ", name->spelling);
+  fputs("\">&lt;\\end{rawhtml}", html_file);
+  fputs(name->spelling, html_file);
+  fputs("\\begin{rawhtml} ", html_file);
   write_single_scrap_ref(html_file, scraps);
   fputs("&gt;</a> =\n", html_file);
 @}
@@ -1772,32 +1885,35 @@ end the paragraph.
 
 \subsubsection{Formatting Cross References}
 
+%JG-LANG
 @d Write HTML file defs
 @{{
   if (name->defs->next) {
-    fputs("File defined by ", html_file);
+    fputs("\\end{rawhtml}\\NWtxtFileDefBy\\begin{rawhtml} ", html_file);
     print_scrap_numbers(html_file, name->defs);
     fputs("<br>\n", html_file);
   }
 }@}
 
+%JG-LANG
 @d Write HTML macro defs
 @{{
   if (name->defs->next) {
-    fputs("Macro defined by ", html_file);
+    fputs("\\end{rawhtml}\\NWtxtMacroDefBy\\begin{rawhtml} ", html_file);
     print_scrap_numbers(html_file, name->defs);
     fputs("<br>\n", html_file);
   }
 }@}
 
+%JG-LANG
 @d Write HTML macro refs
 @{{
   if (name->uses) {
-    fputs("Macro referenced in ", html_file);
+    fputs("\\end{rawhtml}\\NWtxtMacroRefIn\\begin{rawhtml} ", html_file);
     print_scrap_numbers(html_file, name->uses);
   }
   else {
-    fputs("Macro never referenced.\n", html_file);
+    fputs("\\end{rawhtml}{\\NWtxtMacroNoRef}.\\begin{rawhtml}", html_file);
     fprintf(stderr, "%s: <%s> never referenced.\n",
 	    command_name, name->spelling);
   }
@@ -1895,7 +2011,7 @@ We must translate HTML special keywords into entities in scraps.
     case '<': @<Format HTML macro name@>
 	      break;
     case '%': @<Skip commented-out code@>
-         break;
+              break;
     default:  /* ignore these since pass1 will have warned about them */
 	      break;
   }
@@ -1904,10 +2020,13 @@ We must translate HTML special keywords into entities in scraps.
 There's no need to check for errors here, since we will have already
 pointed out any during the first pass.
 
+%JG-NAME
 @d Format HTML macro name
 @{{
   Name *name = collect_scrap_name();
-  fprintf(file, "&lt;%s ", name->spelling);
+  fputs("&lt;\\end{rawhtml}", file);
+  fputs(name->spelling, file);
+  fputs("\\begin{rawhtml} ", file);
   if (name->defs)
     @<Write HTML abbreviated definition list@>
   else {
@@ -1981,7 +2100,7 @@ pointed out any during the first pass.
 }
 @| format_entry @}
 
-
+%JG-NAME
 @d Format an HTML index entry
 @{{
   fputs("<dt> ", html_file);
@@ -1990,7 +2109,9 @@ pointed out any during the first pass.
     @<Write HTML file's defining scrap numbers@>
   }
   else {
-    fprintf(html_file, "&lt;%s ", name->spelling);
+    fputs("&lt;\\end{rawhtml}", html_file);
+    fputs(name->spelling, html_file);
+    fputs("\\begin{rawhtml} ", html_file);
     @<Write HTML defining scrap numbers@>
     fputs("&gt;\n<dd> ", html_file);
     @<Write HTML referencing scrap numbers@>
@@ -1999,9 +2120,10 @@ pointed out any during the first pass.
 }@}
 
 
+%JG-LANG
 @d Write HTML file's defining scrap numbers
 @{{
-  fputs("Defined by ", html_file);
+  fputs("\\end{rawhtml}\\NWtxtDefBy\\begin{rawhtml} ", html_file);
   print_scrap_numbers(html_file, name->defs);
 }@}
 
@@ -2013,15 +2135,16 @@ pointed out any during the first pass.
     putc('?', html_file);
 }@}
 
+%JG-LANG
 @d Write HTML referencing scrap numbers
 @{{
   Scrap_Node *p = name->uses;
   if (p) {
-    fputs("Referenced in ", html_file);
+    fputs("\\end{rawhtml}\\NWtxtRefIn\\begin{rawhtml} ", html_file);
     print_scrap_numbers(html_file, p);
   }
   else
-    fputs("Not referenced.\n", html_file);
+    fputs("\\end{rawhtml}{\\NWtxtNoRef}.\\begin{rawhtml}", html_file);
 }@}
 
 
@@ -2127,7 +2250,11 @@ We're using it get around a bug in some implementations of
 @{{
   char indent_chars[500];
   FILE *temp_file;
+#ifdef MSDOS
+  char *temp_name = tempnam(".", "");
+#else
   char *temp_name = tempnam(".", 0);
+#endif
   temp_file = fopen(temp_name, "w");
   if (!temp_file) {
     fprintf(stderr, "%s: can't create %s for a temporary file\n",
@@ -2426,7 +2553,7 @@ extern void write_single_scrap_ref();
 }
 @| init_scraps @}
 
-
+%JG-HYPER (first==-1) is interpreted as out of sequence
 @o scraps.c
 @{void write_scrap_ref(file, num, first, page)
      FILE *file;
@@ -2435,7 +2562,7 @@ extern void write_single_scrap_ref();
      int *page;
 {
   if (scrap_array(num).page >= 0) {
-    if (first)
+    if (first!=0)
       fprintf(file, "%d", scrap_array(num).page);
     else if (scrap_array(num).page != *page)
       fprintf(file, ", %d", scrap_array(num).page);
@@ -2443,12 +2570,13 @@ extern void write_single_scrap_ref();
       fputc(scrap_array(num).letter, file);
   }
   else {
-    if (first)
+    if (first!=0)
       putc('?', file);
     else
       fputs(", ?", file);
     @<Warn (only once) about needing to rerun after Latex@>
   }
+  if (first>=0)
   *page = scrap_array(num).page;
 }
 @| write_scrap_ref @}
@@ -2562,7 +2690,7 @@ extern void write_single_scrap_ref();
   }
 }@}
 
-
+%JG-LINE
 @d Handle at-sign during scrap accumulation
 @{{
   c = source_get();
@@ -2578,6 +2706,8 @@ extern void write_single_scrap_ref();
     case '<': @<Handle macro invocation in scrap@>
 	      break;
     case '%': @<Skip commented-out code@>
+              /* emit line break to the output file to keep #line in sync. */
+              push('\n', &writer); 
  	      c = source_get();
               break;
     case '_': c = source_get();
