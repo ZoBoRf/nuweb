@@ -2828,6 +2828,7 @@ extern void write_single_scrap_ref();
     push(c, &writer);
   }
   push(0, &writer);
+  /* ZZZ this should add references if macro references are present */
   return scraps++;
 }
 @| collect_scrap_from_string @}
