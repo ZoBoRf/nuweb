@@ -3901,7 +3901,7 @@ Therefore, it seems better to leave it this up to the user.
 
 \fi
 
-\bibliographystyle{plain}
+\bibliographystyle{amsplain}
 \bibliography{litprog,master,misc}
 
 \end{document}
