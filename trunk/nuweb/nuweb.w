@@ -31,6 +31,10 @@
 % 
 
 % Notes:
+% Updates on 2004-02-23 from Gregor Goldbach <glauschwuffel@@users.sourceforge.net>
+% -- new command line option -r which will make nuweb typeset each NWtarget and NWlink
+%    instance with \LaTeX-commands from the hyperref package. This gives clickable scrap
+%    numbers which is very useful when viewing the document on-line.
 % Updates on 2004-02-13 from Gregor Goldbach <glauschwuffel@@users.sourceforge.net>
 % -- new command line option -l which will make nuweb typeset scraps with the
 %    help of LaTeX's listings packages instead or pure verbatim.
@@ -79,7 +83,31 @@
 \usepackage{latexsym}
 %\usepackage{html}
 
+%\usepackage{pslatex}
 \usepackage{listings}
+
+\usepackage{color}
+\definecolor{linkcolor}{rgb}{0, 0, 0.3}
+
+\usepackage[%
+dvipdfm,%
+backref,%
+raiselinks,%
+pdfhighlight=/O,%
+pagebackref,%
+hyperfigures,%
+breaklinks,%
+colorlinks,%
+pdfpagemode=None,%
+pdfstartview=FitBH,%
+linkcolor={linkcolor},%
+anchorcolor={linkcolor},%
+citecolor={linkcolor},%
+filecolor={linkcolor},%
+menucolor={linkcolor},%
+pagecolor={linkcolor},%
+urlcolor={linkcolor}%
+]{hyperref}
 
 \setlength{\oddsidemargin}{0in}
 \setlength{\evensidemargin}{0in}
@@ -92,7 +120,7 @@
 
 \lstset{extendedchars=true,keepspaces=true,language=C}
 
-\title{Nuweb Version 1.1 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 1.1b \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.} 
@@ -282,7 +310,9 @@ but don't appear in any code output.
 \begin{description}
 \item[\tt @@\{{\em anything\/}@@\}] where the scrap body includes every
   character in {\em anything\/}---all the blanks, all the tabs, all the
-  carriage returns.  This scrap will be typeset in verbatim mode.
+  carriage returns.  This scrap will be typeset in verbatim mode. Using the
+  \texttt{-l} option will cause the program to typeset the scrap with
+  the help of \LaTeX's \texttt{listings} package.
 \item[\tt @@[{\em anything\/}@@]] where the scrap body includes every
   character in {\em anything\/}---all the blanks, all the tabs, all the
   carriage returns.  This scrap will be typeset in paragraph mode, allowing
@@ -542,7 +572,15 @@ There are several additional command-line flags:
  \lstset{extendedchars=true,keepspaces=true,language=perl}
  \end{lstlisting}
 
- See the \texttt{listings} documentation for a list of formatting options.
+ See the \texttt{listings} documentation for a list of formatting
+ options. Be sure to include a \texttt{\char92 usepackage\{listings\}}
+ in your document.
+\item[\texttt{-r}] Uses the \texttt{hyperref} package to format scrap
+numbers. This is useful if you read the resulting document on-line:
+scrap numbers are now `clickable' and lead you to each scrap's definition.
+Be sure to include a \texttt{\char92 usepackage\{hyperref\}}
+ in your document.
+
 \end{description}
 
 \section{Generating HTML}
@@ -610,7 +648,7 @@ skills. In particular, I'd like to acknowledge the contributions of
 Osman Buyukisik, Manuel Carriba, Adrian Clarke, Tim Harvey, Michael
 Lewis, Walter Ravenek, Rob Shillingsburg, Kayvan Sylvan, Dominique
 de~Waleffe, and Scott Warren.  Of course, most of these people would
-never have heard or nuweb (or many other tools) without the efforts of
+never have heard of nuweb (or many other tools) without the efforts of
 George Greenwade.
 
 Since maintenance has been taken over by Marc Mengel, online contributions
@@ -621,6 +659,7 @@ have been made by:
 \item Javier Goizueta \verb|<jgoizueta@@jazzfree.com>|
 \item Alan Karp \verb|<karp@@hp.com>|
 \item Keith Harwood \verb|<vitalmis@@bigpond.net.au>|
+\item Gregor Goldbach \verb|<glauschwuffel@@users.sourceforge.net>|
 \end{itemize}
 
 \ifshowcode
@@ -835,7 +874,10 @@ extern int prepend_flag;  /* If TRUE, prepend a path to the output file names */
 extern char * dirpath;    /* The prepended directory path */
 extern char * path_sep;   /* How to join path to filename */
 extern int listings_flag;   /* if TRUE, use listings package for scrap formatting */
-@| tex_flag html_flag output_flag compare_flag verbose_flag number_flag scrap_flag dangling_flag listings_flag@}
+extern int hyperref_flag;   /* if TRUE, use hyperref formatting for targets and links */
+@| tex_flag html_flag output_flag compare_flag
+verbose_flag number_flag scrap_flag dangling_flag
+listings_flag hyperref_flag @}
 
 The flags are all initialized for correct default behavior.
 
@@ -852,6 +894,7 @@ int prepend_flag = FALSE;
 char * dirpath = DEFAULT_PATH; /* Default directory path */
 char * path_sep = PATH_SEP_CHAR;
 int listings_flag = FALSE;
+int hyperref_flag = FALSE;
 @}
 
 A global variable \verb|nw_char| will be used for the nuweb
@@ -918,9 +961,11 @@ we've got to loop through the string, handling them all.
                 break;
       case 'l': listings_flag = TRUE;
                 break;
+      case 'r': hyperref_flag = TRUE;
+                break;
       default:  fprintf(stderr, "%s: unexpected argument ignored.  ",
                         command_name);
-                fprintf(stderr, "Usage is: %s [-clnotv] [-p path] file...\n",
+                fprintf(stderr, "Usage is: %s [-clnortv] [-p path] file...\n",
                         command_name);
                 break;
     }
@@ -965,7 +1010,7 @@ the usage convention.
 @{{
   if (arg >= argc) {
     fprintf(stderr, "%s: expected a file name.  ", command_name);
-    fprintf(stderr, "Usage is: %s [-clnotv] [-p path] file-name...\n", command_name);
+    fprintf(stderr, "Usage is: %s [-clnortv] [-p path] file-name...\n", command_name);
     exit(-1);
   }
   do {
@@ -1499,8 +1544,14 @@ need not define anything new. If a user wants to change any of
 the macros (to use hyperref or to write in some language other than
 english) he or she can redefine the commands.
 @d Write LaTeX limbo definitions
-@{fputs("\\newcommand{\\NWtarget}[2]{#2}\n", tex_file);
-fputs("\\newcommand{\\NWlink}[2]{#2}\n", tex_file);
+@{if (hyperref_flag == TRUE) {
+  fputs("\\newcommand{\\NWtarget}[2]{\\hypertarget{#1}{#2}}\n", tex_file);
+  fputs("\\newcommand{\\NWlink}[2]{\\hyperlink{#1}{#2}}\n", tex_file);
+} else {
+  fputs("\\newcommand{\\NWtarget}[2]{#2}\n", tex_file);
+  fputs("\\newcommand{\\NWlink}[2]{#2}\n", tex_file);
+}
+
 fputs("\\newcommand{\\NWtxtMacroDefBy}{Macro defined by}\n", tex_file);
 fputs("\\newcommand{\\NWtxtMacroRefIn}{Macro referenced in}\n", tex_file);
 fputs("\\newcommand{\\NWtxtMacroNoRef}{Macro never referenced}\n", tex_file);
@@ -1853,50 +1904,8 @@ command.
 @{void initialise_delimit_scrap_array(void);
 @}
 
-@O latex.c
+@o latex.c
 @{int scrap_type = 0;
-
-void update_delimit_scrap()
-{
-  static int been_here_before = 0;
-
-#if 0
-  if (!been_here_before) {
-     int i,j;
-     /* make sure strings are writable first */
-     for(i = 0; i < 3; i++) {
-        for(j = 0; j < 5; j++) {
-           delimit_scrap[i][j] = strdup(delimit_scrap[i][j]);
-        }
-     }
-  }
-#endif
-
-  /* {}-mode begin */
-  if (listings_flag == TRUE) {
-    delimit_scrap[0][0][10] = nw_char;
-  } else {
-    delimit_scrap[0][0][5] = nw_char;
-  }
-  /* {}-mode end */
-  delimit_scrap[0][1][0] = nw_char;
-  /* {}-mode insert nw_char */
-
-  delimit_scrap[0][2][0] = nw_char;
-  delimit_scrap[0][2][6] = nw_char;
-
-  if (listings_flag == TRUE) {
-    delimit_scrap[0][2][18] = nw_char;
-  } else {
-    delimit_scrap[0][2][13] = nw_char;
-  }  
-
-  /* []-mode insert nw_char */
-  delimit_scrap[1][2][0] = nw_char;
-
-  /* ()-mode insert nw_char */
-  delimit_scrap[2][2][0] = nw_char;
-}
 
 static void copy_scrap(file, prefix)
      FILE *file;
@@ -1934,7 +1943,42 @@ static void copy_scrap(file, prefix)
     c = source_get();
   }
 }
-@| copy_scrap delimit_scrap scrap_type update_delimit_scrap @}
+@| copy_scrap delimit_scrap scrap_type @}
+
+When we encouter the command to change the `nuweb character' we call
+this function. It updates the scrap formatting directives accordingly.
+
+@o latex.c
+@{void update_delimit_scrap()
+{
+  static int been_here_before = 0;
+
+  /* {}-mode begin */
+  if (listings_flag == TRUE) {
+    delimit_scrap[0][0][10] = nw_char;
+  } else {
+    delimit_scrap[0][0][5] = nw_char;
+  }
+  /* {}-mode end */
+  delimit_scrap[0][1][0] = nw_char;
+  /* {}-mode insert nw_char */
+
+  delimit_scrap[0][2][0] = nw_char;
+  delimit_scrap[0][2][6] = nw_char;
+
+  if (listings_flag == TRUE) {
+    delimit_scrap[0][2][18] = nw_char;
+  } else {
+    delimit_scrap[0][2][13] = nw_char;
+  }  
+
+  /* []-mode insert nw_char */
+  delimit_scrap[1][2][0] = nw_char;
+
+  /* ()-mode insert nw_char */
+  delimit_scrap[2][2][0] = nw_char;
+}
+@| update_delimit_scrap @}
 
 @d Function prototypes
 @{void update_delimit_scrap();
