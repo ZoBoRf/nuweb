@@ -68,13 +68,7 @@ through ONR grant N00014-91-J-1989.}
 \\ HTML scrap generator by John D. Ramsdell
 \\ \sl ramsdell@@mitre.org
 \\ scrap formatting and continuing maintenance by Marc W. Mengel
-\\ \sl mengel@@fnal.gov
-\\ internationalization from Javier Goizueta 
-\\ sl javiergoizueta@@terra.es
-\\ patches contributed by 
-\\ Walter Brown \sl wb@fnal.gov
-\\ Alan Karp \sl karp@@hpl.hp.com
-}
+\\ \sl mengel@@fnal.gov}
 \begin{document}
 \pagenumbering{roman}
 \maketitle
@@ -414,7 +408,7 @@ Thus, the command
 \end{quote}
 would simply scan the input and produce no output at all.
 
-There are three additional command-line flags:
+There are several additional command-line flags:
 \begin{description}
 \item[\tt -v] For ``verbose,'' causes nuweb to write information about
   its progress to \verb|stderr|.
@@ -423,6 +417,8 @@ There are three additional command-line flags:
   for small webs.
 \item[\tt -s] Doesn't print list of scraps making up each file
   following each scrap.
+\item[\tt -d] Doesn't print "dangling" identifiers -- scraps which
+  are never referenced, in indices, etc.
 \end{description}
 
 \section{Generating HTML}
@@ -496,10 +492,10 @@ George Greenwade.
 Since maintenance has been taken over by Marc Mengel, online contributions
 have been made by:
 \begin{itemize}
-\item
-    Nicky van Foreest <n.d.vanforeest@@math.utwente.nl>
-\item
-    Walter Brown <wb@fnal.gov>
+\item Walter Brown \verb|<wb@@fnal.gov>|
+\item Nicky van Foreest \verb|<n.d.vanforeest@@math.utwente.nl>|
+\item Javier Goizueta \verb|<javiergoizueta@@terra.es>|
+\item Alan Karp \verb|<karp@@hpl.hp.com>|
 \end{itemize}
 
 \ifshowcode
@@ -1198,7 +1194,7 @@ might want to use italics or bold face in the midst of the name.
 @{{
   Name *name = collect_macro_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "$\\langle\\,$%s{\\footnotesize ", name->spelling);
+  fprintf(tex_file, "$\\langle\\,$%s\\ {\\footnotesize ", name->spelling);
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{", tex_file);
@@ -1263,7 +1259,7 @@ a scrap will not be indented. Again, this is a matter of personal taste.
     fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
     fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
-    fputs("\\item \\NWtxtFileDefBy\ ", tex_file);
+    fputs("\\item \\NWtxtFileDefBy\\ ", tex_file);
     print_scrap_numbers(tex_file, name->defs);
     fputs("\\end{list}\n", tex_file);
   }
@@ -1458,7 +1454,7 @@ This scrap helps deal with bold keywords:
 @{{
   Name *name = collect_scrap_name();
   fputs(delimit_scrap[scrap_type][1],file);
-  fprintf(file, "\\hbox{$\\langle\\,$%s{\\footnotesize ", name->spelling);
+  fprintf(file, "\\hbox{$\\langle\\,$%s\\ {\\footnotesize ", name->spelling);
   if (name->defs)
     @<Write abbreviated definition list@>
   else {
@@ -1537,7 +1533,7 @@ This scrap helps deal with bold keywords:
     @<Write file's defining scrap numbers@>
   }
   else {
-    fprintf(tex_file, "$\\langle\\,$%s {\\footnotesize ", name->spelling);
+    fprintf(tex_file, "$\\langle\\,$%s\\ {\\footnotesize ", name->spelling);
     @<Write defining scrap numbers@>
     fputs("}$\\,\\rangle$ ", tex_file);
     @<Write referencing scrap numbers@>
