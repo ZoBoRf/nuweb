@@ -33,10 +33,7 @@
 % Note:
 % This file has been changed by Javier Goizueta <jgoizueta@@jazzfree.es>
 % on 2001-02-15. 
-% The places where it has been modified are tagged by a Latex comment
-% starting with %JG-
-% Each modification also includes a code that identifies which change
-% has originated the modification. These are the changes:
+% These are the changes:
 % LANG  -- Introduction of \NW macros to substitue language dependent text
 % DIAM  -- Introduction of \NWsep instead of the \diamond separator
 % HYPER -- Introduction of hyper-references
@@ -437,7 +434,6 @@ There are several additional command-line flags:
   for small webs.
 \item[\tt -s] Doesn't print list of scraps making up each file
   following each scrap.
-%JG-DNGL
 \item[\tt -d] Print "dangling" identifiers -- user identifiers which
   are never referenced, in indices, etc.
 \end{description}
@@ -690,7 +686,6 @@ There are numerous possible command-line arguments:
 \begin{description}
 \item[\tt -t] Suppresses generation of the {\tt .tex} file.
 \item[\tt -o] Suppresses generation of the output files.
-%JG-DNGL
 \item[\tt -d] list dangling identifier references in indexes.
 \item[\tt -c] Forces output files to overwrite old files of the same
   name without comparing for equality first.
@@ -727,7 +722,6 @@ int scrap_flag = TRUE;
 int dangling_flag = FALSE;
 @}
 
-%JG-CHAR
 A global variable \verb|nw_char| will be used for the nuweb
 meta-character, which by default will be @@.
 @d Global variable dec...
@@ -768,7 +762,6 @@ command-line arguments.
 
 Several flags can be stacked behind a single minus sign; therefore,
 we've got to loop through the string, handling them all.
-%JG-DNGL
 @d Interpret the...
 @{{
   char c = *s++;
@@ -953,7 +946,6 @@ cross-reference lists accumulated while scanning the scraps.
 
 The only thing we look for in the first pass are the command
 sequences. All ordinary text is skipped entirely.
-%JG-CHAR
 @d Scan the source file, look...
 @{{
   int c = source_get();
@@ -967,7 +959,6 @@ sequences. All ordinary text is skipped entirely.
 Only four of the at-sequences are interesting during the first pass.
 We skip past others immediately; warning if unexpected sequences are
 discovered.
-%JG-CHAR
 @d Scan at-sequence
 @{{
   c = source_get();
@@ -1078,7 +1069,6 @@ static void format_user_entry();
 
 The routine \verb|write_tex| takes two file names as parameters: the
 name of the web source file and the name of the \verb|.tex| output file.
-%JG-MAC
 @o latex.c
 @{void write_tex(file_name, tex_name)
      char *file_name;
@@ -1099,7 +1089,6 @@ name of the web source file and the name of the \verb|.tex| output file.
 @| write_tex @}
 
 
-%JG-MAC
 Now that the \verb|\NW...| macros are used, it seems convenient
 to write default definitions for those macros so that source files
 need not define anything new. If a user wants to change any of 
@@ -1124,7 +1113,6 @@ We make our second (and final) pass through the source web, this time
 copying characters straight into the \verb|.tex| file. However, we keep
 an eye peeled for \verb|@@|~characters, which signal a command sequence.
 
-%JG-CHAR
 @d Copy \verb|source_file| into \verb|tex_file|
 @{{
   int scraps = 1;
@@ -1141,7 +1129,6 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
   }
 }@}
 
-%JG-CHAR
 @d Interpret at-sequence
 @{{
   int big_definition = FALSE;
@@ -1221,7 +1208,6 @@ handling of the \verb|@@| case in the switch statement).
 Macro and file definitions are formatted nearly identically.
 I've factored the common parts out into separate scraps.
 
-%JG-HYPER-CHAR-TIE
 @d Write output file definition
 @{{
   Name *name = collect_file_name();
@@ -1244,7 +1230,6 @@ I've factored the common parts out into separate scraps.
 I don't format a macro name at all specially, figuring the programmer
 might want to use italics or bold face in the midst of the name.
 
-%JG-HYPER-ADJ-TIE
 @d Write macro definition
 @{{
   Name *name = collect_macro_name();
@@ -1276,7 +1261,6 @@ each scrap and the various spacing commands. The diamond helps to
 clearly indicate the end of a scrap. The spacing commands were derived
 empirically; they may be adjusted to taste.
 
-%JG-DIAM
 @d Fill in the middle of the scrap environment
 @{{
   fputs("\\vspace{-1ex}\n\\begin{list}{}{} \\item\n", tex_file);
@@ -1306,7 +1290,6 @@ a scrap will not be indented. Again, this is a matter of personal taste.
 
 \subsubsection{Formatting Cross References}
 
-%JG-LANG
 @d Write file defs
 @{{
   if (name->defs->next) {
@@ -1322,7 +1305,6 @@ a scrap will not be indented. Again, this is a matter of personal taste.
     fputs("\\vspace{-2ex}\n", tex_file);
 }@}
 
-%JG-LANG
 @d Write macro defs
 @{{
   fputs("\\vspace{-1ex}\n", tex_file);
@@ -1335,7 +1317,6 @@ a scrap will not be indented. Again, this is a matter of personal taste.
   }
 }@}
 
-%JG-LANG-HYPER
 @d Write macro refs
 @{{
   if (name->uses) {
@@ -1361,7 +1342,6 @@ a scrap will not be indented. Again, this is a matter of personal taste.
   fputs("\\end{list}\n", tex_file);
 }@}
 
-%JG-HYPER
 @o latex.c
 @{static void print_scrap_numbers(tex_file, scraps)
      FILE *tex_file;
@@ -1395,7 +1375,6 @@ This is the only place we really care whether a scrap is
 delimited with \verb|@@{...@@}|, \verb|@@[...@@]|, or \verb|@@(...@@)|,
 and we base our output sequences on that.
 
-%JG-CHAR
 @o latex.c
 @{static char *delimit_scrap[3][5] = {
   /* {} mode: begin, end, insert nw_char, prefix, suffix */
@@ -1477,7 +1456,6 @@ static void copy_scrap(file)
   }
 }@}
 
-%JG-CHAR
 @d Check at-sequence...
 @{{
   c = source_get();
@@ -1506,7 +1484,6 @@ static void copy_scrap(file)
 
 There's no need to check for errors here, since we will have already
 pointed out any during the first pass.
-%JG-CHAR
 @d Skip over index entries
 @{{
   do {
@@ -1526,7 +1503,6 @@ pointed out any during the first pass.
 
 This scrap helps deal with bold keywords:
 
-%JG-CHAR
 @d Bold Keyword
 @{{
   fputs(delimit_scrap[scrap_type][1],file);
@@ -1541,7 +1517,6 @@ This scrap helps deal with bold keywords:
   fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
-%JG-ADJ-TIE
 @d Format macro name
 @{{
   Name *name = collect_scrap_name();
@@ -1559,7 +1534,6 @@ This scrap helps deal with bold keywords:
 }@}
 
 
-%JG-HYPER
 @d Write abbreviated definition list
 @{{
   Scrap_Node *p = name->defs;
@@ -1617,7 +1591,6 @@ This scrap helps deal with bold keywords:
 @| format_entry @}
 
 
-%JG-ADJ-CHAR-TIE
 @d Format an index entry
 @{{
   fputs("\\item ", tex_file);
@@ -1635,7 +1608,6 @@ This scrap helps deal with bold keywords:
 }@}
 
 
-%JG-LANG-HYPER-SCRAPs
 @d Write file's defining scrap numbers
 @{{
   Scrap_Node *p = name->defs;
@@ -1657,7 +1629,6 @@ This scrap helps deal with bold keywords:
   putc('}', tex_file);
 }@}
 
-%JG-HYPER
 @d Write defining scrap numbers
 @{{
   Scrap_Node *p = name->defs;
@@ -1682,7 +1653,6 @@ This scrap helps deal with bold keywords:
     putc('?', tex_file);
 }@}
 
-%JG-LANG-HYPER-SCRAPs
 @d Write referencing scrap numbers
 @{{
   Scrap_Node *p = name->uses;
@@ -1737,7 +1707,6 @@ This scrap helps deal with bold keywords:
 @| format_user_entry @}
 
 
-%JG-HYPER-CHAR-DNGL
 @d Format a user index entry
 @{{
   Scrap_Node *uses = name->uses;
@@ -1859,7 +1828,6 @@ We make our second (and final) pass through the source web, this time
 copying characters straight into the \verb|.tex| file. However, we keep
 an eye peeled for \verb|@@|~characters, which signal a command sequence.
 
-%JG-CHAR
 @d Copy \verb|source_file| into \verb|html_file|
 @{{
   int scraps = 1;
@@ -1874,7 +1842,6 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
   }
 }@}
 
-%JG-CHAR
 @d Interpret HTML at-sequence
 @{{
   c = source_get();
@@ -1911,7 +1878,6 @@ We go through only a little amount of effort to format a definition.
 The HTML for the previous macro definition should look like this
 (perhaps modulo the scrap references):
 
-%JG-CHAR
 \begin{verbatim}
 <pre>
 <a name="nuweb68">&lt;Interpret HTML at-sequence 68&gt;</a> =
@@ -1980,12 +1946,10 @@ might want to use italics or bold face in the midst of the name.  Note
 that in this implementation, programmers may only use directives in
 macro names that are recognized in preformatted text elements (PRE).
 
-%JG-NAME
 Modification 2001--02--15.: I'm interpreting the macro name
 as regular LaTex, so that any formatting can be used in it. To use
 HTML formatting, the \verb|rawhtml| environment should be used.
 
-%JG-NAME
 @d Write HTML macro declaration
 @{  fputs("<a name=\"nuweb", html_file);
   write_single_scrap_ref(html_file, scraps);
@@ -2021,7 +1985,6 @@ end the paragraph.
 
 \subsubsection{Formatting Cross References}
 
-%JG-LANG
 @d Write HTML file defs
 @{{
   if (name->defs->next) {
@@ -2031,7 +1994,6 @@ end the paragraph.
   }
 }@}
 
-%JG-LANG
 @d Write HTML macro defs
 @{{
   if (name->defs->next) {
@@ -2041,7 +2003,6 @@ end the paragraph.
   }
 }@}
 
-%JG-LANG
 @d Write HTML macro refs
 @{{
   if (name->uses) {
@@ -2099,7 +2060,6 @@ end the paragraph.
 
 We must translate HTML special keywords into entities in scraps.
 
-%JG-CHAR
 @o html.c
 @{static void copy_scrap(file)
      FILE *file;
@@ -2137,7 +2097,6 @@ We must translate HTML special keywords into entities in scraps.
 }
 @| copy_scrap @}
 
-%JG-CHAR
 @d Check HTML at-sequence...
 @{{
   c = source_get();
@@ -2166,7 +2125,6 @@ We must translate HTML special keywords into entities in scraps.
 There's no need to check for errors here, since we will have already
 pointed out any during the first pass.
 
-%JG-NAME
 @d Format HTML macro name
 @{{
   Name *name = collect_scrap_name();
@@ -2246,7 +2204,6 @@ pointed out any during the first pass.
 }
 @| format_entry @}
 
-%JG-NAME
 @d Format an HTML index entry
 @{{
   fputs("<dt> ", html_file);
@@ -2266,7 +2223,6 @@ pointed out any during the first pass.
 }@}
 
 
-%JG-LANG
 @d Write HTML file's defining scrap numbers
 @{{
   fputs("\\end{rawhtml}\\NWtxtDefBy\\begin{rawhtml} ", html_file);
@@ -2281,7 +2237,6 @@ pointed out any during the first pass.
     putc('?', html_file);
 }@}
 
-%JG-LANG
 @d Write HTML referencing scrap numbers
 @{{
   Scrap_Node *p = name->uses;
@@ -2393,7 +2348,6 @@ The ANSI/ISO C standard does {\em not}
 guarantee that renaming a file to an existing filename 
 will overwrite the file. 
 
-%JG-TEMPN
 Note: I've modified this on 2001-02-15 for compilation
 for Win32 with Borland C++ (assuming \verb|MSDOS| is defined). The second
 argument to \verb|tempname| cannot be null in that system.
@@ -2505,7 +2459,6 @@ current source file. It notices newlines and keeps the line counter
 for \verb|@@|~characters. All other characters are immediately returned.
 We define \verb|source_last| to let us tell which type of scrap we
 are defining.
-%JG-CHAR
 @o input.c
 @{
 int source_last;
@@ -2546,7 +2499,6 @@ At the same time, it makes sense to recognize illegal \verb|@@|~sequences
 and complain; this avoids ever having to check anywhere else.
 Unfortunately, I need to avoid tripping over the \verb|@@@@|~sequence;
 hence this whole unsatisfactory \verb|double_at| business.
-%JG-CHAR
 @d Handle an ``at''...
 @{{
   c = getc(source_file);
@@ -2715,7 +2667,6 @@ extern void write_single_scrap_ref();
 }
 @| init_scraps @}
 
-%JG-HYPER (first==-1) is interpreted as out of sequence
 @o scraps.c
 @{void write_scrap_ref(file, num, first, page)
      FILE *file;
@@ -2834,7 +2785,6 @@ extern void write_single_scrap_ref();
 }@}
 
 
-%JG-CHAR
 @d Accumulate scrap...
 @{{
   int c = source_get();
@@ -2857,7 +2807,6 @@ extern void write_single_scrap_ref();
   }
 }@}
 
-%JG-LINE-CHAR
 @d Handle at-sign during scrap accumulation
 @{{
   c = source_get();
@@ -2890,7 +2839,6 @@ extern void write_single_scrap_ref();
   }
 }@}
 
-%JG-CHAR
 @d Collect user-specified index entries
 @{{
   do {
@@ -2933,7 +2881,6 @@ extern void write_single_scrap_ref();
 }@}
 
 
-%JG-CHAR
 @d Save macro name
 @{{
   char *s = name->spelling;
@@ -2982,7 +2929,6 @@ extern void write_single_scrap_ref();
 
 
 
-%JG-CHAR
 @o scraps.c
 @{static Name *pop_scrap_name(manager)
      Manager *manager;
@@ -3002,7 +2948,6 @@ extern void write_single_scrap_ref();
 @| pop_scrap_name @}
 
 
-%JG-CHAR
 @d Check for end of scrap name...
 @{{
   c = pop(manager);
@@ -3046,7 +2991,6 @@ extern void write_single_scrap_ref();
 @| write_scraps @}
 
 
-%JG-CHAR
 @d Copy \verb|defs->scrap...
 @{{
   char c;
@@ -3114,7 +3058,6 @@ extern void write_single_scrap_ref();
 }@}
 
 
-%JG-CHAR
 @d Check for macro invocation...
 @{{
   c = pop(&reader);
@@ -3443,7 +3386,6 @@ The function \verb|robs_strcmp| implements the desired predicate.
 
 Name terminated by whitespace.  Also check for ``per-file'' flags. Keep
 skipping white space until we reach scrap.
-%JG-CHAR
 @o names.c
 @{Name *collect_file_name()
 {
@@ -3505,7 +3447,6 @@ skipping white space until we reach scrap.
 
 
 Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
-%JG-CHAR
 @o names.c
 @{Name *collect_macro_name()
 {
@@ -3543,7 +3484,6 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
 @| collect_macro_name @}
 
 
-%JG-CHAR
 @d Check for termina...
 @{{
   c = source_get();
@@ -3582,7 +3522,6 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
   return prefix_add(&macro_names, name);
 }@}
 
-%JG-CHAR
 @d Skip until scrap...
 @{{
   do
@@ -3599,7 +3538,6 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
 
 
 Terminated by \verb+@@>+
-%JG-CHAR
 @o names.c
 @{Name *collect_scrap_name()
 {
@@ -3640,7 +3578,6 @@ Terminated by \verb+@@>+
 }
 @| collect_scrap_name @}
 
-%JG-CHAR
 @d Look for end of scrap name...
 @{{
   c = source_get();
@@ -3931,7 +3868,6 @@ longer token. Of course, the concept of {\sl token\/} is
 language-dependent, so we may be occasionally mistaken.
 For the present, we'll consider the mechanism an experiment.
 
-%JG-CHAR
 @o scraps.c
 @{#define sym_char(c) (isalnum(c) || (c) == '_')
 
@@ -4090,7 +4026,6 @@ back to the first empty chunk.
 
 Here is the UNIX man page for nuweb:
 
-%JG-DNGL
 @O nuweb.1 @{.TH NUWEB 1 "local 3/22/95"
 .SH NAME
 Nuweb, a literate programming tool
