@@ -1,34 +1,34 @@
-% 
+%
 % Copyright (c) 1996, Preston Briggs
 % All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without 
-% modification, are permitted provided that the following conditions 
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions
 % are met:
-% 
-% Redistributions of source code must retain the above copyright notice, 
+%
+% Redistributions of source code must retain the above copyright notice,
 % this list of conditions and the following disclaimer.
-% 
-% Redistributions in binary form must reproduce the above copyright notice, 
-% this list of conditions and the following disclaimer in the documentation 
+%
+% Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
 % and/or other materials provided with the distribution.
-% 
-% Neither name of the product nor the names of its contributors may 
-% be used to endorse or promote products derived from this software without 
-% specific prior written permission. 
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-% ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-% FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS 
-% OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-% EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-% PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
-% PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
+%
+% Neither name of the product nor the names of its contributors may
+% be used to endorse or promote products derived from this software without
+% specific prior written permission.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+% ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+% FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS
+% OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+% EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+% PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+% PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
 % OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-% NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
-% SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
-% 
+% NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+% SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+%
 
 % Notes:
 % Updates on 2004-02-23 from Gregor Goldbach <glauschwuffel@@users.sourceforge.net>
@@ -48,7 +48,7 @@
 % -- @@\# suppress indent
 %
 % This file has been changed by Javier Goizueta <jgoizueta@@jazzfree.es>
-% on 2001-02-15. 
+% on 2001-02-15.
 % These are the changes:
 % LANG  -- Introduction of \NW macros to substitue language dependent text
 % DIAM  -- Introduction of \NWsep instead of the \diamond separator
@@ -65,13 +65,13 @@
 %  --after the CHAR modifications, to be able to specify non-ascii characters
 %    for the scape character, the program must be compiled with the -K
 %    option in Borland compilers or the -funsigned-char in GNU's gcc
-%    to treat char as an unsigned value when converted to int. 
+%    to treat char as an unsigned value when converted to int.
 %    To make the program independen of those options, either char should be changed
 %    to unsigned char (bad solution, since unsigned char should be used for numerical
 %    purposes) or attention should be payed to all char-int conversions. (including
 %    comparisons)
 % --2002-01-15: the TILDE modificiation is necessary because some ties have been
-%   introduced in version 0.93 in troublesome places when the babel package is 
+%   introduced in version 0.93 in troublesome places when the babel package is
 %   used with the spanish.ldf option (which makes ~ an active character).
 % --2002-01-15: an ``s'' was being added to the NWtxtDefBy and NWtxtDefBy
 %   messages when followed by more than one reference.
@@ -123,7 +123,7 @@ urlcolor={linkcolor}%
 \title{Nuweb Version 1.1b \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
-through ONR grant N00014-91-J-1989.} 
+through ONR grant N00014-91-J-1989.}
 \\ \sl preston@@tera.com
 \\ HTML scrap generator by John D. Ramsdell
 \\ \sl ramsdell@@mitre.org
@@ -163,7 +163,7 @@ to be processed by \TeX\@@. The resulting document included a variety of
 automatically generated indices and cross-references that made it much
 easier to navigate the code. Additionally, all of the code sections
 were automatically prettyprinted, resulting in a quite impressive
-document. 
+document.
 
 Knuth also wrote the programs for \TeX\ and {\small\sf METAFONT}
 entirely in \verb|WEB|, eventually publishing them in book
@@ -205,7 +205,7 @@ programming languages has many consequences:
   {\em any\/} language, we've got to abandon this feature.
   However, we do allow particular individual formulas or fragments
   of \LaTeX\ code to be formatted and still be parts of output files.
-  Also, keywords in scraps can be surrounded by \verb|@@_| to 
+  Also, keywords in scraps can be surrounded by \verb|@@_| to
   have them be bold in the output.
 \item[No index of identifiers] Because \verb|WEB| knows about Pascal,
   it is able to construct an index of all the identifiers occurring in
@@ -254,7 +254,7 @@ whole idea would be a waste. Here are the advantages I can see:
 This last point is very important. By allowing the creation of
 multiple output files, we avoid the need for monolithic programs.
 Thus we support the creation of very large programs by groups of
-people. 
+people.
 
 A further reduction in compilation time is achieved by first
 writing each output file to a temporary location, then comparing the
@@ -325,13 +325,13 @@ but don't appear in any code output.
 \end{description}
 Inside a scrap, we may invoke a macro.
 \begin{description}
-\item[\tt @@<{\em macro-name\/}@@>] Causes the macro 
+\item[\tt @@<{\em macro-name\/}@@>] Causes the macro
   {\em macro-name\/} to be expanded inline as the code is written out
   to a file. It is an error to specify recursive macro invocations.
-\item[\tt @@<{\em macro-name\/}@@( {\em a1} @@, {\em a2} @@) @@>] Causes the macro 
+\item[\tt @@<{\em macro-name\/}@@( {\em a1} @@, {\em a2} @@) @@>] Causes the macro
   {\em macro-name\/} to be expanded inline with the parameters {\em a1},
     {\em a2}, etc. Up to 9 parameters may be given.
-\item[\tt @@1, @@2, ..., @@9] In a macro causes the n'th macro 
+\item[\tt @@1, @@2, ..., @@9] In a macro causes the n'th macro
       parameter to be substituted into the scrap.  If the parameter
       is not passed, a null string is substituted.
 \item[\tt @@h] This is replaced by the reference number of the current scrap.
@@ -341,7 +341,7 @@ associates it to the label (which can be any text not containing
 a @@). Expands to the reference number of the scrap followed by a
 numeric value. Outside scraps expands to the same value. It is
 used so that text outside scraps can refer to particular places
-within scraps. 
+within scraps.
 \item[\tt @@f] Inside a scrap this is replaced by the name of the
 current output file.
 \item[\tt @@\#] At the beginning of a line in a scrap this will
@@ -370,18 +370,18 @@ single blank.
 
 Sometimes, for instance during program testing, it is convenient to comment
 out a few lines of code. In C or Fortran placing \verb|/* ... */| around the relevant
-code is not a robust solution, as the code itself may contain 
+code is not a robust solution, as the code itself may contain
 comments. Nuweb provides the command
 \begin{quote}
-\verb|@@%| 
-\end{quote}only to be used inside scraps. It behaves exactly the same 
-as \verb|%| in the normal {\LaTeX} text body. 
+\verb|@@%|
+\end{quote}only to be used inside scraps. It behaves exactly the same
+as \verb|%| in the normal {\LaTeX} text body.
 
 When scraps are written to a program file or a documentation file, tabs are
 expanded into spaces by default. Currently, I assume tab stops are set
 every eight characters. Furthermore, when a macro is expanded in a scrap,
 the body of the macro is indented to match the indentation of the
-macro invocation. Therefore, care must be taken with languages 
+macro invocation. Therefore, care must be taken with languages
 ({\em e.g.,} Fortran) that are sensitive to indentation.
 These default behaviors may be changed for each output file (see
 below).
@@ -421,7 +421,7 @@ in the web file.
   nested, though there is currently a limit of 10~levels. The file name
   should be complete (no extension will be appended) and should be
   terminated by a carriage return.
-\item[{\tt @@r}$x$] Changes the escape character '@@' to '$x$'.  
+\item[{\tt @@r}$x$] Changes the escape character '@@' to '$x$'.
   This must appear before any scrap definitions.
 \end{description}
 Finally, there are three commands used to create indices to the macro
@@ -565,7 +565,7 @@ There are several additional command-line flags:
    pretty-printer for your scraps. In order to e.g. have pretty Perl
    scraps, include the following \LaTeX\ commands in your document:
    \lstset{language=[LaTeX]TeX}
- 
+
  \begin{lstlisting}{language={[LaTeX]TeX}}
  \usepackage{listings}
  ...
@@ -589,7 +589,7 @@ Nikos Drakos' {\LaTeX}2HTML Version 0.5.3~\cite{drakos:94} can be used
 to translate {\LaTeX} with embedded HTML scraps into HTML\@@.  Be sure
 to include the document-style option \verb|html| so that {\LaTeX} will
 understand the hypertext commands.  When translating into HTML, do not
-allow a document to be split by specifying ``\verb|-split 0|''.  
+allow a document to be split by specifying ``\verb|-split 0|''.
 You need not generate navigation links, so also specify
 ``\verb|-no_navigation|''.
 
@@ -673,7 +673,7 @@ Processing a web requires three major steps:
     protection and cross-reference information for all the scraps.
   \item Traverse the list of files names. For each file name:
   \begin{enumerate}
-    \item Dump all the defining scraps into a temporary file. 
+    \item Dump all the defining scraps into a temporary file.
     \item If the file already exists and is unchanged, delete the
       temporary file; otherwise, rename the temporary file.
   \end{enumerate}
@@ -740,7 +740,7 @@ It handles collection of all the file names, macros names, and scraps
 
 The \verb|.tex| file is created during a second pass over the source
 file. The file \verb|latex.c| contains the code controlling the
-construction of the \verb|.tex| file 
+construction of the \verb|.tex| file
 (see Section~\ref{latex-file}).
 @o latex.c
 @{#include "global.h"
@@ -822,8 +822,8 @@ int main(argc, argv)
 @| main @}
 
 We only have two major operating system dependencies; the separators for
-file names, and how to set environment variables.  
-For now we assume the latter can be accomplished 
+file names, and how to set environment variables.
+For now we assume the latter can be accomplished
 via "putenv" in \verb|stdlib.h|.
 @d Operating System Dependencies @{
 #if defined(VMS)
@@ -1040,7 +1040,7 @@ in the variable \verb|tex_name|.
 
 I bump the pointer \verb|p| through all the characters in \verb|argv[arg]|,
 copying all the characters into \verb|source_name| (via the pointer
-\verb|q|). 
+\verb|q|).
 
 At each slash, I update \verb|trim| to point just past the
 slash in \verb|source_name|. The effect is that \verb|trim| will point
@@ -1100,7 +1100,7 @@ is forced when generating HTML.
   current_sector = 1;
   if (tex_flag) {
     if (html_flag) {
-      int saved_number_flag = number_flag; 
+      int saved_number_flag = number_flag;
       number_flag = TRUE;
       collect_numbers(aux_name);
       write_html(source_name, tex_name, 0/*Dummy */);
@@ -1121,7 +1121,7 @@ is forced when generating HTML.
 \section{Pass One} \label{pass-one}
 
 During the first pass, we scan the file, recording the definitions of
-each macro and file and accumulating all the scraps. 
+each macro and file and accumulating all the scraps.
 
 @d Function pro...
 @{extern void pass1();
@@ -1131,7 +1131,7 @@ each macro and file and accumulating all the scraps.
 The routine \verb|pass1| takes a single argument, the name of the
 source file. It opens the file, then initializes the scrap structures
 (see Section~\ref{scraps}) and the roots of the file-name tree, the
-macro-name tree, and the tree of user-specified index entries (see 
+macro-name tree, and the tree of user-specified index entries (see
 Section~\ref{names}). After completing all the
 necessary preparation, we make a pass over the file, filling in all
 our data structures. Next, we seach all the scraps for references to
@@ -1192,7 +1192,7 @@ discovered.
     case '[':
     case '{': @<Skip over an in-text scrap@>
               break;
-    case 'x': 
+    case 'x':
     case 'u':
     case 'm':
     case 'f': /* ignore during this pass */
@@ -1328,7 +1328,7 @@ the $n$th string from the \verb|Parameters| list when we
 see an \verb|@@1| \verb|@@2|, etc.
 
 @d Handle macro parameter substitution @{
-    case '1': case '2': case '3': 
+    case '1': case '2': case '3':
     case '4': case '5': case '6':
     case '7': case '8': case '9':
               if ( parameters && parameters->p[c - '1'] ) {
@@ -1336,7 +1336,7 @@ see an \verb|@@1| \verb|@@2|, etc.
                 param_defs.scrap = parameters->p[c - '1'];
                 param_defs.next = 0;
                 write_scraps(file, spelling, &param_defs, global_indent + indent,
-                          indent_chars, debug_flag, tab_flag, indent_flag, 
+                          indent_chars, debug_flag, tab_flag, indent_flag,
                                 parameters? parameters->parent : 0);
               } else {
                 /* ZZZ need error message here */
@@ -1344,7 +1344,7 @@ see an \verb|@@1| \verb|@@2|, etc.
               break;
 @}
 Now onto actually parsing macro parameters from a call.
-We start off checking for macro parameters, an \verb|@@(| sequence 
+We start off checking for macro parameters, an \verb|@@(| sequence
 followed by parameters separated by \verb|@@,| sequences, and
 terminated by a \verb|@@)| sequence.
 
@@ -1353,21 +1353,21 @@ scrap numbers down in the text. For example, if the file has:
 \begin{verbatim}
    @@<foo @@( param1 @@, param2 @@)@@>
 \end{verbatim}
-we actually make new scraps, say 10 and 11, for param1 and param2, 
+we actually make new scraps, say 10 and 11, for param1 and param2,
 and write in the collected scrap:
 \begin{verbatim}
    @@<foo @@(10@@,11@@)@@>
 \end{verbatim}
 
-@d Save macro parameters 
-@{{ 
+@d Save macro parameters
+@{{
   int param_scrap;
   char param_buf[10];
 
   push(nw_char, &writer);
   push('(', &writer);
   do {
-     
+
      param_scrap = collect_scrap();
      sprintf(param_buf, "%d", param_scrap);
      pushs(param_buf, &writer);
@@ -1450,7 +1450,7 @@ argument list for a macro.
      sep = ',';
    } while ( source_last != ')' && source_last != EOF );
    fputs(" ) ",file);
-   do 
+   do
      c = source_get();
    while(c != nw_char && c != EOF);
    if (c == nw_char) {
@@ -1467,7 +1467,7 @@ argument list for a macro.
    do {
 
      fputc(sep,file);
-     
+
      fprintf(file, "%d <A NAME=\"#nuweb%d\"></A>", scraps, scraps);
 
      source_last = '{';
@@ -1478,7 +1478,7 @@ argument list for a macro.
 
    } while ( source_last != ')' && source_last != EOF );
    fputs(" ) ",file);
-   do 
+   do
      c = source_get();
    while(c != nw_char && c != EOF);
    if (c == nw_char) {
@@ -1540,7 +1540,7 @@ name of the web source file and the name of the \verb|.tex| output file.
 
 Now that the \verb|\NW...| macros are used, it seems convenient
 to write default definitions for those macros so that source files
-need not define anything new. If a user wants to change any of 
+need not define anything new. If a user wants to change any of
 the macros (to use hyperref or to write in some language other than
 english) he or she can redefine the commands.
 @d Write LaTeX limbo definitions
@@ -1617,9 +1617,9 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
               break;
     case 'u': @<Write index of user-specified names@>
               break;
-    default:  
+    default:
           if (c==nw_char)
-            putc(c, tex_file); 
+            putc(c, tex_file);
           c = source_get();
               break;
   }
@@ -1930,12 +1930,12 @@ static void copy_scrap(file, prefix)
                  break;
       case '\t': @<Expand tab into spaces@>
                  break;
-      default:   
+      default:
          if (c==nw_char)
            {
              @<Check at-sequence for end-of-scrap@>
              break;
-           }           
+           }
          putc(c, file);
                  indent++;
                  break;
@@ -1970,7 +1970,7 @@ this function. It updates the scrap formatting directives accordingly.
     delimit_scrap[0][2][18] = nw_char;
   } else {
     delimit_scrap[0][2][13] = nw_char;
-  }  
+  }
 
   /* []-mode insert nw_char */
   delimit_scrap[1][2][0] = nw_char;
@@ -2016,15 +2016,15 @@ this function. It updates the scrap formatting directives accordingly.
               break;
     case 'f': @<Italic "file name"@>
               break;
-    case '1': case '2': case '3': 
-    case '4': case '5': case '6': 
-    case '7': case '8': case '9': 
+    case '1': case '2': case '3':
+    case '4': case '5': case '6':
+    case '7': case '8': case '9':
               fputs(delimit_scrap[scrap_type][1], file);
               fputc(nw_char, file);
               fputc(c,   file);
               fputs(delimit_scrap[scrap_type][0], file);
               break;
-    default:  
+    default:
           if (c==nw_char)
             {
               fputs(delimit_scrap[scrap_type][2], file);
@@ -2326,10 +2326,10 @@ unsigned char sector;
         write_single_scrap_ref(tex_file, defs->scrap);
         fputs("})}", tex_file);
         page = -2;
-        defs = defs->next;        
+        defs = defs->next;
     }
     else
-      if (uses->scrap < defs->scrap) {    
+      if (uses->scrap < defs->scrap) {
       fputs("\\NWlink{nuweb", tex_file);
       write_scrap_ref(tex_file, uses->scrap, -1, &page);
       fputs("}{", tex_file);
@@ -2369,7 +2369,7 @@ unsigned char sector;
         fputs("}{", tex_file);
         write_single_scrap_ref(tex_file, defs->scrap);
         fputs("}", tex_file);
- 
+
         putc('}', tex_file);
         page = -2;
         defs = defs->next;
@@ -2379,7 +2379,7 @@ unsigned char sector;
   }
 }@}
 
-\section{Writing the LaTeX File with HTML Scraps} \label{html-file} 
+\section{Writing the LaTeX File with HTML Scraps} \label{html-file}
 
 The HTML generated is patterned closely upon the {\LaTeX} generated in
 the previous section.\footnote{\relax While writing this section, I
@@ -2456,10 +2456,10 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
           nw_char = c;
           update_delimit_scrap();
           break;
-    case 'O': 
+    case 'O':
     case 'o': @<Write HTML output file definition@>
               break;
-    case 'D': 
+    case 'D':
     case 'd': @<Write HTML macro definition@>
               break;
     case 'f': @<Write HTML index of file names@>
@@ -2468,7 +2468,7 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
               break;
     case 'u': @<Write HTML index of user-specified names@>
               break;
-    default:  
+    default:
           if (c==nw_char)
             putc(c, html_file);
           c = source_get();
@@ -2489,10 +2489,10 @@ The HTML for the previous macro definition should look like this
 {
   c = source_get();
   switch (c) {
-    case 'O': 
+    case 'O':
     case 'o': &lt;Write HTML output file definition <a href="#nuweb69">69</a>&gt;
               break;
-    case 'D': 
+    case 'D':
     case 'd': &lt;Write HTML macro definition <a href="#nuweb71">71</a>&gt;
               break;
     case 'f': &lt;Write HTML index of file names <a href="#nuweb86">86</a>&gt;
@@ -2501,7 +2501,7 @@ The HTML for the previous macro definition should look like this
               break;
     case 'u': &lt;Write HTML index of user-specified names <a href="#nuweb93">93</a>&gt;
               break;
-    default:  
+    default:
          if (c==nw_char)
            putc(c, html_file);
          c = source_get();
@@ -2687,7 +2687,7 @@ We must translate HTML special keywords into entities in scraps.
                  break;
       case '\t': @<Expand tab into spaces@>
                  break;
-      default:   
+      default:
          if (c==nw_char)
            {
              @<Check HTML at-sequence for end-of-scrap@>
@@ -2709,15 +2709,15 @@ We must translate HTML special keywords into entities in scraps.
     case '+':
     case '-':
     case '|': @<Skip over index entries@>
-    case ',': 
-    case '}': 
-    case ']': 
+    case ',':
+    case '}':
+    case ']':
     case ')': return;
     case '_': @<Write HTML bold tag or end@>
               break;
-    case '1': case '2': case '3': 
-    case '4': case '5': case '6': 
-    case '7': case '8': case '9': 
+    case '1': case '2': case '3':
+    case '4': case '5': case '6':
+    case '7': case '8': case '9':
               fputc(nw_char, file);
               fputc(c,   file);
               break;
@@ -2725,7 +2725,7 @@ We must translate HTML special keywords into entities in scraps.
               break;
     case '%': @<Skip commented-out code@>
               break;
-    default:  
+    default:
          if (c==nw_char)
            {
              fputc(c, file);
@@ -2796,7 +2796,7 @@ pointed out any during the first pass.
 }@}
 
 
-@d Write HTML bold tag or end 
+@d Write HTML bold tag or end
 @{{
      static int toggle;
      toggle = ~toggle;
@@ -2952,18 +2952,18 @@ We call \verb|tempnam|, causing it to create a file name in the
 current directory.  This could cause a problem for \verb|rename| if
 the eventual output file will reside on a different file system.
 
-To avoid this, we used to set the environment variable \verb|TMPDIR| 
+To avoid this, we used to set the environment variable \verb|TMPDIR|
 to \verb|"."| at the beginning of the program, but since we got rid of
 tempnam(), we no longer bother.
 
-@d Avoid rename() problems 
+@d Avoid rename() problems
 @{
 @}
 
 Note the call to \verb|remove| before \verb|rename| --
 The ANSI/ISO C standard does {\em not}
-guarantee that renaming a file to an existing filename 
-will overwrite the file. 
+guarantee that renaming a file to an existing filename
+will overwrite the file.
 
 Note: I've modified this on 2001-02-15 for compilation
 for Win32 with Borland C++ (assuming \verb|MSDOS| is defined). The second
@@ -3004,7 +3004,7 @@ argument to \verb|tempname| cannot be null in that system.
     fprintf(stderr, "%s: can't create %s for a temporary file\n",
             command_name, temp_name);
     exit(-1);
-  }  
+  }
   sprintf(real_name, "%s%s%s", dirpath, path_sep, files->spelling);
   if (verbose_flag)
     fprintf(stderr, "writing %s [%s]\n", files->spelling, temp_name);
@@ -3094,7 +3094,7 @@ static int include_depth;
 \subsection{Reading a File}
 
 The routine \verb|source_get| returns the next character from the
-current source file. It notices newlines and keeps the line counter 
+current source file. It notices newlines and keeps the line counter
 \verb|source_line| up to date. It also catches \verb|EOF| and watches
 for \verb|@@|~characters. All other characters are immediately returned.
 We define \verb|source_last| to let us tell which type of scrap we
@@ -3125,9 +3125,9 @@ int source_get()
 \verb|source_ungetc| pushes a read character back to the \verb|source_file|.
 @o input.c
 @{int source_ungetc(int *c)
-{       
+{
         ungetc(source_peek, source_file);
-        if(*c == '\n') 
+        if(*c == '\n')
                 source_line--;
    source_peek=*c;
 }
@@ -3159,13 +3159,13 @@ hence this whole unsatisfactory \verb|double_at| business.
       case '(': case ')': case '[': case ']':
       case '%': case '_':
       case ':': case ',': case 'x':
-      case '1': case '2': case '3': case '4': case '5': 
-      case '6': case '7': case '8': case '9': 
+      case '1': case '2': case '3': case '4': case '5':
+      case '6': case '7': case '8': case '9':
       case 'r':
                 source_peek = c;
-                c = nw_char;        
+                c = nw_char;
                 break;
-      default:  
+      default:
             if (c==nw_char)
               {
                 source_peek = c;
@@ -3206,7 +3206,7 @@ hence this whole unsatisfactory \verb|double_at| business.
 @d Collect include-file name
 @{{
     char *p = name;
-    do 
+    do
       c = getc(source_file);
     while (c == ' ' || c == '\t');
     while (isgraph((signed char)c)) {
@@ -3241,7 +3241,7 @@ on the stack, the \verb|EOF| is returned.
 \subsection{Opening a File}
 
 The routine \verb|source_open| takes a file name and tries to open the
-file. If unsuccessful, it complains and halts. Otherwise, it sets 
+file. If unsuccessful, it complains and halts. Otherwise, it sets
 \verb|source_name|, \verb|source_line|, and \verb|double_at|.
 @o input.c
 @{void source_open(name)
@@ -3449,7 +3449,7 @@ extern void write_single_scrap_ref();
                         command_name, scrap_array(current_scrap).file_name,
                         scrap_array(current_scrap).file_line);
                 exit(-1);
-      default:  
+      default:
         if (c==nw_char)
           {
             @<Handle at-sign during scrap accumulation@>
@@ -3487,12 +3487,12 @@ extern void write_single_scrap_ref();
               break;
     case '%': @<Skip commented-out code@>
               /* emit line break to the output file to keep #line in sync. */
-              push('\n', &writer); 
+              push('\n', &writer);
               c = source_get();
               break;
     case 'x': @<Get label while collecting scrap@>
               break;
-    case '1': case '2': case '3': 
+    case '1': case '2': case '3':
     case '4': case '5': case '6':
     case '7': case '8': case '9':
     case 'f': case '#':
@@ -3500,7 +3500,7 @@ extern void write_single_scrap_ref();
               break;
     case '_': c = source_get();
               break;
-    default : 
+    default :
           if (c==nw_char)
             {
               push(nw_char, &writer);
@@ -3533,7 +3533,7 @@ extern void write_single_scrap_ref();
     char new_name[100];
     char *p = new_name;
       unsigned int sector = 0;
-    do 
+    do
       c = source_get();
     while (isspace(c));
     if (c != nw_char) {
@@ -3756,12 +3756,12 @@ if (!name->defs || name->defs->scrap != current_scrap) {
                  break;
       case '\t': @<Handle tab...@>
                  break;
-      default:   
+      default:
          if (c==nw_char)
            {
              @<Check for macro invocation in scrap@>
              break;
-           }         
+           }
           putc(c, file);
           if (global_indent + indent < MAX_INDENT) {
              indent_chars[global_indent + indent] = ' ';
@@ -3834,7 +3834,7 @@ may be needed when the next macro is started.
               @<Insert debugging information if required@>
               break;
     @<Handle macro parameter substitution@>
-    default:  
+    default:
           if(c==nw_char)
             {
               putc(c, file);
@@ -3873,7 +3873,7 @@ may be needed when the next macro is started.
   if (name->defs) {
     name->mark = TRUE;
     indent = write_scraps(file, spelling, name->defs, global_indent + indent,
-                          indent_chars, debug_flag, tab_flag, indent_flag, 
+                          indent_chars, debug_flag, tab_flag, indent_flag,
                           local_parameters);
     indent -= global_indent;
     name->mark = FALSE;
@@ -4306,7 +4306,7 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
                  while (c == ' ' || c == '\t');
                  break;
       case '\n': @<Skip until scrap begins, then return name@>
-      default:   
+      default:
          if (c==nw_char)
            {
              @<Check for terminating at-sequence and return name@>
@@ -4332,7 +4332,7 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
     case '(':
     case '[':
     case '{': @<Cleanup and install name@>
-    default:  
+    default:
           if (c==nw_char)
             {
               *p++ = c;
@@ -4402,7 +4402,7 @@ Terminated by \verb+@@>+
                    c = source_get();
                  while (c == ' ' || c == '\t');
                  break;
-      default:   
+      default:
          if (c==nw_char)
            {
              @<Look for end of scrap name and return@>
@@ -4431,20 +4431,20 @@ Terminated by \verb+@@>+
   c = source_get();
   switch (c) {
 
-    case '(': 
+    case '(':
         scrap_name_has_parameters = 1;
         @<Cleanup and install name@>
-    case '>': 
+    case '>':
         scrap_name_has_parameters = 0;
         @<Cleanup and install name@>
 
-    default:  
+    default:
        if (c==nw_char)
          {
            *p++ = c;
               c = source_get();
               break;
-         } 
+         }
        fprintf(stderr,
                       "%s: unexpected %c%c in macro invocation name (%s, %d)\n",
                       command_name, nw_char, c, source_name, source_line);
@@ -4900,7 +4900,7 @@ static int op_char(c)
      char c;
 {
   switch (c) {
-    case '!':           case '#': case '%': case '$': case '^': 
+    case '!':           case '#': case '%': case '$': case '^':
     case '&': case '*': case '-': case '+': case '=': case '/':
     case '|': case '~': case '<': case '>':
       return TRUE;
@@ -5042,7 +5042,7 @@ lbl->seq = ++lblseq;
 I manage memory using a simple scheme inspired by Hanson's idea of
 {\em arenas\/}~\cite{hanson:90}.
 Basically, I allocate all the storage required when processing a
-source file (primarily for names and scraps) using calls to 
+source file (primarily for names and scraps) using calls to
 \verb|arena_getmem(n)|, where \verb|n| specifies the number of bytes to
 be allocated. When the storage is no longer required, the entire arena
 is freed with a single call to  \verb|arena_free()|. Both operations
@@ -5075,7 +5075,7 @@ static Chunk *arena = &first;
 
 \subsection{Allocating Memory}
 
-The routine \verb|arena_getmem(n)| returns a pointer to (at least) 
+The routine \verb|arena_getmem(n)| returns a pointer to (at least)
 \verb|n| bytes of memory. Note that \verb|n| is rounded up to ensure
 that returned pointers are always aligned.  We align to the nearest
 8-byte segment, since that'll satisfy the more common 2-byte and
@@ -5099,7 +5099,7 @@ that returned pointers are always aligned.  We align to the nearest
 
 
 If the current chunk doesn't have adequate space (at least \verb|n|
-bytes) we examine the rest of the list of chunks (starting at 
+bytes) we examine the rest of the list of chunks (starting at
 \verb|arena->next|) looking for a chunk with adequate space. If \verb|n|
 is very large, we may not find it right away or we may not find a
 suitable chunk at all.
@@ -5163,15 +5163,15 @@ Nuweb, a literate programming tool
 is a literate programming tool like Knuth's
 .I WEB,
 only simpler.
-A 
+A
 .I nuweb
 file contains program source code interleaved with documentation.
-When 
+When
 .I nuweb
-is given a 
+is given a
 .I nuweb
 file, it writes the program file(s),
-and also 
+and also
 produces,
 .I LaTeX
 source for typeset documentation.
@@ -5199,15 +5199,15 @@ source for typeset documentation.
 \fB-l\fP Format scraps with LaTeX's listings package.
 .br
 .SH FORMAT OF NUWEB FILES
-A 
-.I nuweb 
+A
+.I nuweb
 file contains mostly ordinary
 .I LaTeX.
 The file is read and copied to output (.tex file) unless a
 .I nuweb
-command is encountered. All 
+command is encountered. All
 .I nuweb
-commands start with an ``at-sign'' (@@). 
+commands start with an ``at-sign'' (@@).
 Files and macros are defined with the following commands:
 .PP
 @@o \fIfile-name flags  scrap\fP  where scrap is smaller than one page.
@@ -5218,7 +5218,7 @@ Files and macros are defined with the following commands:
 .br
 @@D \fImacro-name scrap\fP. Where scrap is bigger than one page.
 .PP
-Scraps have specific begin and end 
+Scraps have specific begin and end
 markers;
 which begin and end marker you use determines how the scrap will be
 typeset in the .tex file:
@@ -5239,7 +5239,7 @@ concatenates their definitions to produce a single scrap.
 Code scrap definitions are like macro definitions;
 .I nuweb
 extracts a program by expanding one scrap.
-The definition of that scrap contains references to other scraps, which are 
+The definition of that scrap contains references to other scraps, which are
 themselves expanded, and so on.
 \fINuweb\fP's output is readable; it preserves the indentation of expanded
 scraps with respect to the scraps in which they appear.
@@ -5248,22 +5248,22 @@ scraps with respect to the scraps in which they appear.
 When defining an output file, the programmer has the option of using flags
 to control the output.
 .PP
-\fB-d\fR option, 
+\fB-d\fR option,
 .I Nuweb
 will emit line number indications at scrap boundaries.
 .br
-\fB-i\fR option, 
+\fB-i\fR option,
 .I Nuweb
 supresses the indentation of macros (useful for \fBFortran\fR).
 .br
-\fB-t\fP option makes \fInuweb\fP 
+\fB-t\fP option makes \fInuweb\fP
 copy tabs untouched from input to output.
 .PP
 .SH MINOR COMMANDS
 .br
 @@@@    Causes a single ``at-sign'' to be copied into the output.
 .br
-@@\_    Causes the text between it and the next {\tt @@\_} to be made bold 
+@@\_    Causes the text between it and the next {\tt @@\_} to be made bold
         (for keywords, etc.) in the formatted document
 .br
 @@%     Comments out a line so that it doesn't appear in the output.

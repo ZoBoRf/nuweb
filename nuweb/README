@@ -1,11 +1,11 @@
 Here's an intermediate version of nuweb.  We've bundled up the
-web source (nuweb.w), the generated .c files, file, and the assorted 
+web source (nuweb.w), the generated .c files, file, and the assorted
 auxiliary files for latex'ing with a Makefile.
 
 Note that it's still not completely portable to every system without
 change.  In particular, it expect file-names to use '/' to delimit
 directories unless you are on MSDOS (where it's '\') or VMS (where
-we use ':' and ']') and it still thinks tab stops are set every eight 
+we use ':' and ']') and it still thinks tab stops are set every eight
 spaces.  It also uses tempnam() which may not be available everywhere.
 tmpnam() might be made to work in some systems.  If all else fails,
 just use some adequately unlikely filename.
@@ -30,6 +30,6 @@ nuweb.hw, and then add the html document-style option to nuweb.hw.
 After producing the LaTeX source file nuweb.tex, convert it to HTML
 using LaTeX2HTML.
 
-For the latest version check the SourceForge page: 
+For the latest version check the SourceForge page:
     http://nuweb.sourceforge.net/
 

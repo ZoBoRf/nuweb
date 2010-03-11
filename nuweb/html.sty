@@ -1,9 +1,9 @@
 %
-% $Id: html.sty,v 1.1 2001-02-02 21:25:31 mengel Exp $
+% $Id: html.sty,v 1.2 2010-03-11 21:53:56 simonjwright Exp $
 % LaTeX2HTML Version 99.1 : html.sty
-% 
+%
 % This file contains definitions of LaTeX commands which are
-% processed in a special way by the translator. 
+% processed in a special way by the translator.
 % For example, there are commands for embedding external hypertext links,
 % for cross-references between documents or for including raw HTML.
 % This file includes the comments.sty file v2.0 by Victor Eijkhout
@@ -40,10 +40,10 @@
 % This can be used to provide links to arbitrary documents.
 % The first argumment should be the text that is going to be
 % highlighted and the second argument a URL.
-% The hyperlink will appear as a hyperlink in the HTML 
+% The hyperlink will appear as a hyperlink in the HTML
 % document and as a footnote in the dvi or ps files.
 %
-\html@new{\htmladdnormallinkfoot}[2]{#1\footnote{#2}} 
+\html@new{\htmladdnormallinkfoot}[2]{#1\footnote{#2}}
 
 
 % This is an alternative definition of the command above which
@@ -60,12 +60,12 @@
 
 %%% CROSS-REFERENCES BETWEEN (LOCAL OR REMOTE) DOCUMENTS
 %
-% This can be used to refer to symbolic labels in other Latex 
+% This can be used to refer to symbolic labels in other Latex
 % documents that have already been processed by the translator.
 % The arguments should be:
 % #1 : the URL to the directory containing the external document
 % #2 : the path to the labels.pl file of the external document.
-% If the external document lives on a remote machine then labels.pl 
+% If the external document lives on a remote machine then labels.pl
 % must be copied on the local machine.
 %
 %e.g. \externallabels{http://cbl.leeds.ac.uk/nikos/WWW/doc/tex2html/latex2html}
@@ -86,7 +86,7 @@
 % This allows the same effect for citations in external bibliographies.
 % An  \externallabels  command must be given, locating a labels.pl file
 % which defines the location and keys used in the external .html file.
-%  
+%
 \newcommand{\externalcite}{\nocite}
 
 % This allows a section-heading in the TOC or mini-TOC to be just
@@ -118,9 +118,9 @@
 \newcommand{\htmlbody}{}
 
 
-%%% HYPERREF 
+%%% HYPERREF
 % Suggested by Eric M. Carol <eric@ca.utoronto.utcc.enfm>
-% Similar to \ref but accepts conditional text. 
+% Similar to \ref but accepts conditional text.
 % The first argument is HTML text which will become ``hyperized''
 % (underlined).
 % The second and third arguments are text which will appear only in the paper
@@ -212,13 +212,13 @@
 % This command can be used inside any environment that is converted
 % into an inlined image (eg a "figure" environment) in order to change
 % the way the image will be translated. The argument of \htmlimage
-% is really a string of options separated by commas ie 
+% is really a string of options separated by commas ie
 % [scale=<scale factor>],[external],[thumbnail=<reduction factor>
 % The scale option allows control over the size of the final image.
-% The ``external'' option will cause the image not to be inlined 
+% The ``external'' option will cause the image not to be inlined
 % (images are inlined by default). External images will be accessible
-% via a hypertext link. 
-% The ``thumbnail'' option will cause a small inlined image to be 
+% via a hypertext link.
+% The ``thumbnail'' option will cause a small inlined image to be
 % placed in the caption. The size of the thumbnail depends on the
 % reduction factor. The use of the ``thumbnail'' option implies
 % the ``external'' option.
@@ -228,7 +228,7 @@
 % will cause a small thumbnail image 1/5th of the original size to be
 % placed in the final document, pointing to an external image 1.5
 % times bigger than the original.
-% 
+%
 \newcommand{\htmlimage}[1]{}
 
 
@@ -393,8 +393,8 @@
 \newcommand{\htmlreexcludecomment}[1]{%
     \csname renewenvironment\endcsname{#1}{\@gobbleenv}{}}
 
-%%% RAW HTML 
-% 
+%%% RAW HTML
+%
 % Enclose raw HTML between a \begin{rawhtml} and \end{rawhtml}.
 % The html environment ignores its body
 %
@@ -403,8 +403,8 @@
 
 %%% HTML ONLY
 %
-% Enclose LaTeX constructs which will only appear in the 
-% HTML output and will be ignored by LaTeX with 
+% Enclose LaTeX constructs which will only appear in the
+% HTML output and will be ignored by LaTeX with
 % \begin{htmlonly} and \end{htmlonly}
 %
 \htmlexcludecomment{htmlonly}
@@ -415,8 +415,8 @@
 \htmlexcludecomment{imagesonly}
 
 %%% LaTeX ONLY
-% Enclose LaTeX constructs which will only appear in the 
-% DVI output and will be ignored by latex2html with 
+% Enclose LaTeX constructs which will only appear in the
+% DVI output and will be ignored by latex2html with
 %\begin{latexonly} and \end{latexonly}
 %
 \newenvironment{latexonly}{}{}
@@ -448,7 +448,7 @@
 
 %%%  \htmlurl  and  \url
 %  implement \url as the simplest thing, if not already defined
-%  let \htmlurl#1  be equivalent to it 
+%  let \htmlurl#1  be equivalent to it
 %
 \def\htmlurlx#1{\begin{small}\texttt{#1}\end{small}}%
 \expandafter\ifx\csname url\endcsname\relax
@@ -533,7 +533,7 @@
 % The description of the options is missing, as yet.
 %
 \renewcommand{\latextohtml}{\textup{\LaTeX2\texttt{HTML}}}
-\renewcommand{\htmladdnormallinkfoot}[3][]{#2\footnote{#3}} 
+\renewcommand{\htmladdnormallinkfoot}[3][]{#2\footnote{#3}}
 \renewcommand{\htmladdnormallink}[3][]{#2}
 \renewcommand{\htmlbody}[1][]{}
 \renewcommand{\externallabels}[3][]{}
@@ -569,7 +569,7 @@
 \ifx\undefined\HTML\newcommand{\HTML}[2][]{}\else
 \typeout{*** Warning: \string\HTML\space had an incompatible definition ***}%
 \typeout{*** instead use \string\HTMLcode\space for raw HTML code ***}%
-\fi 
+\fi
 \newcommand{\HTMLset}[3][]{}
 \newcommand{\HTMLsetenv}[3][]{}
 
@@ -628,7 +628,7 @@
 % \tableofchildlinks, \htmlinfo
 %     by Ross Moore  ---  extensions dated 27 September 1997
 %
-%  These do nothing in LaTeX but for LaTeX2HTML they mark 
+%  These do nothing in LaTeX but for LaTeX2HTML they mark
 %  where the table of child-links and info-page should be placed,
 %  when the user wants other than the default.
 %	\tableofchildlinks	 % put mini-TOC at this location
@@ -752,7 +752,7 @@
  \else\def\tmp@b{left}\ifx\tmp@a\tmp@b\let\tmp@a\empty
  \else\def\tmp@b{right}\ifx\tmp@a\tmp@b\let\tmp@a\empty
  \else\expandafter\def\expandafter\tmp@a\expandafter{\expandafter[\tmp@a]}%
- \fi\fi\fi \def\empty{}\ifx\tmp\empty\let\tmp=\tmp@a \else 
+ \fi\fi\fi \def\empty{}\ifx\tmp\empty\let\tmp=\tmp@a \else
   \expandafter\def\expandafter\tmp\expandafter{\expandafter*\tmp@a}%
  \fi\fi}
 %
@@ -902,6 +902,9 @@
 % (The listing of Initiales see Changes)
 
 % $Log: not supported by cvs2svn $
+% Revision 1.1  2001/02/02 21:25:31  mengel
+% this bit too...
+%
 % Revision 1.37  1999/03/12 07:02:38  RRM
 %  --  change macro name from \addTOCsection to \htmladdTOClink
 %  --  it has 3 + 1 optional argument, to allow a local path to a labels.pl
