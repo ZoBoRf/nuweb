@@ -31,6 +31,7 @@
 %
 
 % Notes:
+% Changes from 2010-03-11 in the Sourceforge revision history. -- sjw
 % Updates on 2004-02-23 from Gregor Goldbach <glauschwuffel@@users.sourceforge.net>
 % -- new command line option -r which will make nuweb typeset each NWtarget and NWlink
 %    instance with \LaTeX-commands from the hyperref package. This gives clickable scrap
@@ -824,7 +825,7 @@ int main(argc, argv)
 We only have two major operating system dependencies; the separators for
 file names, and how to set environment variables.
 For now we assume the latter can be accomplished
-via "putenv" in \verb|stdlib.h|.
+via \verb|putenv()| in \verb|stdlib.h|.
 @d Operating System Dependencies @{
 #if defined(VMS)
 #define PATH_SEP(c) (c==']'||c==':')
@@ -1773,8 +1774,6 @@ c = source_get();
     print_scrap_numbers(tex_file, name->defs);
     fputs("\\end{list}\n", tex_file);
   }
-  else
-    fputs("\\vspace{-2ex}\n", tex_file);
 }@}
 
 @d Write macro defs
