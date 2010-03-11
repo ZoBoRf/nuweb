@@ -7,14 +7,14 @@
 
 \title{Nuweb Redefinitions}
 \date{}
-\author{Javier Goizueta} 
+\author{Javier Goizueta}
 
 \begin{document}
 
 I've changed \verb|nuweb| to use macros instead of
 some fixed strings. The modified \verb|nuweb| inserts
 default values of those macros at the beginning of
-the produced LaTeX file. 
+the produced LaTeX file.
 The macros I've introduced and their default values are as follows.
 \begin{itemize}
 \item
@@ -53,9 +53,9 @@ and it's used to replace that string in other languages.
 
 These macros can be redefined in the LaTeX file to adapt
 the output to the taste of the user. I define here two files
-to redefine the macros to include hyper-links from the 
-\verb|hyper-ref| package in the documentation (which works for 
-example in pdf output) in english and spanish. 
+to redefine the macros to include hyper-links from the
+\verb|hyper-ref| package in the documentation (which works for
+example in pdf output) in english and spanish.
 These files can be included with \verb|\usepackage| in the
 documentation part.
 
@@ -73,7 +73,7 @@ Here's the english hyper-ref version:
 @}
 
 For the spanish version I'm using the spanish \emph{fragmento} ---whose meaning
-is close to ``scrap''--- for the term ``macro''. 
+is close to ``scrap''--- for the term ``macro''.
 I like this but many spanish people involved with computer science use \emph{macro}
 itself in spanish.
 

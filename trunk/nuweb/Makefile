@@ -15,7 +15,7 @@ HDRS = global.h
 
 DIST = Makefile README *.bib *.sty nuweb.w nuwebsty.w \
 		$(TARGET)doc.tex $(SRCS) $(HDRS)
- 
+
 
 .SUFFIXES: .dvi .tex .w .hw
 
@@ -42,7 +42,7 @@ shar:	$(TARGET)doc.tex
 tar:	$(TARGET)doc.tex
 	tar -cf $(TARGET)$(VERSION).tar $(DIST)
 
-distribution: all shar tar nuwebhtml nuwebdoc 
+distribution: all shar tar nuwebhtml nuwebdoc
 
 upload:
 	scp -r nuweb$(VERSION).sh nuweb$(VERSION).tar \
@@ -66,7 +66,7 @@ nuwebhtml: nuweb
 	-nuweb nuwebhtml.hw
 	-latex nuwebhtml.tex
 	latex2html -split 0 nuwebhtml.tex
-	
+
 $(TARGET)doc.tex:	$(TARGET).tex
 	sed -e '/^\\ifshowcode$$/,/^\\fi$$/d' $(TARGET).tex > $@
 
@@ -82,7 +82,7 @@ view:	$(TARGET).dvi
 print:	$(TARGET).dvi
 	lpr -d $(TARGET).dvi
 
-lint:	
+lint:
 	lint $(SRCS) > nuweb.lint
 
 $(OBJS): global.h
