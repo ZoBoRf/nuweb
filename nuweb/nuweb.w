@@ -1271,8 +1271,8 @@ with each new definition being added to the head of the list.
                     command_name, source_name, source_line);
    exit(-1);
 
-skipped:
 }
+skipped:
 @}
 
 @d Skip over at-sign or go to skipped
@@ -3739,9 +3739,9 @@ if (!name->defs || name->defs->scrap != current_scrap) {
   Manager reader;
   Parameters local_parameters = 0;
   int line_number = scrap_array(defs->scrap).file_line;
-  @<Insert debugging information if required@>
   reader.scrap = scrap_array(defs->scrap).slab;
   reader.index = 0;
+  @<Insert debugging information if required@>
   if (delayed_indent)
   {
     @<Insert appropriate indentation@>
