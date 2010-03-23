@@ -88,7 +88,7 @@
 \usepackage{listings}
 
 \usepackage{color}
-\definecolor{linkcolor}{rgb}{0, 0, 0.3}
+\definecolor{linkcolor}{rgb}{0, 0, 0.7}
 
 \usepackage[%
 dvipdfm,%
@@ -1679,13 +1679,12 @@ I've factored the common parts out into separate scraps.
 @{{
   Name *name = collect_file_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "\\verb%c\"%s\"%c\\nobreak\\ {\\footnotesize ", nw_char, name->spelling, nw_char);
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
-  fputs("}{", tex_file);
+  fputs("}{} ", tex_file);
+  fprintf(tex_file, "\\verb%c\"%s\"%c\\nobreak\\ {\\footnotesize {", nw_char, name->spelling, nw_char);
   write_single_scrap_ref(tex_file, scraps);
-  fputs("}", tex_file);
-  fputs(" }$\\equiv$\n", tex_file);
+  fputs("}}$\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
   if ( scrap_flag ) {
     @<Write file defs@>
@@ -1701,13 +1700,12 @@ might want to use italics or bold face in the midst of the name.
 @{{
   Name *name = collect_macro_name();
   @<Begin the scrap environment@>
-  fprintf(tex_file, "$\\langle\\,${\\it %s}\\nobreak\\ {\\footnotesize ", name->spelling);
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
-  fputs("}{", tex_file);
+  fputs("}{} ", tex_file);
+  fprintf(tex_file, "$\\langle\\,${\\it %s}\\nobreak\\ {\\footnotesize {", name->spelling);
   write_single_scrap_ref(tex_file, scraps);
-  fputs("}", tex_file);
-  fputs("}$\\,\\rangle\\equiv$\n", tex_file);
+  fputs("}}$\\,\\rangle\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
   @<Write macro defs@>
   @<Write macro refs@>
@@ -1765,14 +1763,20 @@ c = source_get();
 
 @d Write file defs
 @{{
-  if (name->defs->next) {
-    fputs("\\vspace{-1ex}\n", tex_file);
-    fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
-    fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
-    fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
-    fputs("\\item \\NWtxtFileDefBy\\ ", tex_file);
-    print_scrap_numbers(tex_file, name->defs);
-    fputs("\\end{list}\n", tex_file);
+  if (name->defs) {
+    if (name->defs->next) {
+      fputs("\\vspace{-1ex}\n", tex_file);
+      fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
+      fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
+      fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
+      fputs("\\item \\NWtxtFileDefBy\\ ", tex_file);
+      print_scrap_numbers(tex_file, name->defs);
+      fputs("\\end{list}\n", tex_file);
+    }
+  } else {
+    fprintf(stderr,
+            "would have crashed in 'Write file defs' for '%s'\n",
+             name->spelling);
   }
 }@}
 
@@ -2193,22 +2197,28 @@ This scrap helps deal with bold keywords:
 @d Write file's defining scrap numbers
 @{{
   Scrap_Node *p = name->defs;
-  fputs("{\\footnotesize {\\NWtxtDefBy}", tex_file);
-  if (p->next) {
-    /* fputs("s ", tex_file); */
+  if (p) {
+    fputs("{\\footnotesize {\\NWtxtDefBy}", tex_file);
+    if (p->next) {
+      /* fputs("s ", tex_file); */
+        putc(' ', tex_file);
+      print_scrap_numbers(tex_file, p);
+    }
+    else {
       putc(' ', tex_file);
-    print_scrap_numbers(tex_file, p);
+      fputs("\\NWlink{nuweb", tex_file);
+      write_single_scrap_ref(tex_file, p->scrap);
+      fputs("}{", tex_file);
+      write_single_scrap_ref(tex_file, p->scrap);
+      fputs("}", tex_file);
+      putc('.', tex_file);
+    }
+    putc('}', tex_file);
+  } else {
+    fprintf(stderr,
+            "would have crashed in 'Write file's defining scrap numbers' for '%s\n",
+            name->spelling);
   }
-  else {
-    putc(' ', tex_file);
-    fputs("\\NWlink{nuweb", tex_file);
-    write_single_scrap_ref(tex_file, p->scrap);
-    fputs("}{", tex_file);
-    write_single_scrap_ref(tex_file, p->scrap);
-    fputs("}", tex_file);
-    putc('.', tex_file);
-  }
-  putc('}', tex_file);
 }@}
 
 @d Write defining scrap numbers
@@ -2600,10 +2610,16 @@ end the paragraph.
 
 @d Write HTML macro defs
 @{{
-  if (name->defs->next) {
-    fputs("\\end{rawhtml}\\NWtxtMacroDefBy\\begin{rawhtml} ", html_file);
-    print_scrap_numbers(html_file, name->defs);
-    fputs("<br>\n", html_file);
+  if (name->defs) {
+    if (name->defs->next) {
+      fputs("\\end{rawhtml}\\NWtxtMacroDefBy\\begin{rawhtml} ", html_file);
+      print_scrap_numbers(html_file, name->defs);
+      fputs("<br>\n", html_file);
+    }
+  } else {
+    fprintf(stderr,
+            "would have crashed in 'Write HTML macro defs' for '%s'\n",
+             name->spelling);
   }
 }@}
 
@@ -5325,3 +5341,8 @@ Therefore, it seems better to leave it this up to the user.
 \bibliography{litprog,master,misc}
 
 \end{document}
+
+% for Emacs:
+% Local Variables:
+% nuweb-source-mode: c++-mode
+% End:
