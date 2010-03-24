@@ -661,6 +661,7 @@ have been made by:
 \item Alan Karp \verb|<karp@@hp.com>|
 \item Keith Harwood \verb|<vitalmis@@bigpond.net.au>|
 \item Gregor Goldbach \verb|<glauschwuffel@@users.sourceforge.net>|
+\item Simon Wright \verb|<simonjwright@@users.sourceforge.net>|
 \end{itemize}
 
 \ifshowcode
@@ -1686,9 +1687,13 @@ I've factored the common parts out into separate scraps.
   write_single_scrap_ref(tex_file, scraps);
   fputs("}}$\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
+  @<Begin the cross-reference environment@>
   if ( scrap_flag ) {
     @<Write file defs@>
   }
+  format_defs_refs(tex_file, scraps);
+  format_uses_refs(tex_file, scraps++);
+  @<Finish the cross-reference environment@>
   @<Finish the scrap environment@>
 }@}
 
@@ -1707,8 +1712,12 @@ might want to use italics or bold face in the midst of the name.
   write_single_scrap_ref(tex_file, scraps);
   fputs("}}$\\,\\rangle\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
+  @<Begin the cross-reference environment@>
   @<Write macro defs@>
   @<Write macro refs@>
+  format_defs_refs(tex_file, scraps);
+  format_uses_refs(tex_file, scraps++);
+  @<Finish the cross-reference environment@>
   @<Finish the scrap environment@>
 }@}
 
@@ -1744,8 +1753,6 @@ a scrap will not be indented. Again, this is a matter of personal taste.
 
 @d Finish the scrap environment
 @{{
-  format_defs_refs(tex_file, scraps);
-  format_uses_refs(tex_file, scraps++);
   if (!big_definition)
     fputs("\\end{minipage}\\\\[4ex]\n", tex_file);
   fputs("\\end{flushleft}\n", tex_file);
@@ -1761,17 +1768,30 @@ c = source_get();
 
 \subsubsection{Formatting Cross References}
 
+@d Begin the cross-reference environment
+@{{
+  fputs("\\vspace{-1.5ex}\n", tex_file);
+  fputs("\\footnotesize\n", tex_file);
+  fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
+  fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);}
+@}
+
+There may (unusually) be nothing to output in the cross-reference
+section, so output an empty list item anyway to avoid having an empty
+list.
+
+@d Finish the cross-reference environment
+@{{
+  fputs("\n\\item{}", tex_file);
+  fputs("\n\\end{list}\n", tex_file);
+}@}
+
 @d Write file defs
 @{{
   if (name->defs) {
     if (name->defs->next) {
-      fputs("\\vspace{-1ex}\n", tex_file);
-      fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
-      fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
-      fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
       fputs("\\item \\NWtxtFileDefBy\\ ", tex_file);
       print_scrap_numbers(tex_file, name->defs);
-      fputs("\\end{list}\n", tex_file);
     }
   } else {
     fprintf(stderr,
@@ -1782,10 +1802,6 @@ c = source_get();
 
 @d Write macro defs
 @{{
-  fputs("\\vspace{-1ex}\n", tex_file);
-  fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
-  fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
-  fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
   if (name->defs->next) {
     fputs("\\item \\NWtxtMacroDefBy\\ ", tex_file);
     print_scrap_numbers(tex_file, name->defs);
@@ -1814,7 +1830,6 @@ c = source_get();
     fprintf(stderr, "%s: <%s> never referenced.\n",
             command_name, name->spelling);
   }
-  fputs("\\end{list}\n", tex_file);
 }@}
 
 @o latex.c
@@ -4810,13 +4825,9 @@ format_uses_refs(FILE * tex_file, int scrap)
 }
 @| format_uses_refs @}
 
-@d Write uses ...
+@d Write uses references
 @{{
   char join = ' ';
-  fputs("\\vspace{-2ex}\n", tex_file);
-  fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
-  fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
-  fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
   fputs("\\item \\NWtxtIdentsUsed\\nobreak\\", tex_file);
   do {
     @<Write one use reference@>
@@ -4824,7 +4835,6 @@ format_uses_refs(FILE * tex_file, int scrap)
     p = p->next;
   }while (p != NULL);
   fputs(".", tex_file);
-  fputs("\\end{list}\n", tex_file);
 }@}
 
 @d Write one use reference
@@ -4859,13 +4869,9 @@ format_defs_refs(FILE * tex_file, int scrap)
 }
 @| format_defs_refs @}
 
-@d Write defs ...
+@d Write defs references
 @{{
   char join = ' ';
-  fputs("\\vspace{-2ex}\n", tex_file);
-  fputs("\\footnotesize\\addtolength{\\baselineskip}{-1ex}\n", tex_file);
-  fputs("\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}", tex_file);
-  fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
   fputs("\\item \\NWtxtIdentsDefed\\nobreak\\", tex_file);
   do {
     @<Write one def reference@>
@@ -4873,7 +4879,6 @@ format_defs_refs(FILE * tex_file, int scrap)
     p = p->next;
   }while (p != NULL);
   fputs(".", tex_file);
-  fputs("\\end{list}\n", tex_file);
 }@}
 
 @d Write one def reference
