@@ -704,7 +704,7 @@ We'll need at least five of the standard system include files.
 #include <signal.h>
 #include <locale.h>
 @| FILE stderr exit fprintf fputs fopen fclose getc putc strlen
-toupper isupper islower isgraph isspace tempnam remove malloc size_t getenv set_locale@}
+toupper isupper islower isgraph isspace remove malloc size_t getenv @}
 
 
 \newpage
@@ -814,7 +814,6 @@ int main(argc, argv)
      char **argv;
 {
   int arg = 1;
-  @<Avoid rename() problems@>
   @<Interpret command-line arguments@>
   @<Set locale information@>
   initialise_delimit_scrap_array();
@@ -1053,7 +1052,7 @@ present. If there is no extension, we add \verb|.w| to the source name.
 In any case, we create the \verb|tex_name| from \verb|trim|, taking
 care to get the correct extension.  The \verb|html_flag| is set in
 this scrap.
-@d Build \verb|sou...
+@d Build \verb|source_name|...
 @{{
   char *p = argv[arg];
   char *q = source_name;
@@ -2978,26 +2977,16 @@ pointed out any during the first pass.
 }
 @| write_files @}
 
-We call \verb|tempnam|, causing it to create a file name in the
-current directory.  This could cause a problem for \verb|rename| if
-the eventual output file will reside on a different file system.
-
-To avoid this, we used to set the environment variable \verb|TMPDIR|
-to \verb|"."| at the beginning of the program, but since we got rid of
-tempnam(), we no longer bother.
-
-@d Avoid rename() problems
-@{
-@}
+We don't call \verb|tempnam| to create temporary files, because of
+operating system differences and problems for \verb|rename| if the
+eventual output file will reside on a different file system. Instead,
+we roll our own.
 
 Note the call to \verb|remove| before \verb|rename| --
 The ANSI/ISO C standard does {\em not}
 guarantee that renaming a file to an existing filename
 will overwrite the file.
 
-Note: I've modified this on 2001-02-15 for compilation
-for Win32 with Borland C++ (assuming \verb|MSDOS| is defined). The second
-argument to \verb|tempname| cannot be null in that system.
 @d Type dec...
 @{
 #define MAX_INDENT 500
@@ -4815,8 +4804,7 @@ static void add_uses(Uses * * root, Name *name)
 @| Uses @}
 
 @o scraps.c
-@{
-void
+@{void
 format_uses_refs(FILE * tex_file, int scrap)
 {
   Uses * p = scrap_array(scrap).uses;
@@ -4824,6 +4812,10 @@ format_uses_refs(FILE * tex_file, int scrap)
     @<Write uses references@>
 }
 @| format_uses_refs @}
+
+@d Function prototypes
+@{void format_uses_refs(FILE * tex_file, int scrap);
+@}
 
 @d Write uses references
 @{{
@@ -4859,8 +4851,7 @@ write_scrap_ref(tex_file, defs->scrap, first, &page);
 fputs("}", tex_file);@}
 
 @o scraps.c
-@{
-void
+@{void
 format_defs_refs(FILE * tex_file, int scrap)
 {
   Uses * p = scrap_array(scrap).defs;
@@ -4868,6 +4859,10 @@ format_defs_refs(FILE * tex_file, int scrap)
     @<Write defs references@>
 }
 @| format_defs_refs @}
+
+@d Function prototypes
+@{void format_defs_refs(FILE * tex_file, int scrap);
+@}
 
 @d Write defs references
 @{{
@@ -4877,7 +4872,7 @@ format_defs_refs(FILE * tex_file, int scrap)
     @<Write one def reference@>
     join = ',';
     p = p->next;
-  }while (p != NULL);
+  } while (p != NULL);
   fputs(".", tex_file);
 }@}
 
@@ -5349,5 +5344,5 @@ Therefore, it seems better to leave it this up to the user.
 
 % for Emacs:
 % Local Variables:
-% nuweb-source-mode: c++-mode
+% nuweb-source-mode: "c"
 % End:
