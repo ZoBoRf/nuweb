@@ -3,7 +3,7 @@ CC = cc
 CFLAGS = -O -g
 
 TARGET = nuweb
-VERSION = 1.0b2
+VERSION ?= $(shell date +%Y%m%d)
 
 OBJS = main.o pass1.o latex.o html.o output.o input.o scraps.o names.o \
 	arena.o global.o
@@ -20,16 +20,16 @@ DIST = Makefile README *.bib *.sty nuweb.w nuwebsty.w \
 .SUFFIXES: .dvi .tex .w .hw
 
 .w.tex:
-	nuweb $*.w
+	./nuweb $*.w
 
 .hw.tex:
-	nuweb $*.hw
+	./nuweb $*.hw
 
 .tex.dvi:
 	latex ./$*.tex
 
 .w.dvi:
-	nuweb $*.w
+	./nuweb $*.w
 	latex ./$*.tex
 
 all:
