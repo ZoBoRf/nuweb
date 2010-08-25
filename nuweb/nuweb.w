@@ -2157,19 +2157,20 @@ This scrap helps deal with bold keywords:
 
 @d Write index of macro names
 @{{
-  if (macro_names) {
-    unsigned char sector = current_sector;
-    int c = source_get();
-    if (c == '+')
-       sector = 0;
-    else
-       source_ungetc(&c);
-
+  unsigned char sector = current_sector;
+  c = source_get();
+  if (c == '+')
+     sector = 0;
+  else
+     source_ungetc(&c);
+  if (has_sector(macro_names, sector)) {
     fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
           tex_file);
     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
     format_entry(macro_names, tex_file, FALSE, sector);
     fputs("\\end{list}}", tex_file);
+  } else {
+    fputs("None.\n", tex_file);
   }
   c = source_get();
 }@}
@@ -2291,31 +2292,35 @@ Name * name;
 unsigned char sector;
 {
   while(name) {
-    if (name->sector == sector)
-       return TRUE;
-    if (has_sector(name->llink, sector))
-       return TRUE;
-     name = name->rlink;
-   }
-   return FALSE;
+    if (has_sector(name->llink, sector)) {
+      return TRUE;
+    }
+    if (name->sector == sector) {
+      return TRUE;
+    }
+    name = name->rlink;
+  }
+  return FALSE;
 }
-@}
+@| has_sector @}
 
 @d Write index of user-specified names
 @{{
-    unsigned char sector = current_sector;
-    c = source_get();
-    if (c == '+') {
-       sector = 0;
-       c = source_get();
-    }
-    if (has_sector(user_names, sector)) {
-       fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
-             tex_file);
-       fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
-         format_user_entry(user_names, tex_file, sector);
-       fputs("\\end{list}}", tex_file);
-    }
+  unsigned char sector = current_sector;
+  c = source_get();
+  if (c == '+') {
+     sector = 0;
+     c = source_get();
+  }
+  if (has_sector(user_names, sector)) {
+     fputs("\n{\\small\\begin{list}{}{\\setlength{\\itemsep}{-\\parsep}",
+           tex_file);
+     fputs("\\setlength{\\itemindent}{-\\leftmargin}}\n", tex_file);
+       format_user_entry(user_names, tex_file, sector);
+     fputs("\\end{list}}", tex_file);
+  } else {
+    fputs("None.\n", tex_file);
+  }
 }@}
 
 
