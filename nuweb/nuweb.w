@@ -1088,7 +1088,6 @@ command-line arguments.
   else break;
 }@}
 
-
 Several flags can be stacked behind a single minus sign; therefore,
 we've got to loop through the string, handling them all.
 If this flag requires an argument we skip to getting its argument
@@ -1277,6 +1276,7 @@ this scrap.
       dot = q - 1;
     c = *p++;
   }
+  @<Add the source path to the include path list@>
   *q = '\0';
   if (dot) {
     *dot = '\0'; /* produce HTML when the file extension is ".hw" */
@@ -1293,6 +1293,28 @@ this scrap.
     *q = '\0';
   }
 }@}
+
+If the source file has a directory part we add that directory to the
+end of the search path so that the path of last resort is the same as
+the source path, not, as one person put it, something irrelevant like
+the directory nuweb was invoked from.
+
+@d Add the source path to the include path list
+@{if (trim != source_name) {
+   struct incl * le
+      = (struct incl *)arena_getmem(sizeof(struct incl));
+   struct incl ** p = &include_list;
+   char sv = *trim;
+
+   *trim = '\0';
+   le->name = save_string(source_name);
+   le->next = NULL;
+   while (*p != NULL)
+      p = &((*p)->next);
+   *p = le;
+   *trim = sv;
+}
+@}
 
 Now that we're finally ready to process a file, it's not really too
 complex.  We bundle most of the work into four routines \verb|pass1|
@@ -3961,7 +3983,6 @@ hence this whole unsatisfactory \verb|double_at| business.
 @d Collect include-file name
 @{{
     char *p = name;
-    @<Resolve include-file path@>
     do
       c = getc(source_file);
     while (c == ' ' || c == '\t');
@@ -3975,18 +3996,6 @@ hence this whole unsatisfactory \verb|double_at| business.
               command_name, source_name, source_line);
       exit(-1);
     }
-}@}
-
-We need to make sure that the paths of included files are resolved relative
-to the path of the including file (And not relative to something as irrelevant
-as the directory that nuweb was invoked from).
-@d Resolve include-file path
-@{{
-  char *q = source_name + strlen(source_name);
-  while ((q > source_name) && !PATH_SEP(*q)) --q;
-  if (PATH_SEP(*q)) ++q; /* we want to copy the last separator too */
-  char *r = source_name;
-  while (r<q) *p++ = *r++;
 }@}
 
 If an \verb|EOF| is discovered, the current file must be closed and
