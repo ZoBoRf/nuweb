@@ -14,44 +14,44 @@
 I've changed \verb|nuweb| to use macros instead of
 some fixed strings. The modified \verb|nuweb| inserts
 default values of those macros at the beginning of
-the produced LaTeX file.
+the produced \LaTeX\ file.
 The macros I've introduced and their default values are as follows.
 \begin{itemize}
 \item
-\verb|\NWtarget| has two arguments just like \verb|hyperref|'s \verb|\hypertarget|
-and by default simply places the second argument in the output. It is use as a
-placeholder to introduce hyper links.
+\verb|\NWtarget| has two arguments just like \verb|hyperref|'s
+\verb|\hypertarget| and by default simply places the second argument
+in the output. It's used as a placeholder to introduce hyperlinks.
 \item
-\verb|\NWlink| has two arguments just like \verb|hyperref|'s \verb|\hyperlink|
-and by default simply places the second argument in the output. It is use as a
-placeholder to introduce hyper links.
+\verb|\NWlink| has two arguments just like \verb|hyperref|'s
+\verb|\hyperlink| and by default simply places the second argument in
+the output. It's used as a placeholder to introduce hyper links.
 \item
-\verb|\NWtxtMacroDefBy| it's default value is the string ``Macro defined by''
+\verb|\NWtxtMacroDefBy| its default value is the string ``Macro defined by''
 and it's used to replace that string in other languages.
 \item
-\verb|\NWtxtMacroRefIn| it's default value is the string ``Macro referenced in''
+\verb|\NWtxtMacroRefIn| its default value is the string ``Macro referenced in''
 and it's used to replace that string in other languages.
 \item
-\verb|\NWtxtMacroNoRef| it's default value is the string ``Macro never referenced''
+\verb|\NWtxtMacroNoRef| its default value is the string ``Macro never referenced''
 and it's used to replace that string in other languages.
 \item
-\verb|\NWtxtDefBy| it's default value is the string ``Defined by''
+\verb|\NWtxtDefBy| its default value is the string ``Defined by''
 and it's used to replace that string in other languages.
 \item
-\verb|\NWtxtRefIn| it's default value is the string ``Referenced in''
+\verb|\NWtxtRefIn| its default value is the string ``Referenced in''
 and it's used to replace that string in other languages.
 \item
-\verb|\NWtxtNoRef| it's default value is the string ``Not referenced''
+\verb|\NWtxtNoRef| its default value is the string ``Not referenced''
 and it's used to replace that string in other languages.
 \item
-\verb|\NWtxtFileDefBy| it's default value is the string ``File defined by''
+\verb|\NWtxtFileDefBy| its default value is the string ``File defined by''
 and it's used to replace that string in other languages.
 \item
-\verb|\NWsep| is used as a end marker for scraps; it's default value is
+\verb|\NWsep| is used as an end marker for scraps; its default value is
 \verb|$\Diamond $|.
 \end{itemize}
 
-These macros can be redefined in the LaTeX file to adapt
+These macros can be redefined in the \LaTeX\ file to adapt
 the output to the taste of the user. I define here two files
 to redefine the macros to include hyper-links from the
 \verb|hyper-ref| package in the documentation (which works for
@@ -81,12 +81,12 @@ itself in spanish.
 @{% nwhres.sty -- nuweb macros for hyperref in spanish
 @<Hyper-ref macros@>
 \renewcommand{\NWtxtMacroDefBy}{Fragmento definido en} % Macro defined by
-\renewcommand{\NWtxtMacroRefIn}{Fragmento usado en}     % Macro referenced in
-\renewcommand{\NWtxtMacroNoRef}{Fragmento no usado} % Macro never referenced
-\renewcommand{\NWtxtDefBy}{Definido en} % Defined by
-\renewcommand{\NWtxtRefIn}{Usado en} % Referenced in
-\renewcommand{\NWtxtNoRef}{No usado} % Not referenced
-\renewcommand{\NWtxtFileDefBy}{Archivo definido en} % File defined by
+\renewcommand{\NWtxtMacroRefIn}{Fragmento usado en}    % Macro referenced in
+\renewcommand{\NWtxtMacroNoRef}{Fragmento no usado}    % Macro never referenced
+\renewcommand{\NWtxtDefBy}{Definido en}                % Defined by
+\renewcommand{\NWtxtRefIn}{Usado en}                   % Referenced in
+\renewcommand{\NWtxtNoRef}{No usado}                   % Not referenced
+\renewcommand{\NWtxtFileDefBy}{Archivo definido en}    % File defined by
 @}
 
 \end{document}
