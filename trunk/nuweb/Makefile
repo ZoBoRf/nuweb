@@ -3,7 +3,7 @@ CC = cc
 CFLAGS = -g
 
 TARGET = nuweb
-VERSION = 1.0b1
+VERSION = 1.53
 
 OBJS = main.o pass1.o latex.o html.o output.o input.o scraps.o names.o \
 	arena.o global.o
@@ -14,66 +14,46 @@ SRCS = main.c pass1.c latex.c html.c output.c input.c scraps.c names.c \
 HDRS = global.h
 
 DIST = Makefile README *.bib *.sty nuweb.w nuwebsty.w \
-		$(TARGET)doc.tex $(SRCS) $(HDRS)
- 
+	$(TARGET)doc.tex $(SRCS) $(HDRS)
 
-.SUFFIXES: .dvi .tex .w .hw
+%.tex: %.w
+	nuweb -r $<
 
-.w.tex:
-	nuweb $*.w
+%: %.tex
+	latex2html -split 0 $<
 
-.hw.tex:
-	nuweb $*.hw
+%.hw: %.w
+	cp $< $@
 
-.tex.dvi:
-	latex ./$*.tex
+%.dvi: %.tex
+	latex $<
 
-.w.dvi:
-	nuweb $*.w
-	latex ./$*.tex
+%.pdf: %.tex
+	pdflatex $<
 
 all:
 	$(MAKE) $(TARGET).tex
 	$(MAKE) $(TARGET)
 
-shar:	$(TARGET)doc.tex
-	shar $(DIST) > $(TARGET)$(VERSION).sh
+tar: $(TARGET)doc.tex
+	tar -zcf $(TARGET)$(VERSION).tar.gz $(DIST)
 
-tar:	$(TARGET)doc.tex
-	tar -cf $(TARGET)$(VERSION).tar $(DIST)
+distribution: all tar nuwebdoc.pdf nuwebdoc
 
-distribution: all shar tar nuwebhtml nuwebdoc 
-
-nuwebdoc: nuwebdoc.tex
-	-latex nuwebdoc
-	-bibtex nuwebdoc
-	-latex nuwebdoc
-	dvips nuwebdoc
-	latex2html -split 0 nuwebdoc.tex
-
-nuwebhtml: nuweb
-	sed -e 's/%\\usepackage{html}/\\usepackage{html}/' < nuweb.w > nuwebhtml.hw
-	nuweb nuwebhtml.hw
-	-latex nuwebhtml.tex
-	-bibtex nuwebhtml
-	-nuweb nuwebhtml.hw
-	-latex nuwebhtml.tex
-	latex2html -split 0 nuwebhtml.tex
-	
-$(TARGET)doc.tex:	$(TARGET).tex
-	sed -e '/^\\ifshowcode$$/,/^\\fi$$/d' $(TARGET).tex > $@
+$(TARGET)doc.tex: $(TARGET).tex
+	sed -e '/^\\ifshowcode$$/,/^\\fi$$/d' $< > $@
 
 check: nuweb
 	@declare -i n=0; \
         declare -i f=0; \
 	for i in test/*/*.sh ; do \
-	echo "Testing $$i"; \
-	sh $$i; \
-	if test $$? -ne 0; \
-	then echo "         $$i failed" ; \
-	f+=1; \
-	fi; \
-	n+=1; \
+	  echo "Testing $$i"; \
+	  sh $$i; \
+	  if test $$? -ne 0; \
+	  then echo "         $$i failed" ; \
+	    f+=1; \
+	  fi; \
+	  n+=1; \
 	done; \
         echo "$$n done"; \
         echo "$$f failed"
@@ -90,7 +70,7 @@ view:	$(TARGET).dvi
 print:	$(TARGET).dvi
 	lpr -d $(TARGET).dvi
 
-lint:	
+lint:
 	lint $(SRCS) > nuweb.lint
 
 $(OBJS): global.h
