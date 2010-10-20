@@ -13,8 +13,12 @@ SRCS = main.c pass1.c latex.c html.c output.c input.c scraps.c names.c \
 
 HDRS = global.h
 
-DIST = Makefile README *.bib *.sty nuweb.w nuwebsty.w \
-	$(TARGET)doc.tex $(SRCS) $(HDRS)
+BIBS = litprog.bib master.bib misc.bib
+
+STYS = bibnames.sty html.sty
+
+DIST = Makefile README nuweb.w nuwebsty.w \
+	$(TARGET)doc.tex $(SRCS) $(HDRS) $(BIBS) $(STYS)
 
 %.tex: %.w
 	nuweb -r $<
@@ -36,7 +40,7 @@ all:
 	$(MAKE) $(TARGET)
 
 tar: $(TARGET)doc.tex
-	tar -zcf $(TARGET)$(VERSION).tar.gz $(DIST)
+	tar -zcf $(TARGET)-$(VERSION).tar.gz $(DIST)
 
 distribution: all tar nuwebdoc.pdf nuwebdoc
 
