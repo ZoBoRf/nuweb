@@ -31,22 +31,29 @@
 %
 
 % Notes:
+
 % Changes from 2010-03-11 in the Sourceforge revision history. -- sjw
-% Updates on 2004-02-23 from Gregor Goldbach <glauschwuffel@@users.sourceforge.net>
-% -- new command line option -r which will make nuweb typeset each NWtarget and NWlink
-%    instance with \LaTeX-commands from the hyperref package. This gives clickable scrap
-%    numbers which is very useful when viewing the document on-line.
-% Updates on 2004-02-13 from Gregor Goldbach <glauschwuffel@@users.sourceforge.net>
-% -- new command line option -l which will make nuweb typeset scraps with the
-%    help of LaTeX's listings packages instead or pure verbatim.
+
+% Updates on 2004-02-23 from Gregor Goldbach
+% <glauschwuffel@@users.sourceforge.net>
+% -- new command line option -r which will make nuweb typeset each
+% NWtarget and NWlink instance with \LaTeX-commands from the hyperref
+% package. This gives clickable scrap numbers which is very useful
+% when viewing the document on-line.
+
+% Updates on 2004-02-13 from Gregor Goldbach
+% <glauschwuffel@@users.sourceforge.net>
+% -- new command line option -l which will make nuweb typeset scraps
+%    with the help of LaTeX's listings packages instead or pure
+%    verbatim.
 % -- man page corrections and additions.
-% Notes:
+
 % Updates on 2003-04-24 from Keith Harwood <Keith.Harwood@@vitalmis.com>
 % -- sectioning commands (@@s and global-plus-sign in scrap names)
 % -- @@x..@@x labelling
 % -- @@f current file
 % -- @@\# suppress indent
-%
+
 % This file has been changed by Javier Goizueta <jgoizueta@@jazzfree.es>
 % on 2001-02-15.
 % These are the changes:
@@ -66,15 +73,18 @@
 %    for the scape character, the program must be compiled with the -K
 %    option in Borland compilers or the -funsigned-char in GNU's gcc
 %    to treat char as an unsigned value when converted to int.
-%    To make the program independen of those options, either char should be changed
-%    to unsigned char (bad solution, since unsigned char should be used for numerical
-%    purposes) or attention should be payed to all char-int conversions. (including
-%    comparisons)
-% --2002-01-15: the TILDE modificiation is necessary because some ties have been
-%   introduced in version 0.93 in troublesome places when the babel package is
-%   used with the spanish.ldf option (which makes ~ an active character).
-% --2002-01-15: an ``s'' was being added to the NWtxtDefBy and NWtxtDefBy
-%   messages when followed by more than one reference.
+%    To make the program independent of those options, either char
+%    should be changed to unsigned char (bad solution, since unsigned
+%    char should be used for numerical purposes) or attention should
+%    be payed to all char-int conversions. (including comparisons)
+
+% --2002-01-15: the TILDE modificiation is necessary because some ties
+%   have been introduced in version 0.93 in troublesome places when
+%   the babel package is used with the spanish.ldf option (which makes
+%   ~ an active character).
+
+% --2002-01-15: an ``s'' was being added to the NWtxtDefBy and
+%   NWtxtDefBy messages when followed by more than one reference.
 
 \documentclass[a4paper]{report}
 \newif\ifshowcode
@@ -82,7 +92,7 @@
 
 \usepackage{latexsym}
 %\usepackage{html}
- 
+
 \usepackage{listings}
 
 \usepackage{color}
@@ -117,15 +127,19 @@ urlcolor={linkcolor}%
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 1.0b1 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 1.53 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.}
-\\ \sl preston@@tera.com
+\\ {\sl preston@@tera.com}
 \\ HTML scrap generator by John D. Ramsdell
-\\ \sl ramsdell@@mitre.org
-\\ scrap formatting and continuing maintenance by Marc W. Mengel
-\\ \sl mengel@@fnal.gov}
+\\ {\sl ramsdell@@mitre.org}
+\\ Scrap formatting by Marc W. Mengel
+\\ {\sl mengel@@fnal.gov}
+\\ Continuing maintenance by Simon Wright
+\\ {\sl simon@@pushface.org}
+\\ and Keith Harwood
+\\ {\sl Keith.Harwood@@vitalmis.com}}
 
 \begin{document}
 \pagenumbering{roman}
@@ -271,7 +285,7 @@ activating the links.  The tools which generate HTML automatically
 produce hypertext links from a nuweb source.
 
 (Note that hyperlinks can be included in \LaTeX\ using the
-\verb|hyperref| package. This is now the prefered way of doing
+\verb|hyperref| package. This is now the preferred way of doing
 this and the HTML processing is not up to date.)
 
 \section{Writing Nuweb}
@@ -290,42 +304,40 @@ copied to the documentation file.
 
 Files and fragments are defined with the following commands:
 \begin{description}
-\item[{\tt @@o} {\em file-name flags scrap\/}] Output a file. The file name is
-  terminated by whitespace.
+\item[{\tt @@o} {\em file-name flags scrap\/}] Output a file. The file
+  name is terminated by whitespace.
 \item[{\tt @@d} {\em fragment-name scrap\/}] Define a fragment. The
-fragment name
-  is terminated by a return or the beginning of a scrap.
+  fragment name is terminated by a return or the beginning of a scrap.
 \item[{\tt @@q} {\em fragment-name scrap\/}] Define a fragment. The
-fragment name
-  is terminated by a return or the beginning of a scrap.
+  fragment name is terminated by a return or the beginning of a scrap.
   This a quoted fragment.
 \end{description}
 A specific file may be specified several times, with each definition
 being written out, one after the other, in the order they appear.
 The definitions of fragments may be similarly specified piecemeal.
 
-A fragment name may have embedded parameters. The parameters are denoted by
-the sequence \texttt{@@'value@@'} where \texttt{value} is an
-uninterpretted string of characters (although the sequence \texttt{@@@@}
-denotes a single \texttt{@@} character. When a fragment name is used inside
-a scrap the parameters may be replaced by an argument which may be 
-a different literal string, 
-a fragment use, an embedded fragment or by a parameter use.
+A fragment name may have embedded parameters. The parameters are
+denoted by the sequence \texttt{@@'value@@'} where \texttt{value} is
+an uninterpreted string of characters (although the sequence
+\texttt{@@@@} denotes a single \texttt{@@} character). When a fragment
+name is used inside a scrap the parameters may be replaced by an
+argument which may be a different literal string, a fragment use, an
+embedded fragment or by a parameter use.
 
-The difference between a quoted fragment (@@q) and an ordinary one
-(@@d) is that inside a quoted fragment fragments are not expanded on
-output. Rather, they are formatted as uses of fragments so that the
-output file can itself be \texttt{nuweb} source. This allows you
-to create files containing fragments which can undergo further
-processing before the fragments are expanded, while also describing
-and documenting them in one place.
+The difference between a quoted fragment (\texttt{@@q}) and an
+ordinary one (\texttt{@@d}) is that inside a quoted fragment fragments
+are not expanded on output. Rather, they are formatted as uses of
+fragments so that the output file can itself be \texttt{nuweb}
+source. This allows you to create files containing fragments which can
+undergo further processing before the fragments are expanded, while
+also describing and documenting them in one place.
 
 You can have both quoted and unquoted fragments with the same
-name. They are written out in order as usual, with those
-introduced by @@q being quoted and those with @@d expanded as
+name. They are written out in order as usual, with those introduced by
+\texttt{@@q} being quoted and those with \texttt{@@d} expanded as
 normal.
 
-In quoted fragments, the @@f filename is quoted as well, so that
+In quoted fragments, the \texttt{@@f} filename is quoted as well, so that
 when it is expanded it refers to the finally produced file, not
 any of the intermediate ones.
 
@@ -499,7 +511,7 @@ in the web file.
   the \verb|-I| flag on the command line. Each such flag adds one
   directory tothe search path and they are searched in the order
   given.
-\item[{\tt @@r}$x$] Changes the escape character '@@' to '$x$'.
+\item[{\tt @@r}$x$] Changes the escape character `@@' to `$x$'.
   This must appear before any scrap definitions.
 \item[\tt @@v] Always replaced by the string established by
 the \texttt{-V} flag, or a default string if the flag isn't
@@ -647,18 +659,18 @@ would simply scan the input and produce no output at all.
 
 There are several additional command-line flags:
 \begin{description}
-\item[\tt -v] For ``verbose,'' causes nuweb to write information about
+\item[\tt -v] For ``verbose'', causes nuweb to write information about
   its progress to \verb|stderr|.
 \item[\tt -n] Forces scraps to be numbered sequentially from~1
   (instead of using page numbers). This form is perhaps more desirable
   for small webs.
 \item[\tt -s] Doesn't print list of scraps making up each file
   following each scrap.
-\item[\tt -d] Print "dangling" identifiers -- user identifiers which
+\item[\tt -d] Print ``dangling'' identifiers -- user identifiers which
   are never referenced, in indices, etc.
-\item[\tt -p \it path] Prepend \textit{path} to the filenames for
+\item[\tt -p {\it path}] Prepend \textit{path} to the filenames for
 all the output files.
-\item[\texttt{-l}] \label{sec:pretty-print} Use the \texttt{listings}
+\item[\tt -l] \label{sec:pretty-print} Use the \texttt{listings}
 package for formatting scraps. Use this if you want to have a
 pretty-printer for your scraps. In order to e.g. have pretty Perl
 scraps, include the following \LaTeX\ commands in your document:
@@ -696,8 +708,9 @@ that file.  The documentations section will be jumbled, but the
 scraps will be clear.
 
 (Note that the HTML generation is not currently maintained. If the
- only reason you want HTML is ti get hyperlinks, use the {\LaTeX}
- \verb|hyperref| package and produce your document as PDF.
+only reason you want HTML is ti get hyperlinks, use the {\LaTeX}
+\verb|hyperref| package and produce your document as PDF via
+\verb|pdflatex|.)
 
 \section{Restrictions}
 
@@ -710,7 +723,7 @@ fundamental.
   immediately. This behavior should be regularized.
 \item I warn about references to fragments that haven't been defined, but
   don't halt. The name of the fragment is included in the output file
-  surrounded by \verb|<>| signs. 
+  surrounded by \verb|<>| signs.
   This seems most convenient for development, but may change
   in the future.
 \item File names and index entries should not contain any \verb|@@|
@@ -754,8 +767,8 @@ de~Waleffe, and Scott Warren.  Of course, most of these people would
 never have heard or nuweb (or many other tools) without the efforts of
 George Greenwade.
 
-Since maintenance has been taken over by Marc Mengel, online contributions
-have been made by:
+Since maintenance has been taken over by Marc Mengel, Simon Wright and
+Keith Harwood online contributions have been made by:
 \begin{itemize}
 \item Walter Brown \verb|<wb@@fnal.gov>|
 \item Nicky van Foreest \verb|<n.d.vanforeest@@math.utwente.nl>|
@@ -1510,7 +1523,6 @@ with each new definition being added to the head of the list.
 @d Skip over an in-text scrap
 @{
 {
-
    int c;
    while ((c = source_get()) != EOF) {
       if (c == nw_char)
@@ -1772,57 +1784,59 @@ parameter and we can then pull
 the $n$th string from the \verb|Parameters| list when we
 see an \verb|@@1| \verb|@@2|, etc.
 
-@d Handle macro parameter substitution @{
+@D Handle macro parameter substitution @{
     case '1': case '2': case '3':
     case '4': case '5': case '6':
     case '7': case '8': case '9':
-            {
-              Arglist * args;
-              Name * name;
+      {
+        Arglist * args;
+        Name * name;
 
-              lookup(c - '1', inArgs, inParams, &name, &args);
+        lookup(c - '1', inArgs, inParams, &name, &args);
 
-              if (name == (Name *)1) {
-                Embed_Node * q = (Embed_Node *)args;
-                indent = write_scraps(file, spelling, q->defs,
-                                      global_indent + indent,
-                                      indent_chars, debug_flag,
-                                      tab_flag, indent_flag,
-                                      comment_flag,
-                                      q->args, inParams,
-                                      local_parameters);
-              }
-              else if (name != NULL) {
-                 int i, narg;
-                 char * p = name->spelling;
-                 Arglist *q = args;
+        if (name == (Name *)1) {
+          Embed_Node * q = (Embed_Node *)args;
+          indent = write_scraps(file, spelling, q->defs,
+                                global_indent + indent,
+                                indent_chars, debug_flag,
+                                tab_flag, indent_flag,
+                                comment_flag,
+                                q->args, inParams,
+                                local_parameters);
+        }
+        else if (name != NULL) {
+           int i, narg;
+           char * p = name->spelling;
+           Arglist *q = args;
 
-                @<Perhaps comment...@>
-                indent = write_scraps(file, spelling, name->defs,
-                                      global_indent + indent,
-                                      indent_chars, debug_flag,
-                                      tab_flag, indent_flag,
-                                      comment_flag, args, name->arg,
-                                      local_parameters);
-              }
-              else if (args != NULL) {
-                 if (delayed_indent) {
-                   @<Put out the indent@>
-                 }
-                 fputs((char *)args, file);
-              }
-              else if ( parameters && parameters[c - '1'] ) {
-                Scrap_Node param_defs;
-                param_defs.scrap = parameters[c - '1'];
-                param_defs.next = 0;
-                write_scraps(file, spelling, &param_defs, global_indent + indent,
-                          indent_chars, debug_flag, tab_flag, indent_flag,
-                          comment_flag, NULL, NULL, 0);
-              } else if (delayed_indent) {
-                  @<Put out the indent@>
-              }
-            }
-            break;
+          @<Perhaps comment...@>
+          indent = write_scraps(file, spelling, name->defs,
+                                global_indent + indent,
+                                indent_chars, debug_flag,
+                                tab_flag, indent_flag,
+                                comment_flag, args, name->arg,
+                                local_parameters);
+        }
+        else if (args != NULL) {
+           if (delayed_indent) {
+             @<Put out the indent@>
+           }
+           fputs((char *)args, file);
+        }
+        else if ( parameters && parameters[c - '1'] ) {
+          Scrap_Node param_defs;
+          param_defs.scrap = parameters[c - '1'];
+          param_defs.next = 0;
+          write_scraps(file, spelling, &param_defs,
+                       global_indent + indent,
+                       indent_chars, debug_flag,
+                       tab_flag, indent_flag,
+                       comment_flag, NULL, NULL, 0);
+        } else if (delayed_indent) {
+          @<Put out the indent@>
+        }
+      }
+      break;
 @}
 Now onto actually parsing fragment parameters from a call.
 We start off checking for fragment parameters, an \verb|@@(| sequence
@@ -1848,7 +1862,6 @@ and write in the collected scrap:
   push(nw_char, &writer);
   push('(', &writer);
   do {
-
      param_scrap = collect_scrap();
      sprintf(param_buf, "%d", param_scrap);
      pushs(param_buf, &writer);
@@ -2506,7 +2519,7 @@ command.
 @d Function prototypes
 @{void initialise_delimit_scrap_array(void);
 @}
-  
+
 @o latex.c
 @{int scrap_type = 0;
 @| scrap_type @}
@@ -2568,9 +2581,9 @@ command.
 }
 @| copy_scrap scrap_type @}
 
-When we encouter the command to change the `nuweb character' we call
+When we encounter the command to change the `nuweb character' we call
 this function. It updates the scrap formatting directives accordingly.
-  
+
 @o latex.c
 @{void update_delimit_scrap()
 {
@@ -2609,7 +2622,7 @@ this function. It updates the scrap formatting directives accordingly.
 
 @d Expand tab into spaces
 @{{
-  int delta = 3 - (indent % 3);
+  int delta = 8 - (indent % 8);
   indent += delta;
   while (delta > 0) {
     putc(' ', file);
@@ -3720,15 +3733,15 @@ pointed out any during the first pass.
 }
 @| write_files @}
 
-Note the call to \verb|remove| before \verb|rename| --
-The ANSI/ISO C standard does {\em not}
-guarantee that renaming a file to an existing filename
-will overwrite the file.
+\verb|MAX_INDENT| defines the maximum number of leading whitespace
+ characters. This is only a problem when outputting very long lines,
+ possibly by multiple definitions of the same fragment (as in a list
+ of elements which is added to every time a new element is defined).
 
 @d Type dec...
 @{
 #define MAX_INDENT 500
-@}
+@| MAX_INDENT @}
 
 @d Write out \verb|files->spelling|
 @{{
@@ -3739,29 +3752,8 @@ will overwrite the file.
   int temp_file_fd;
   FILE *temp_file;
 
-  for( temp_name_count = 0; temp_name_count < 10000; temp_name_count++) {
-    sprintf(temp_name,"%s%snw%06d", dirpath, path_sep, temp_name_count);
-#ifdef O_EXCL
-    if (-1 != (temp_file_fd = open(temp_name, O_CREAT|O_WRONLY|O_EXCL))) {
-       temp_file = fdopen(temp_file_fd, "w");
-       break;
-    }
-#else
-    if (0 != (temp_file = fopen(temp_name, "a"))) {
-       if ( 0L == ftell(temp_file)) {
-          break;
-       } else {
-          fclose(temp_file);
-          temp_file = 0;
-       }
-    }
-#endif
-  }
-  if (!temp_file) {
-    fprintf(stderr, "%s: can't create %s for a temporary file\n",
-            command_name, temp_name);
-    exit(-1);
-  }
+  @< Find a free temporary file @>
+
   sprintf(real_name, "%s%s%s", dirpath, path_sep, files->spelling);
   if (verbose_flag)
     fprintf(stderr, "writing %s [%s]\n", files->spelling, temp_name);
@@ -3769,13 +3761,48 @@ will overwrite the file.
                files->debug_flag, files->tab_flag, files->indent_flag,
                files->comment_flag, NULL, NULL, 0);
   fclose(temp_file);
-  if (compare_flag)
-    @<Compare the temp file and the old file@>
-  else {
-    remove(real_name);
-    rename(temp_name, real_name);
-  }
+
+  @< Move the temporary file to the target, if required @>
 }@}
+
+@d Find a free temporary file @{@%
+for( temp_name_count = 0; temp_name_count < 10000; temp_name_count++) {
+  sprintf(temp_name,"%s%snw%06d", dirpath, path_sep, temp_name_count);
+#ifdef O_EXCL
+  if (-1 != (temp_file_fd = open(temp_name, O_CREAT|O_WRONLY|O_EXCL))) {
+     temp_file = fdopen(temp_file_fd, "w");
+     break;
+  }
+#else
+  if (0 != (temp_file = fopen(temp_name, "a"))) {
+     if ( 0L == ftell(temp_file)) {
+        break;
+     } else {
+        fclose(temp_file);
+        temp_file = 0;
+     }
+  }
+#endif
+}
+if (!temp_file) {
+  fprintf(stderr, "%s: can't create %s for a temporary file\n",
+          command_name, temp_name);
+  exit(-1);
+}
+@}
+
+Note the call to \verb|remove| before \verb|rename| -- the ANSI/ISO C
+standard does {\em not} guarantee that renaming a file to an existing
+filename will overwrite the file.
+
+@d Move the temporary file to the target, if required @{@%
+if (compare_flag)
+  @<Compare the temp file and the old file@>
+else {
+  remove(real_name);
+  rename(temp_name, real_name);
+}
+@}
 
 Again, we use a call to \verb|remove| before \verb|rename|.
 @d Compare the temp file...
@@ -4045,7 +4072,7 @@ file. If unsuccessful, it complains and halts. Otherwise, it sets
 
 
 @o scraps.c -cc
-@{#define SLAB_SIZE 500
+@{#define SLAB_SIZE 1024
 
 typedef struct slab {
   struct slab *next;
@@ -4624,8 +4651,9 @@ a->next = next;@}
              break;
            }
          putc(c, file);
-         if (global_indent >= 0)
-           indent_chars[global_indent + indent] = ' ';
+         if (global_indent >= 0) {
+           @< Add more indentation @(' '@) @>
+         }
          indent++;
          if (c > ' ') newline = 0;
          delayed_indent = 0;
@@ -4633,6 +4661,18 @@ a->next = next;@}
     }
     c = pop(&reader);
   }
+}@}
+
+We need to make sure that we don't overflow \verb|indent_chars[]|.
+@d Add more indentation @{@%
+{
+  if (global_indent + indent >= MAX_INDENT) {
+    fprintf(stderr,
+           "Error! maximum indentation exceeded in \"%s\".\n",
+            spelling);
+    exit(1);
+  }
+  indent_chars[global_indent + indent] = @1;
 }@}
 
 
@@ -4680,8 +4720,9 @@ may be needed when the next fragment is started.
     @<Expand tab...@>
   else {
     putc('\t', file);
-    if (global_indent >= 0)
-      indent_chars[global_indent + indent] = '\t';
+    if (global_indent >= 0) {
+      @< Add more indentation @('\t'@) @>
+    }
     indent++;
   }
 }@}
@@ -4707,8 +4748,9 @@ may be needed when the next fragment is started.
           if(c==nw_char)
             {
               putc(c, file);
-              if (global_indent >= 0)
-                 indent_chars[global_indent + indent] = ' ';
+              if (global_indent >= 0) {
+                 @< Add more indentation @(' '@) @>
+              }
               indent++;
               break;
             }
@@ -6611,7 +6653,7 @@ supresses the indentation of fragments (useful for \fBFortran\fR).
 \fB-t\fP option makes \fInuweb\fP
 copy tabs untouched from input to output.
 .br
-\fB-c\fIx\fP Include comments in the output file. 
+\fB-c\fIx\fP Include comments in the output file.
 \fIx\fP may be \fBc\fP for C-style comments, \fB+\fP for C++ and
 \fBp\fP for perl and similar.
 .PP
@@ -6645,7 +6687,7 @@ Preston Briggs.
 Internet address \fBpreston@@cs.rice.edu\fP.
 .SH MAINTAINER
 Simon Wright
-Internet address \fBsimon.j.wright@@mac.com\fP
+Internet address \fBsimon@@pushface.org\fP
 .br
 Keith Harwood
 Internet address \fBKeith.Harwood@@vitalmis.com\fP
