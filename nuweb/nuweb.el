@@ -1,16 +1,20 @@
-;;; nuweb.el --- major mode to edit nuweb files with AucTex
+;;; nuweb.el --- major mode to edit nuweb files with AucTex or TeX.
 ;;;
-;;;  $Id: nuweb.el 184 2010-04-12 18:42:08Z ddw $ 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;  Original header
+;;;
+;;;  $ Id: nuweb.el 184 2010-04-12 18:42:08Z ddw $
 ;;;
 ;;;
 ;; Author: Dominique de Waleffe <ddewaleffe@gmail.com>
 ;; Maintainer: Dominique de Waleffe <ddewaleffe@gmail.com>
-;; Version: $Revision: 184 $
+;; Version: $ Revision: 184 $
 ;; Keywords: nuweb programming  tex tools languages
 ;;
-;; 
+;;
 ;; DISCLAIMER: I do not guarantee anything about this
 ;; package, nor does my employer. You get it as is and not much else.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; This nuweb support package is free software, just as GNU Emacs; you
 ;; can redistribute it and/or modify it under the terms of the GNU
@@ -26,21 +30,20 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 ;;
 
-;;; 
-;;; Bug reports , suggestions are  welcome. I'll see if I can do anything in
-;;; my copious spare time :-)
+;;;
+;;; Bug reports , suggestions are  welcome at http://
 
 ;;; DOCUMENTATION (short) there is no long version yet:-)
 ;;;  To install:
-;;;     ; if your version of nuweb does not know about @% comments 
-;;;     (setq nuweb-comment-leader "") 
+;;;     ; if your version of nuweb does not know about @% comments
+;;;     (setq nuweb-comment-leader "")
 ;;;     ; if you want to activate the mode for .w files
 ;;;     (push '( "\\.w" . nuweb-mode) auto-mode-alist)
 ;;;     ; To load it
 ;;;     (require 'nuweb)
-;;; 
+;;;
 ;;; When called, nuweb-mode calls latex-mode and adds the following
-;;; bindings: 
+;;; bindings:
 ;;;
 ;;; A) Help for editing scraps in language dependent mode
 ;;;
@@ -51,8 +54,8 @@
 ;;;		 used,
 ;;;           b) otherwise, for @o <filename> scraps, the mode is
 ;;;		 derived from the value of auto-mode-alist
-;;;           c) otherwise it is taken from the (buffer local) variable nuweb-source-mode
-;;;           (which defaults to "emacs-lisp")
+;;;           c) otherwise it is taken from the (buffer local) variable
+;;;              nuweb-source-mode (which defaults to "emacs-lisp")
 ;;;
 ;;;           The *Source* buffer is then put into Nuweb minor mode
 ;;;           which adds two bindings:
@@ -65,7 +68,7 @@
 ;;;               made.
 ;;;           The original buffer is put in read-only mode until you
 ;;;           call one of the two above functions or kill the
-;;;           *Source* buffer. 
+;;;           *Source* buffer.
 ;;;       C-c @ nuweb-insert-scrap
 ;;;           With no argument: inserts an empty scrap template at
 ;;;           point.
@@ -105,8 +108,8 @@
 ;;;    Provided your version of nuweb does output !name(f.w) and
 ;;;    !offset(<num>) in the generated tex file Auctex will take you
 ;;;    right back to Tex errors but at the correct stop in the web file.
-;;;  
-;;; CUSTOMISATION: 
+;;;
+;;; CUSTOMISATION:
 ;;;
 ;;; Change language mode for scraps
 ;;; (setq-default nuweb-source-mode "mode-name-function(without -mode)")
@@ -117,11 +120,11 @@
 ;;; (setq nuweb-comment-leader "@%")
 ;;;
 ;;;
-;;; 
+;;;
 ;;; PROBLEMS:                    SOLUTION:
-;;;  
+;;;
 ;;; -) Relies on FSF Emacs 19    Upgrade or make the package
-;;; 				 back-compatible 
+;;; 				 back-compatible
 ;;; -) Functions are not well    I should have used nuweb for this
 ;;;    documented
 ;;; -) Bindings may not suit     Change as you like
@@ -131,7 +134,7 @@
 
 ;;; WISH LIST:
 ;;; -) Menus active on scrap def/use point providing navigation
-;;; functions (I'm thinking of looking at imenu.el for this
+;;;    functions (I'm thinking of looking at imenu.el for this
 ;;;    (Experimental support for this at the end) Bound to C-M-mouse-1.
 ;;; -) Better support for standard tex mode (or that GNU adopts AucTeX..)
 ;;;
@@ -140,24 +143,22 @@
 ;;;      I used it to get into the *source* and as normal exit key.
 ;;;      Also suggested the simple (no prompts) insertion  of a scrap
 ;;;      template, and other things.
-;;; 
+;;;
 ;;; AVAILABILITY:
-;;; 
+;;;
 ;;; elisp-archive directory: elisp-archive/modes/nuweb.el.Z
 ;;;  from main site and mirrors
 ;;; or from by email from me
 ;;;
 (require 'cl)
 
-(defvar AucTeX-used t)
-
-(if AucTeX-used
+(if (locate-library "auctex")
     (progn
       (require 'tex-site)
       (require 'latex))
-  (require 'latex-mode)
+  (require 'tex-mode)
   (setq TeX-command-list nil)
-;  (setq LaTeX-mode-map tex-mode-map)
+  (setq LaTeX-mode-map tex-mode-map)
 )
 
 ;;; Extend the list of commands
@@ -235,9 +236,9 @@ Commands:
 	     (null nuweb-mode-map))
 	 ;; this keymap inherit the current local bindings
 	 (setq nuweb-mode-map (cons 'keymap LaTeX-mode-map))
-	 (define-key nuweb-mode-map 
+	 (define-key nuweb-mode-map
 	   "\C-c\C-z" 'nuweb-edit-this-scrap)
-	 (define-key nuweb-mode-map 
+	 (define-key nuweb-mode-map
 	   "\C-c@" 'nuweb-insert-scrap)
 	 (define-key nuweb-mode-map "@@" 'ins-@)
 	 (define-key nuweb-mode-map "@<" 'ins-@<)
@@ -260,7 +261,7 @@ Commands:
 	 (define-key nuweb-mode-map "\C-cdp" 'nuweb-pop-d-u)
 	 (define-key nuweb-mode-map [M-mouse-3] 'nuweb-find-def-or-use)))
   ;; make sure we have our own keymap
-  ;; we use a copy for in buffer so that outline mode is 
+  ;; we use a copy for in buffer so that outline mode is
   ;; properly initialized
   (use-local-map (copy-keymap nuweb-mode-map))
   (make-local-variable 'nuweb-source-mode)
@@ -286,17 +287,17 @@ Commands:
   "History list for scrap names used")
 
 (defun nuweb-insert-scrap(arg)
-  "Insert a scrap at current cursor location. With an argument, 
+  "Insert a scrap at current cursor location. With an argument,
 prompts for the type, name and editing mode then directly enter
 the *Source* buffer. If no argument given, simply inserts a template
 for a scrap"
   (interactive "P")
   (if arg
-      (apply 'nuweb-insert-scrap-intern 
-	     (list 
+      (apply 'nuweb-insert-scrap-intern
+	     (list
 	      (concat (read-from-minibuffer "Type of scrap: " "d")" ")
 	      (concat (read-from-minibuffer
-			     "Scrap title:" 
+			     "Scrap title:"
 			     (car nuweb-scrap-name-hist)
 			     nil	;no keymap
 			     nil	;dont use read
@@ -305,12 +306,12 @@ for a scrap"
 	      (read-from-minibuffer "Mode name:" nuweb-source-mode)
 	      ;; edit if interactive
 	      t))
-    (save-excursion 
+    (save-excursion
       (nuweb-insert-scrap-intern "" "\n" nuweb-source-mode nil))
     (forward-char 1)))
 
 (defun nuweb-insert-scrap-intern(type title modename editp)
-  (save-excursion 
+  (save-excursion
     (insert (format "@%s%s@\{%s%s\n@| @\}\n"
                     type title
                     nuweb-comment-leader
@@ -328,7 +329,7 @@ for a scrap"
   (interactive)
   (barf-if-buffer-read-only)
   (cond ((or (null *nuweb-last-scrap-pos*)
-             (y-or-n-p 
+             (y-or-n-p
               "You did not finish editing the previous scrap. Continue"))
          (setq *nuweb-last-scrap-pos* (point-marker))
          (let* ((s-begin (and (re-search-backward "@[dDoO]" nil t)
@@ -376,35 +377,35 @@ for a scrap"
                             mode-spec)
                        (setq source-mode
                              (intern (concat (downcase mode-spec) "-mode"))))
-                   
+
                    (if file
                        (let* ((case-fold-search nil)
                               (mode (cdr (find file auto-mode-alist
-                                               :key 'car 
+                                               :key 'car
                                                :test (function
                                                       (lambda(a b)
                                                         (string-match b a)))))))
                          (if mode (setq source-mode mode))))
-                   
+
                    (if (not source-mode)
                        (setq source-mode
                              (if (stringp nuweb-source-mode-orig)
-                                 (intern (concat 
+                                 (intern (concat
                                           (downcase nuweb-source-mode-orig)
                                           "-mode"))
                                source-mode)))
-                   
+
                    (funcall source-mode)
-                   
+
                    ;; go to same relative position
                    (goto-char (+ (point-min) (max offset 0)))
                    ;; clean up when killing the *source* buffer
                    (make-local-variable 'kill-buffer-hook)
-                   
+
                    (make-local-variable 'nuweb-minor-mode)
                    (make-local-variable 'nuweb-return-location)
 		   (setq nuweb-return-location saved-return-location)
-                   (add-hook 'kill-buffer-hook 
+                   (add-hook 'kill-buffer-hook
                              (function (lambda()
                                          (save-excursion
                                            (nuweb-kill-this-scrap)))))
@@ -433,11 +434,11 @@ for a scrap"
     (setq minor-mode-alist (cons '(nuweb-minor-mode " Nuweb")
 				 minor-mode-alist)))
 (or (assq 'nuweb-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist (cons (cons 'nuweb-minor-mode 
+    (setq minor-mode-map-alist (cons (cons 'nuweb-minor-mode
 					   nuweb-minor-mode-map)
 				     minor-mode-map-alist)))
 
-;;; The function is there but has nothing to do (thanks to Emacs 19 
+;;; The function is there but has nothing to do (thanks to Emacs 19
 ;;; function for minor mode bindings
 ;;; It is here if anyone cares to make it Emacs 18 compatible.
 (defun nuweb-minor-mode (arg)
@@ -481,14 +482,14 @@ The bindings installed by this minor mode are
     (forward-char (- offset 1))
     (setq *nuweb-last-scrap-pos* nil)))
 
-(defun nuweb-kill-this-scrap() 
+(defun nuweb-kill-this-scrap()
   (interactive)
-  (nuweb-back-to-pos) 
+  (nuweb-back-to-pos)
   (setq *nuweb-last-scrap-pos* nil))
 
 (defun nuweb-back-to-pos()
   (setq kill-buffer-hook nil)
-  (switch-to-buffer (marker-buffer *nuweb-last-scrap-pos*))
+  (switch-to-buffer (marker-buffer nuweb-return-location))
   (setq buffer-read-only nil)
   (delete-other-windows)
   (goto-char (marker-position *nuweb-last-scrap-pos*))
@@ -547,15 +548,15 @@ The bindings installed by this minor mode are
   (remove-duplicates
    (sort*
     (append
-     (loop for x in  defs 
+     (loop for x in  defs
 	   when (not (string-match ".*\\.\\.\\."  (scrap-def-name x)))
 	   collect (scrap-def-name x))
-     (loop for x in  uses 
+     (loop for x in  uses
 	   when (not (string-match ".*\\.\\.\\."  (scrap-use-name x)))
 	   collect (scrap-use-name x)))
     'string-lessp)
    :test 'equal))
-    
+
 
 
 (defun nuweb-canonic-name(name)
@@ -681,7 +682,7 @@ is the scrap name found and whose cdr is either 'def or 'use"
 
 (defun nuweb-position-search( loc expected-text)
   (goto-char loc)
-  
+
   (let ((offset 250)
 	(found (looking-at expected-text))
 	up down)
@@ -697,7 +698,7 @@ is the scrap name found and whose cdr is either 'def or 'use"
 	(error "Time to resynchronize defs and uses")
       (goto-char (+ 2 (match-beginning 0)))
       (recenter))))
-    
+
 
 (defun nuweb-find-def-or-use(arg)
   (interactive "e")
@@ -718,7 +719,7 @@ is the scrap name found and whose cdr is either 'def or 'use"
 ;;;
 ;;; Some support for use of imenu. Experimental.
 ;;; Provides a menu of scrap definitions (one for files, one for
-;;; macros). 
+;;; macros).
 
 
 (eval-when (compile )
