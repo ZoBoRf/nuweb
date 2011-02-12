@@ -31,3 +31,6 @@ using LaTeX2HTML.
 For the latest version check the SourceForge page:
     http://nuweb.sourceforge.net/
 
+Changes in Version 1.54:
+Fixed bug 3158592 (SEGV) by reworking sentinel-based scrap processing.
+Fixed bug 3160408 by defining MAX_NAME_LEN (to 1024) in global.h.

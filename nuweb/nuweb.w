@@ -127,7 +127,7 @@ urlcolor={linkcolor}%
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 1.53 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 1.54 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.}
@@ -801,6 +801,7 @@ recompilation during development.
 @o global.h -cc
 @{@<Include files@>
 @<Type declarations@>
+@<Limits@>
 @<Global variable declarations@>
 @<Function prototypes@>
 @<Operating System Dependencies@>@}
@@ -822,9 +823,9 @@ setlocale getenv @}
 
 \newpage
 \noindent
-I also like to use \verb|TRUE| and \verb|FALSE| in my code.
+I like to use \verb|TRUE| and \verb|FALSE| in my code.
 I'd use an \verb|enum| here, except that some systems seem to provide
-definitions of \verb|TRUE| and \verb|FALSE| be default.  The following
+definitions of \verb|TRUE| and \verb|FALSE| by default.  The following
 code seems to work on all the local systems.
 @d Type dec...
 @{#ifndef FALSE
@@ -834,6 +835,14 @@ code seems to work on all the local systems.
 #define TRUE 1
 #endif
 @| FALSE TRUE @}
+
+Here we define the maximum length for names (of fragments etc).
+
+@d Limits @{@%
+#ifndef MAX_NAME_LEN
+#define MAX_NAME_LEN 1024
+#endif
+@| MAX_NAME_LEN @}
 
 
 \subsection{The Main Files}
@@ -4341,7 +4350,7 @@ extern int num_scraps();
   do {
     int type = c;
     do {
-      char new_name[100];
+      char new_name[MAX_NAME_LEN];
       char *p = new_name;
       unsigned int sector = 0;
       do
@@ -4550,7 +4559,7 @@ a->next = next;@}
      Manager *manager;
      Parameters *parameters;
 {
-  char name[100];
+  char name[MAX_NAME_LEN];
   char *p = name;
   int sector = pop(manager);
   int c = pop(manager);
@@ -4949,9 +4958,8 @@ fputc('>', file);@}
 @{{
    int i = 0;
 
-   @<Add a sentinel scrap@>
    @<Step @'i@' to the next valid scrap@>
-   @<Until we hit the sentinel@> {
+   @<For all remaining scraps@> {
       int j = i;
       @<Step @'j@' to the next valid scrap@>
       @<Perhaps add letters to the page numbers@>
@@ -4960,17 +4968,13 @@ fputc('>', file);@}
 }
 @}
 
-@d Add a sentinel scrap
-@{scrap_array(scraps).page = 32767;
-@}
-
 @d Step @'i@' to the next valid scrap
 @{do
    @1++;
-while (scrap_array(@1).page == -1);
+while (@1 < scraps && scrap_array(@1).page == -1);
 @}
 
-@d Until we hit the sentinel
+@d For all remaining scraps
 @{while (i < scraps)@}
 
 @d Perhaps add letters to the page numbers
@@ -5285,7 +5289,7 @@ skipping white space until we reach scrap.
 @{Name *collect_file_name()
 {
   Name *new_name;
-  char name[100];
+  char name[MAX_NAME_LEN];
   char *p = name;
   int start_line = source_line;
   int c = source_get(), c2;
@@ -5367,7 +5371,7 @@ Name terminated by \verb+\n+ or \verb+@@{+; but keep skipping until \verb+@@{+
 @o names.c -cc
 @{Name *collect_macro_name()
 {
-  char name[100];
+  char name[MAX_NAME_LEN];
   char args[1000];
   char * arg[9];
   char * argp = args;
@@ -5538,7 +5542,7 @@ Terminated by \verb+@@>+
 @o names.c -cc
 @{Arglist * collect_scrap_name(int current_scrap)
 {
-  char name[100];
+  char name[MAX_NAME_LEN];
   char *p = name;
   int c = source_get();
   unsigned char sector = current_sector;
@@ -5642,7 +5646,7 @@ Terminated by \verb+@@>+
 A plain string argument has no name and a string as a value.
 
 @d Add plain string argument
-@{char buff[100];
+@{char buff[MAX_NAME_LEN];
 char * s = buff;
 int c, c2;
 
@@ -6108,7 +6112,7 @@ void search()
 @d Skip over a scrap use
 @{if (last == nw_char && c == '<')
 {
-   char buf[100];
+   char buf[MAX_NAME_LEN];
    char * p = buf;
    Arglist * args;
 
@@ -6318,7 +6322,7 @@ Refer to @xlabel@x.
 And another one @xother@x.
 
 @d Get label from
-@{char  label_name[100];
+@{char  label_name[MAX_NAME_LEN];
 char * p = label_name;
 while (c = @1, c != nw_char) /* Here is @xlabel@x */
    *p++ = c;

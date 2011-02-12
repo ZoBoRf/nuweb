@@ -3,7 +3,7 @@ CC = cc
 CFLAGS = -g
 
 TARGET = nuweb
-VERSION = 1.53
+VERSION = 1.54
 
 OBJS = main.o pass1.o latex.o html.o output.o input.o scraps.o names.o \
 	arena.o global.o
@@ -42,7 +42,7 @@ all:
 tar: $(TARGET)doc.tex
 	tar -zcf $(TARGET)-$(VERSION).tar.gz $(DIST)
 
-distribution: all tar nuwebdoc.pdf nuwebdoc
+distribution: all tar nuweb.pdf nuwebdoc.pdf
 
 $(TARGET)doc.tex: $(TARGET).tex
 	sed -e '/^\\ifshowcode$$/,/^\\fi$$/d' $< > $@
