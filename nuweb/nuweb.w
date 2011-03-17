@@ -127,7 +127,7 @@ urlcolor={linkcolor}%
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 1.54 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 1.55 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.}
@@ -3809,7 +3809,7 @@ if (compare_flag)
   @<Compare the temp file and the old file@>
 else {
   remove(real_name);
-  rename(temp_name, real_name);
+  @< Rename the temporary file to the target @>
 }
 @}
 
@@ -3830,12 +3830,19 @@ Again, we use a call to \verb|remove| before \verb|rename|.
       remove(temp_name);
     else {
       remove(real_name);
-      rename(temp_name, real_name);
+      @< Rename the temporary file to the target @>
     }
   }
   else
-    rename(temp_name, real_name);
+    @< Rename the temporary file to the target @>
 }@}
+
+@d Rename the temporary file to the target @{@%
+if (0 != rename(temp_name, real_name)) {
+  fprintf(stderr, "%s: can't rename output file to %s\n",
+          command_name, real_name);
+}
+@|@}
 
 
 
