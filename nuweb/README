@@ -31,6 +31,14 @@ using LaTeX2HTML.
 For the latest version check the SourceForge page:
     http://nuweb.sourceforge.net/
 
+Changes in Version 1.56:
+Added minor command @t to include fragment title in output files.
+Fragment use embedded in fragment argument is no longer commented.
+Make tar now produces top level versioned directory.
+
+Changes in Version 1.55:
+Fixed bug 3168635 (doesn't handle inability to create output files).
+
 Changes in Version 1.54:
 Fixed bug 3158592 (SEGV) by reworking sentinel-based scrap processing.
 Fixed bug 3160408 by defining MAX_NAME_LEN (to 1024) in global.h.

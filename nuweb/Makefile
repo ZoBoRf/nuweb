@@ -3,7 +3,7 @@ CC = cc
 CFLAGS = -g
 
 TARGET = nuweb
-VERSION = 1.55
+VERSION = 1.56
 
 OBJS = main.o pass1.o latex.o html.o output.o input.o scraps.o names.o \
 	arena.o global.o
@@ -17,7 +17,7 @@ BIBS = litprog.bib master.bib misc.bib
 
 STYS = bibnames.sty html.sty
 
-DIST = Makefile README nuweb.w nuwebsty.w \
+DIST = Makefile README nuweb.w nuwebsty.w test htdocs nuweb.el \
 	$(TARGET)doc.tex $(SRCS) $(HDRS) $(BIBS) $(STYS)
 
 %.tex: %.w
@@ -40,7 +40,10 @@ all:
 	$(MAKE) $(TARGET)
 
 tar: $(TARGET)doc.tex
-	tar -zcf $(TARGET)-$(VERSION).tar.gz $(DIST)
+	mkdir $(TARGET)-$(VERSION)
+	cp -R $(DIST) $(TARGET)-$(VERSION)
+	tar -zcf $(TARGET)-$(VERSION).tar.gz $(TARGET)-$(VERSION)
+	rm -rf $(TARGET)-$(VERSION)
 
 distribution: all tar nuweb.pdf nuwebdoc.pdf
 
