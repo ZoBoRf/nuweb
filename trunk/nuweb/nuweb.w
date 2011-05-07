@@ -31,9 +31,9 @@
 %
 
 % Notes:
-
+% Update on 2011-04-20 from Keith Harwood.
+% -- @@t provide fragment title in output 
 % Changes from 2010-03-11 in the Sourceforge revision history. -- sjw
-
 % Updates on 2004-02-23 from Gregor Goldbach
 % <glauschwuffel@@users.sourceforge.net>
 % -- new command line option -r which will make nuweb typeset each
@@ -127,7 +127,7 @@ urlcolor={linkcolor}%
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 1.55 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 1.56 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.}
@@ -421,6 +421,9 @@ used so that text outside scraps can refer to particular places
 within scraps.
 \item[\tt @@f] Inside a scrap this is replaced by the name of the
 current output file.
+\item[\tt @@t] Inside a scrap this is replaced by the title of the
+fragment as it is at the point it is used, with all parameters
+replaced by actual arguments.
 \item[\tt @@\#] At the beginning of a line in a scrap this will
 suppress the normal indentation for that line. Use this, for
 example, when you have a \verb|#ifdef| inside a nested scrap.
@@ -1809,9 +1812,9 @@ see an \verb|@@1| \verb|@@2|, etc.
                                 global_indent + indent,
                                 indent_chars, debug_flag,
                                 tab_flag, indent_flag,
-                                comment_flag,
+                                0,
                                 q->args, inParams,
-                                local_parameters);
+                                local_parameters, "");
         }
         else if (name != NULL) {
            int i, narg;
@@ -1824,7 +1827,7 @@ see an \verb|@@1| \verb|@@2|, etc.
                                 indent_chars, debug_flag,
                                 tab_flag, indent_flag,
                                 comment_flag, args, name->arg,
-                                local_parameters);
+                                local_parameters, p);
         }
         else if (args != NULL) {
            if (delayed_indent) {
@@ -1840,7 +1843,7 @@ see an \verb|@@1| \verb|@@2|, etc.
                        global_indent + indent,
                        indent_chars, debug_flag,
                        tab_flag, indent_flag,
-                       comment_flag, NULL, NULL, 0);
+                       comment_flag, NULL, NULL, 0, "");
         } else if (delayed_indent) {
           @<Put out the indent@>
         }
@@ -2664,7 +2667,9 @@ this function. It updates the scrap formatting directives accordingly.
               break;
     case '_': @<Bold Keyword@>
               break;
-    case 'f': @<Italic "file name"@>
+    case 't': @<Italic "@'fragment title@'"@>
+              break;
+    case 'f': @<Italic "@'file name@'"@>
               break;
     case '1': case '2': case '3':
     case '4': case '5': case '6':
@@ -2737,10 +2742,10 @@ This scrap helps deal with bold keywords:
   fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
-@d Italic "file name"
+@d Italic "@'whatever@'"
 @{{
   fputs(delimit_scrap[scrap_type][1],file);
-  fprintf(file, "\\hbox{\\sffamily\\slshape file name}");
+  fprintf(file, "\\hbox{\\sffamily\\slshape @1}");
   fputs(delimit_scrap[scrap_type][0], file);
 }@}
 
@@ -2824,7 +2829,7 @@ write_ArglistElement(FILE * file, Arglist * args, char ** params)
     fputs(delimit_scrap[scrap_type][0], file);
     write_scraps(file, "", qq,
                  -1, "", 0, 0, 0, 0,
-                 NULL, params, 0);
+                 NULL, params, 0, "");
     fputs(delimit_scrap[scrap_type][1], file);
     extra_scraps++;
     qq->quoted = FALSE;
@@ -3768,7 +3773,7 @@ pointed out any during the first pass.
     fprintf(stderr, "writing %s [%s]\n", files->spelling, temp_name);
   write_scraps(temp_file, files->spelling, files->defs, 0, indent_chars,
                files->debug_flag, files->tab_flag, files->indent_flag,
-               files->comment_flag, NULL, NULL, 0);
+               files->comment_flag, NULL, NULL, 0, files->spelling);
   fclose(temp_file);
 
   @< Move the temporary file to the target, if required @>
@@ -3955,7 +3960,7 @@ hence this whole unsatisfactory \verb|double_at| business.
                 break;
       case '#': case 'f': case 'm': case 'u': case 'v':
       case 'd': case 'o': case 'D': case 'O': case 's':
-      case 'q': case 'Q': case 'S':
+      case 'q': case 'Q': case 'S': case 't':
       case '+':
       case '-':
       case '*':
@@ -4323,6 +4328,7 @@ extern int num_scraps();
     case '4': case '5': case '6':
     case '7': case '8': case '9':
     case 'f': case '#': case 'v':
+    case 't':
               push(nw_char, &writer);
               break;
     case '_': c = source_get();
@@ -4598,7 +4604,7 @@ a->next = next;@}
 @o scraps.c -cc
 @{int write_scraps(file, spelling, defs, global_indent, indent_chars,
                    debug_flag, tab_flag, indent_flag,
-                   comment_flag, inArgs, inParams, parameters)
+                   comment_flag, inArgs, inParams, parameters, title)
      FILE *file;
      char * spelling;
      Scrap_Node *defs;
@@ -4611,6 +4617,7 @@ a->next = next;@}
      Arglist * inArgs;
      char * inParams[9];
      Parameters parameters;
+     char * title;
 {
   /* This is in file @f */
   int indent = 0;
@@ -4668,7 +4675,7 @@ a->next = next;@}
            }
          putc(c, file);
          if (global_indent >= 0) {
-           @< Add more indentation @(' '@) @>
+           @<Add more indentation @'' '@'@>
          }
          indent++;
          if (c > ' ') newline = 0;
@@ -4680,8 +4687,8 @@ a->next = next;@}
 }@}
 
 We need to make sure that we don't overflow \verb|indent_chars[]|.
-@d Add more indentation @{@%
-{
+@d Add more indentation @'char@'
+@{{
   if (global_indent + indent >= MAX_INDENT) {
     fprintf(stderr,
            "Error! maximum indentation exceeded in \"%s\".\n",
@@ -4737,7 +4744,7 @@ may be needed when the next fragment is started.
   else {
     putc('\t', file);
     if (global_indent >= 0) {
-      @< Add more indentation @('\t'@) @>
+      @<Add more indentation @''\t'@'@>
     }
     indent++;
   }
@@ -4748,6 +4755,8 @@ may be needed when the next fragment is started.
 @{{
   c = pop(&reader);
   switch (c) {
+    case 't': @<Copy fragment title into file@>
+              break;
     case 'c': @<Copy block comment from scrap@>
               break;
     case 'f': @<Copy file name into file@>
@@ -4765,7 +4774,7 @@ may be needed when the next fragment is started.
             {
               putc(c, file);
               if (global_indent >= 0) {
-                 @< Add more indentation @(' '@) @>
+                 @<Add more indentation @'' '@'@>
               }
               indent++;
               break;
@@ -4796,6 +4805,7 @@ else
   Arglist * args = instance(a->args, inArgs, inParams, &changed);
   int i, narg;
   char * p = name->spelling;
+  char * * inParams = name->arg;
   Arglist *q = args;
 
   if (name->mark) {
@@ -4808,7 +4818,8 @@ else
     name->mark = TRUE;
     indent = write_scraps(file, spelling, name->defs, global_indent + indent,
                           indent_chars, debug_flag, tab_flag, indent_flag,
-                          comment_flag, args, name->arg, local_parameters);
+                          comment_flag, args, name->arg,
+                          local_parameters, name->spelling);
     indent -= global_indent;
     name->mark = FALSE;
   }
@@ -4855,15 +4866,28 @@ else
       putc(' ', file);
 @}
 
+@d Copy fragment title into file
+@{{
+   char * p = title;
+   Arglist *q = inArgs;
+   int narg;
+
+   @<Comment this macro use@>
+   if (xref_flag) {
+      putc(' ', file);
+      write_single_scrap_ref(file, defs->scrap);
+   }
+}@}
+
 @d Comment this macro use
 @{narg = 0;
 while (*p != '\000') {
   if (*p == ARG_CHR) {
     if (q == NULL) {
        if (defs->quoted)
-          fprintf(file, "%c'%s%c'", nw_char, name->arg[narg], nw_char);
+          fprintf(file, "%c'%s%c'", nw_char, inParams[narg], nw_char);
        else
-          fprintf(file, "'%s'", name->arg[narg]);
+          fprintf(file, "'%s'", inParams[narg]);
     }
     else {
       comment_ArglistElement(file, q, defs->quoted);
@@ -4899,7 +4923,7 @@ comment_ArglistElement(FILE * file, Arglist * args, int quote)
 @d Include an embedded scrap in comment
 @{Embed_Node * e = (Embed_Node *)q;
 fputc('{', file);
-write_scraps(file, "", e->defs, -1, "", 0, 0, 0, 0, e->args, 0, 1);
+write_scraps(file, "", e->defs, -1, "", 0, 0, 0, 0, e->args, 0, 1, "");
 fputc('}', file);@}
 
 @d Include a fragment use in comment
