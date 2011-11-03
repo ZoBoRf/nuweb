@@ -96,7 +96,7 @@ cat > test.expected.tex <<"EOF"
 \begin{document}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap1}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Sort \hbox{\slshape\sffamily key\/} of size \hbox{\slshape\sffamily n\/} for \hbox{\slshape\sffamily ordering\/}}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Sort \hbox{\slshape\sffamily key\/} of size \hbox{\slshape\sffamily n\/} for \hbox{\slshape\sffamily ordering\/}}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@for (int j = 1; j < @\hbox{\slshape\sffamily n\/}\verb@; j++)@\\
@@ -126,7 +126,7 @@ cat > test.expected.tex <<"EOF"
 \end{list}
 \end{minipage}\vspace{4ex}
 \end{flushleft}
-Test in-text \verb@@$\langle\,${\it Sort \verb@key@ of size \verb@n@ for \verb@ordering@}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$\verb@@ usage.
+Test in-text \verb@@$\langle\,${\itshape Sort \verb@key@ of size \verb@n@ for \verb@ordering@}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$\verb@@ usage.
 \end{document}
 EOF
 

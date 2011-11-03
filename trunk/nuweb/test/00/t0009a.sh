@@ -92,7 +92,7 @@ Define a thing.
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@This defines ident.@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Use the thing defined}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Use the thing defined}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -107,7 +107,7 @@ Now use it without it actually appearing in the text.
 
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
-\NWtarget{nuweb1b}{} $\langle\,${\it Use the thing defined}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
+\NWtarget{nuweb1b}{} $\langle\,${\itshape Use the thing defined}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Pretend that we use it here.@\\

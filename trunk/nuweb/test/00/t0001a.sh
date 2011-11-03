@@ -74,7 +74,7 @@ cat > test.expected.tex <<"EOF"
 \newcommand{\NWuseHyperlinks}{}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap1}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Test with parameter}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Test with parameter}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Try @{\tt @}\verb@1 parameter.@\\

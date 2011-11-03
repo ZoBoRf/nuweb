@@ -115,7 +115,7 @@ cat > test.expected.tex <<"EOF"
 \mbox{}\lstinline@int@\\
 \mbox{}\lstinline@main(int argc, char ** argv)@\\
 \mbox{}\lstinline@{@\\
-\mbox{}\lstinline@   @\hbox{$\langle\,${\it Body of main}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\lstinline@@\\
+\mbox{}\lstinline@   @\hbox{$\langle\,${\itshape Body of main}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\lstinline@@\\
 \mbox{}\lstinline@}@\\
 \mbox{}\lstinline@@{\NWsep}
 \end{list}
@@ -129,7 +129,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Body of main}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Body of main}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\lstinline@int in;@\\
@@ -137,7 +137,7 @@ cat > test.expected.tex <<"EOF"
 \mbox{}\lstinline@@\\
 \mbox{}\lstinline@while (scanf("%x", &in) == 1)@\\
 \mbox{}\lstinline@{@\\
-\mbox{}\lstinline@   @\hbox{$\langle\,${\it Do one item}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\lstinline@@\\
+\mbox{}\lstinline@   @\hbox{$\langle\,${\itshape Do one item}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\lstinline@@\\
 \mbox{}\lstinline@}@\\
 \mbox{}\lstinline@return 0;@{\NWsep}
 \end{list}
@@ -152,7 +152,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap3}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Do one item}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Do one item}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\lstinline@int n = mangle(in, out);@\\

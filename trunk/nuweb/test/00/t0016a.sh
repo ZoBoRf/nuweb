@@ -219,7 +219,7 @@ go on forever just because:)
 
 \par\vspace{\baselineskip}
 \label{scrap1}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Here is a scrap.}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Here is a scrap.}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@This is the contents of the scrap.@\\

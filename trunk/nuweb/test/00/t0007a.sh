@@ -94,7 +94,7 @@ cat > test.expected.tex <<"EOF"
 Here is a macro that defines something.
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap1}\raggedright\small
-\NWtarget{nuweb1a}{} $\langle\,${\it Define something}\nobreak\ {\footnotesize {1a}}$\,\rangle\equiv$
+\NWtarget{nuweb1a}{} $\langle\,${\itshape Define something}\nobreak\ {\footnotesize {1a}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@something anything@\\
@@ -112,7 +112,7 @@ Here is a macro that defines something.
 Here is a macro that uses an argument
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
-\NWtarget{nuweb1b}{} $\langle\,${\it Use the \hbox{\slshape\sffamily thing\/}}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
+\NWtarget{nuweb1b}{} $\langle\,${\itshape Use the \hbox{\slshape\sffamily thing\/}}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Use @\hbox{\slshape\sffamily thing\/}\verb@@\\
@@ -135,8 +135,8 @@ Now use the something in an argument
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Define something}\nobreak\ {\footnotesize \NWlink{nuweb1a}{1a}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Use the \verb@something@}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Define something}\nobreak\ {\footnotesize \NWlink{nuweb1a}{1a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Use the \verb@something@}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
