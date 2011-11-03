@@ -127,7 +127,7 @@ cat > test.expected.tex <<"EOF"
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@ First use in global@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Frag 1}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}, \ldots\ }$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}, \ldots\ }$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -141,7 +141,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
-\NWtarget{nuweb1b}{} $\langle\,${\it Frag 1}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
+\NWtarget{nuweb1b}{} $\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Global sector line one.@\\
@@ -160,7 +160,7 @@ cat > test.expected.tex <<"EOF"
 
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap3}\raggedright\small
-\NWtarget{nuweb1c}{} $\langle\,${\it Frag 1}\nobreak\ {\footnotesize {1c}}$\,\rangle\equiv$
+\NWtarget{nuweb1c}{} $\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize {1c}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@First sector line one.@\\
@@ -181,7 +181,7 @@ cat > test.expected.tex <<"EOF"
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Use first local@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Frag 1}\nobreak\ {\footnotesize \NWlink{nuweb1c}{1c}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize \NWlink{nuweb1c}{1c}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -204,7 +204,7 @@ cat > test.expected.tex <<"EOF"
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Use second local@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Frag 1}\nobreak\ {\footnotesize \NWlink{nuweb1f}{1f}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize \NWlink{nuweb1f}{1f}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -218,7 +218,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap6}\raggedright\small
-\NWtarget{nuweb1f}{} $\langle\,${\it Frag 1}\nobreak\ {\footnotesize {1f}}$\,\rangle\equiv$
+\NWtarget{nuweb1f}{} $\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize {1f}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Second sector line one.@\\
@@ -240,7 +240,7 @@ cat > test.expected.tex <<"EOF"
 
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap7}\raggedright\small
-\NWtarget{nuweb2a}{} $\langle\,${\it Frag 1}\nobreak\ {\footnotesize {2a}}$\,\rangle\equiv$
+\NWtarget{nuweb2a}{} $\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize {2a}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Global sector line two.@\\
@@ -259,7 +259,7 @@ cat > test.expected.tex <<"EOF"
 
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap8}\raggedright\small
-\NWtarget{nuweb2b}{} $\langle\,${\it Frag 1}\nobreak\ {\footnotesize {2b}}$\,\rangle\equiv$
+\NWtarget{nuweb2b}{} $\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize {2b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Third sector line one.@\\
@@ -280,7 +280,7 @@ cat > test.expected.tex <<"EOF"
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Use second local@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Frag 1}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -299,7 +299,7 @@ cat > test.expected.tex <<"EOF"
 
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap10}\raggedright\small
-\NWtarget{nuweb2d}{} $\langle\,${\it Frag 1}\nobreak\ {\footnotesize {2d}}$\,\rangle\equiv$
+\NWtarget{nuweb2d}{} $\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize {2d}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Global sector line three.@\\
@@ -321,7 +321,7 @@ cat > test.expected.tex <<"EOF"
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@ Last use in global@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Frag 1}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}, \ldots\ }$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Frag 1}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}, \ldots\ }$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}

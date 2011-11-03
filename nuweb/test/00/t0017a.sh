@@ -122,10 +122,10 @@ cat > test.expected.tex <<"EOF"
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Test of quoted fragments.@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert first fragment}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert second fragment}\nobreak\ {\footnotesize \NWlink{nuweb1c}{1c}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert third fragment}\nobreak\ {\footnotesize \NWlink{nuweb1d}{1d}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert parameter \verb@whatsit@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert first fragment}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert second fragment}\nobreak\ {\footnotesize \NWlink{nuweb1c}{1c}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert third fragment}\nobreak\ {\footnotesize \NWlink{nuweb1d}{1d}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert parameter \verb@whatsit@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@End of test.@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
@@ -139,14 +139,14 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
-\NWtarget{nuweb1b}{} $\langle\,${\it Insert first fragment}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
+\NWtarget{nuweb1b}{} $\langle\,${\itshape Insert first fragment}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@This fragment is not quoted.@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert unquoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb1e}{1e}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert quoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb2a}{2a}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert parameter \verb@1@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert parameter \verb@thing@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert unquoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb1e}{1e}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert quoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb2a}{2a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert parameter \verb@1@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert parameter \verb@thing@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@End of first fragment.@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -160,14 +160,14 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap3}\raggedright\small
-\NWtarget{nuweb1c}{} $\langle\,${\it Insert second fragment}\nobreak\ {\footnotesize {1c}}$\,\rangle\equiv$
+\NWtarget{nuweb1c}{} $\langle\,${\itshape Insert second fragment}\nobreak\ {\footnotesize {1c}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@This fragment is quoted.@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert unquoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb1e}{1e}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert quoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb2a}{2a}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert parameter \verb@2@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert parameter \verb@thing@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert unquoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb1e}{1e}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert quoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb2a}{2a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert parameter \verb@2@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert parameter \verb@thing@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@End of second fragment.@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -181,14 +181,14 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap4}\raggedright\small
-\NWtarget{nuweb1d}{} $\langle\,${\it Insert third fragment}\nobreak\ {\footnotesize {1d}}$\,\rangle\equiv$
+\NWtarget{nuweb1d}{} $\langle\,${\itshape Insert third fragment}\nobreak\ {\footnotesize {1d}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@This fragment is not quoted.@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert unquoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb1e}{1e}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert quoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb2a}{2a}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert parameter \verb@3@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Insert parameter \verb@thing@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert unquoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb1e}{1e}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert quoted fragment}\nobreak\ {\footnotesize \NWlink{nuweb2a}{2a}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert parameter \verb@3@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Insert parameter \verb@thing@ fragment}\nobreak\ {\footnotesize \NWlink{nuweb2b}{2b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@End of third fragment.@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -202,7 +202,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap5}\raggedright\small
-\NWtarget{nuweb1e}{} $\langle\,${\it Insert unquoted fragment}\nobreak\ {\footnotesize {1e}}$\,\rangle\equiv$
+\NWtarget{nuweb1e}{} $\langle\,${\itshape Insert unquoted fragment}\nobreak\ {\footnotesize {1e}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@This fragment in file @\hbox{\sffamily\slshape file name}\verb@ is not quoted@{\NWsep}
@@ -218,7 +218,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap6}\raggedright\small
-\NWtarget{nuweb2a}{} $\langle\,${\it Insert quoted fragment}\nobreak\ {\footnotesize {2a}}$\,\rangle\equiv$
+\NWtarget{nuweb2a}{} $\langle\,${\itshape Insert quoted fragment}\nobreak\ {\footnotesize {2a}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@This fragment in file @\hbox{\sffamily\slshape file name}\verb@ is quoted@{\NWsep}
@@ -234,7 +234,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap7}\raggedright\small
-\NWtarget{nuweb2b}{} $\langle\,${\it Insert parameter \hbox{\slshape\sffamily thing\/} fragment}\nobreak\ {\footnotesize {2b}}$\,\rangle\equiv$
+\NWtarget{nuweb2b}{} $\langle\,${\itshape Insert parameter \hbox{\slshape\sffamily thing\/} fragment}\nobreak\ {\footnotesize {2b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Here >>@\hbox{\slshape\sffamily thing\/}\verb@<< is the parameter@{\NWsep}
