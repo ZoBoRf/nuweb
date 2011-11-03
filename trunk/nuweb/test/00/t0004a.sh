@@ -94,7 +94,7 @@ cat > test.expected.tex <<"EOF"
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Start@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Here is the first call}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Here is the first call}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@End@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
@@ -108,11 +108,11 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Here is the first call}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Here is the first call}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
-\mbox{}\verb@@\hbox{$\langle\,${\it Use \verb@xxx@ as parameter}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Use \verb@ZZZ@ as parameter}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Use \verb@xxx@ as parameter}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Use \verb@ZZZ@ as parameter}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -126,7 +126,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap3}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Use \hbox{\slshape\sffamily yyy\/} as parameter}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Use \hbox{\slshape\sffamily yyy\/} as parameter}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\hbox{\slshape\sffamily yyy\/}\verb@ is here.@\\
@@ -147,10 +147,10 @@ EOF
 cat > test.expected.c <<"EOF"
 Start
    xxx is here.
-   
+
    ZZZ is here.
-   
-   
+
+
 End
 EOF
 
@@ -164,7 +164,9 @@ if test $? -ne 0 ; then fail; fi
 diff -a --context test.expected.tex test.tex
 if test $? -ne 0 ; then fail; fi
 
-diff -a --context test.expected.c test.c
+# I have Emacs set up to clean up trailing blanks; at the moment nuweb
+# outputs <indent> blanks before any line, even it it's empty.
+diff -a --context --ignore-space-change test.expected.c test.c
 if test $? -ne 0 ; then fail; fi
 
 # [Add other sub-tests that might be failed here.  If they need files
