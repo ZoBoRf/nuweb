@@ -87,7 +87,7 @@ cat > test.expected.tex <<"EOF"
 \NWtarget{nuweb1a}{} \verb@"test.c"@\nobreak\ {\footnotesize {1a}}$\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
-\mbox{}\verb@@\hbox{$\langle\,${\it Use a fragment}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Use a fragment}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -100,7 +100,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
-\NWtarget{nuweb1b}{} $\langle\,${\it Use a fragment}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
+\NWtarget{nuweb1b}{} $\langle\,${\itshape Use a fragment}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Here is a fragment.@\\

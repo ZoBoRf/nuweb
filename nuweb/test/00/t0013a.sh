@@ -100,7 +100,7 @@ Here is a block comment which contains the word 'target'.
 \mbox{}\verb@@\hbox{\sffamily\slshape (Comment)}\verb@@\\
 \mbox{}\verb@That was the block comment.@\\
 \mbox{}\verb@Here we use another fragment.@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Define our target}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Define our target}\nobreak\ {\footnotesize \NWlink{nuweb1b}{1b}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -113,7 +113,7 @@ Here is a block comment which contains the word 'target'.
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
-\NWtarget{nuweb1b}{} $\langle\,${\it Define our target}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
+\NWtarget{nuweb1b}{} $\langle\,${\itshape Define our target}\nobreak\ {\footnotesize {1b}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@This fragment defines 'target'.@\\

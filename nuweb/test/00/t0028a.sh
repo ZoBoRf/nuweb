@@ -86,7 +86,7 @@ cat > test.expected.tex <<"EOF"
 \begin{document}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap1}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Frag with \hbox{\slshape\sffamily arg1\/} and \hbox{\slshape\sffamily \$arg2\/}}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Frag with \hbox{\slshape\sffamily arg1\/} and \hbox{\slshape\sffamily \$arg2\/}}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Here is the first arg:@\hbox{\slshape\sffamily arg1\/}\verb@.@\\
@@ -108,7 +108,7 @@ cat > test.expected.tex <<"EOF"
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Front@\\
-\mbox{}\verb@@\hbox{$\langle\,${\it Frag with \verb@$tuff@ and \verb@Non_sense@}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@@\hbox{$\langle\,${\itshape Frag with \verb@$tuff@ and \verb@Non_sense@}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@Back@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}

@@ -76,7 +76,7 @@ cat > test.expected.tex <<"EOF"
 \newcommand{\NWuseHyperlinks}{}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap1}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Test \hbox{\slshape\sffamily param\/} in index}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Test \hbox{\slshape\sffamily param\/} in index}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Param @\hbox{\slshape\sffamily param\/}\verb@ here@\\

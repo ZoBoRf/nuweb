@@ -101,9 +101,9 @@ cat > test.expected.tex <<"EOF"
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Call the macro@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Fragment with $\langle\,${\it A macro argument}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$ as parameter}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Second frag with $\langle\,${\it A macro argument}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$ as parameter}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
-\mbox{}\verb@   @\hbox{$\langle\,${\it Third frag with $\langle\,${\it A macro argument}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$ as parameter}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Fragment with $\langle\,${\itshape A macro argument}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$ as parameter}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Second frag with $\langle\,${\itshape A macro argument}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$ as parameter}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
+\mbox{}\verb@   @\hbox{$\langle\,${\itshape Third frag with $\langle\,${\itshape A macro argument}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$ as parameter}\nobreak\ {\footnotesize \NWlink{nuweb?}{?}}$\,\rangle$}\verb@@\\
 \mbox{}\verb@@{\NWsep}
 \end{list}
 \vspace{-1.5ex}
@@ -116,7 +116,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Fragment with \hbox{\slshape\sffamily Begin macro\/} as parameter}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Fragment with \hbox{\slshape\sffamily Begin macro\/} as parameter}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@@\hbox{\slshape\sffamily Begin macro\/}\verb@<<<Here 'tis.@\\
@@ -133,7 +133,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap3}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Second frag with \hbox{\slshape\sffamily Begin line\/} as parameter}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Second frag with \hbox{\slshape\sffamily Begin line\/} as parameter}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Here is the beginning of the second macro@\\
@@ -151,7 +151,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap4}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it Third frag with \hbox{\slshape\sffamily Embedded\/} as parameter}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape Third frag with \hbox{\slshape\sffamily Embedded\/} as parameter}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Here is the argument>>>@\hbox{\slshape\sffamily Embedded\/}\verb@<<<That was it.@{\NWsep}
@@ -167,7 +167,7 @@ cat > test.expected.tex <<"EOF"
 \end{flushleft}
 \begin{flushleft} \small
 \begin{minipage}{\linewidth}\label{scrap5}\raggedright\small
-\NWtarget{nuweb?}{} $\langle\,${\it A macro argument}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\NWtarget{nuweb?}{} $\langle\,${\itshape A macro argument}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
 \vspace{-1ex}
 \begin{list}{}{} \item
 \mbox{}\verb@Hello folks@{\NWsep}
