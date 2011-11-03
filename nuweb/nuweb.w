@@ -31,8 +31,6 @@
 %
 
 % Notes:
-% Update on 2011-04-20 from Keith Harwood.
-% -- @@t provide fragment title in output 
 % Changes from 2010-03-11 in the Sourceforge revision history. -- sjw
 % Updates on 2004-02-23 from Gregor Goldbach
 % <glauschwuffel@@users.sourceforge.net>
@@ -99,7 +97,6 @@
 \definecolor{linkcolor}{rgb}{0, 0, 0.7}
 
 \usepackage[%
-dvipdfm,%
 backref,%
 raiselinks,%
 pdfhighlight=/O,%
@@ -127,7 +124,7 @@ urlcolor={linkcolor}%
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 1.56 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 1.57 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.}
@@ -2239,7 +2236,7 @@ might want to use italics or bold face in the midst of the name.
   @<Begin the scrap environment@>
   fputs("\\NWtarget{nuweb", tex_file);
   write_single_scrap_ref(tex_file, scraps);
-  fputs("}{} $\\langle\\,${\\it ", tex_file);
+  fputs("}{} $\\langle\\,${\\itshape ", tex_file);
   @<Write the macro's name@>
   fputs("}\\nobreak\\ {\\footnotesize {", tex_file);
   write_single_scrap_ref(tex_file, scraps);
@@ -2760,7 +2757,7 @@ This scrap helps deal with bold keywords:
   fputs(delimit_scrap[scrap_type][1],file);
   if (prefix)
     fputs("\\hbox{", file);
-  fputs("$\\langle\\,${\\it ", file);
+  fputs("$\\langle\\,${\\itshape ", file);
   while (*p != '\000') {
     if (*p == ARG_CHR) {
       if (q == NULL) {
@@ -2835,7 +2832,7 @@ write_ArglistElement(FILE * file, Arglist * args, char ** params)
     qq->quoted = FALSE;
   } else {
     char * p = name->spelling;
-    fputs("$\\langle\\,${\\it ", file);
+    fputs("$\\langle\\,${\\itshape ", file);
       while (*p != '\000') {
       if (*p == ARG_CHR) {
         write_ArglistElement(file, q, params);
@@ -3933,10 +3930,10 @@ int source_get()
 @o input.c -cc
 @{void source_ungetc(int *c)
 {
-        ungetc(source_peek, source_file);
-        if(*c == '\n')
-                source_line--;
-   source_peek=*c;
+  ungetc(source_peek, source_file);
+  if(*c == '\n')
+    source_line--;
+  source_peek=*c;
 }
 @|source_ungetc @}
 
@@ -4641,9 +4638,9 @@ a->next = next;@}
   Manager reader;
   Parameters local_parameters = 0;
   int line_number = scrap_array(defs->scrap).file_line;
-  @<Insert debugging information if required@>
   reader.scrap = scrap_array(defs->scrap).slab;
   reader.index = 0;
+  @<Insert debugging information if required@>
   if (delayed_indent)
   {
     @<Insert appropriate indentation@>
@@ -4967,16 +4964,7 @@ fputc('>', file);@}
     if (aux_file) {
       char aux_line[500];
       while (fgets(aux_line, 500, aux_file)) {
-        int scrap_number;
-        int page_number;
-        char dummy[50];
-        if (3 == sscanf(aux_line, "\\newlabel{scrap%d}{%[^}]}{%d}",
-                        &scrap_number, dummy, &page_number)) {
-          if (scrap_number < scraps)
-            scrap_array(scrap_number).page = page_number;
-          else
-            @<Warn...@>
-        }
+        @< Read line in \verb|.aux| file @>
       }
       fclose(aux_file);
       @<Add letters to scraps with duplicate page numbers@>
@@ -4984,6 +4972,36 @@ fputc('>', file);@}
   }
 }
 @| collect_numbers @}
+
+The \textit{memoir} document class creates references in the
+\verb|.aux| file with nested braces, so after each open brace we have
+to wait for the matching closing brace.
+
+@d Read line in \verb|.aux| file @{@%
+int scrap_number;
+int page_number;
+int i;
+int dummy_idx;
+int bracket_depth = 1;
+if (1 == sscanf(aux_line,
+                "\\newlabel{scrap%d}{{%n",
+                &scrap_number,
+                &dummy_idx)) {
+  for (i = dummy_idx; i < strlen(aux_line) && bracket_depth > 0; i++) {
+    if (aux_line[i] == '{') bracket_depth++;
+    else if (aux_line[i] == '}') bracket_depth--;
+  }
+  if (i > dummy_idx
+      && i < strlen(aux_line)
+      && 1 == sscanf(aux_line+i, "{%d}" ,&page_number)) {
+    if (scrap_number < scraps)
+      scrap_array(scrap_number).page = page_number;
+    else
+      @<Warn...@>
+  }
+}
+@|@}
+
 
 @d Add letters to scraps with...
 @{{
