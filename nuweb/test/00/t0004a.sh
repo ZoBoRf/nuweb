@@ -147,10 +147,10 @@ EOF
 cat > test.expected.c <<"EOF"
 Start
    xxx is here.
-
+   
    ZZZ is here.
-
-
+   
+   
 End
 EOF
 
@@ -164,9 +164,7 @@ if test $? -ne 0 ; then fail; fi
 diff -a --context test.expected.tex test.tex
 if test $? -ne 0 ; then fail; fi
 
-# I have Emacs set up to clean up trailing blanks; at the moment nuweb
-# outputs <indent> blanks before any line, even it it's empty.
-diff -a --context --ignore-space-change test.expected.c test.c
+diff -a --context test.expected.c test.c
 if test $? -ne 0 ; then fail; fi
 
 # [Add other sub-tests that might be failed here.  If they need files

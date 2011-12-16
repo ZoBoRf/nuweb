@@ -31,6 +31,10 @@ using LaTeX2HTML.
 For the latest version check the SourceForge page:
     http://nuweb.sourceforge.net/
 
+Changes in Version 1.58:
+Supress indentation for one fragment or argument
+Allow fragment expansion in tex.
+
 Changes in Version 1.57:
 Fixed SF3416213, \it deprecated in LaTeX2e, use \itshape
 Fixed SF3431294, Fragment page number refs don't work in memoir class
