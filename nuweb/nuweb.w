@@ -31,6 +31,11 @@
 %
 
 % Notes:
+% Update on 2011-12-16 from Keith Harwood.
+% -- @@s in scrap supresses indent of following fragment expansion
+% -- @@<Name@@> in text is expanded
+% Update on 2011-04-20 from Keith Harwood.
+% -- @@t provide fragment title in output 
 % Changes from 2010-03-11 in the Sourceforge revision history. -- sjw
 % Updates on 2004-02-23 from Gregor Goldbach
 % <glauschwuffel@@users.sourceforge.net>
@@ -124,7 +129,7 @@ urlcolor={linkcolor}%
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 1.57 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 1.58 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.}
@@ -426,6 +431,8 @@ suppress the normal indentation for that line. Use this, for
 example, when you have a \verb|#ifdef| inside a nested scrap.
 Writing \verb|@@##ifdef| will cause it to be lined up on the left
 rather than indented with the rest of its code.
+\item[\tt @@s] Inside a scrap supresses indentation for the following
+fragment expansion.
 \end{description}
 Note that fragment names may be abbreviated, either during invocation or
 definition. For example, it would be very tedious to have to
@@ -518,6 +525,23 @@ the \texttt{-V} flag, or a default string if the flag isn't
 given. This is intended to mark versions of the generated
 files.
 \end{description}
+
+In the text of the document, that is outside scraps, you may include
+scrap-like material.
+
+\begin{description}
+\item[\tt @@\{\textit{Anything}@@\}]
+The included material, the \textit{Anything},
+is typeset as if it appeared inside a scrap. This is useful for
+referring to fragments in the text and for
+describing the literate programming process itself.
+\item[\tt @@<\textit{Fragment name}@@>]
+The fragment named is expanded in place in the text. 
+The expansion is presented verbatim, it is not interpretted for
+typesetting, so any special environment must be set up before and
+after this is used.
+\end{description}
+
 Finally, there are three commands used to create indices to the
 fragment
 names, file definitions, and user-specified identifiers.
@@ -1449,6 +1473,7 @@ discovered.
     case 'S':
               @<Close the current sector@>
               break;
+    case '<':
     case '(':
     case '[':
     case '{': @<Skip over an in-text scrap@>
@@ -1533,6 +1558,7 @@ with each new definition being added to the head of the list.
 @{
 {
    int c;
+   int depth = 1;
    while ((c = source_get()) != EOF) {
       if (c == nw_char)
          @<Skip over at-sign or go to skipped@>
@@ -1550,14 +1576,19 @@ skipped:  ;
 {
    c = source_get();
    switch (c) {
-     case '}': case ']': case ')':
-        goto skipped;
-     case 'x': case '|': case ',': case '<':
-     case '>': case '%': case '1': case '2':
+     case '{': case '[': case '(': case '<':
+        depth += 1;
+        break;
+     case '}': case ']': case ')': case '>':
+        if (--depth == 0)
+           goto skipped;
+     case 'x': case '|': case ',': 
+     case '%': case '1': case '2':
      case '3': case '4': case '5': case '6':
      case '7': case '8': case '9': case '_':
      case 'f': case '#': case '+': case '-':
      case 'v': case '*': case 'c': case '\'':
+     case 's':
         break;
      default:
         if (c != nw_char) {
@@ -1782,7 +1813,7 @@ Fragment parameters were added on later in nuweb's development.
 There still is not, for example, an index of fragment parameters.
 We need a data type to keep track of fragment parameters.
 
-@o scraps.c -cc
+@o global.h -cc
 @{typedef int *Parameters;
 @| Parameters @}
 
@@ -1794,58 +1825,57 @@ the $n$th string from the \verb|Parameters| list when we
 see an \verb|@@1| \verb|@@2|, etc.
 
 @D Handle macro parameter substitution @{
-    case '1': case '2': case '3':
-    case '4': case '5': case '6':
-    case '7': case '8': case '9':
-      {
-        Arglist * args;
-        Name * name;
+case '1': case '2': case '3':
+case '4': case '5': case '6':
+case '7': case '8': case '9':
+  {
+    Arglist * args;
+    Name * name;
 
-        lookup(c - '1', inArgs, inParams, &name, &args);
+    lookup(c - '1', inArgs, inParams, &name, &args);
 
-        if (name == (Name *)1) {
-          Embed_Node * q = (Embed_Node *)args;
-          indent = write_scraps(file, spelling, q->defs,
-                                global_indent + indent,
-                                indent_chars, debug_flag,
-                                tab_flag, indent_flag,
-                                0,
-                                q->args, inParams,
-                                local_parameters, "");
-        }
-        else if (name != NULL) {
-           int i, narg;
-           char * p = name->spelling;
-           Arglist *q = args;
+    if (name == (Name *)1) {
+      Embed_Node * q = (Embed_Node *)args;
+      indent = write_scraps(file, spelling, q->defs,
+                            global_indent + indent,
+                            indent_chars, debug_flag,
+                            tab_flag, indent_flag,
+                            0,
+                            q->args, inParams,
+                            local_parameters, "");
+    }
+    else if (name != NULL) {
+       int i, narg;
+       char * p = name->spelling;
+       Arglist *q = args;
 
-          @<Perhaps comment...@>
-          indent = write_scraps(file, spelling, name->defs,
-                                global_indent + indent,
-                                indent_chars, debug_flag,
-                                tab_flag, indent_flag,
-                                comment_flag, args, name->arg,
-                                local_parameters, p);
-        }
-        else if (args != NULL) {
-           if (delayed_indent) {
-             @<Put out the indent@>
-           }
-           fputs((char *)args, file);
-        }
-        else if ( parameters && parameters[c - '1'] ) {
-          Scrap_Node param_defs;
-          param_defs.scrap = parameters[c - '1'];
-          param_defs.next = 0;
-          write_scraps(file, spelling, &param_defs,
-                       global_indent + indent,
-                       indent_chars, debug_flag,
-                       tab_flag, indent_flag,
-                       comment_flag, NULL, NULL, 0, "");
-        } else if (delayed_indent) {
-          @<Put out the indent@>
-        }
-      }
-      break;
+       @<Perhaps comment...@>
+       indent = write_scraps(file, spelling, name->defs,
+                             global_indent + indent,
+                             indent_chars, debug_flag,
+                             tab_flag, indent_flag,
+                             comment_flag, args, name->arg,
+                             local_parameters, p);
+    }
+    else if (args != NULL) {
+       if (delayed_indent) {
+         @<Put out the indent@>
+       }
+       fputs((char *)args, file);
+    }
+    else if ( parameters && parameters[c - '1'] ) {
+      Scrap_Node param_defs;
+      param_defs.scrap = parameters[c - '1'];
+      param_defs.next = 0;
+      write_scraps(file, spelling, &param_defs,
+                   global_indent + indent,
+                   indent_chars, debug_flag,
+                   tab_flag, indent_flag,
+                   comment_flag, NULL, NULL, 0, "");
+    } else if (delayed_indent) {
+      @<Put out the indent@>
+    }
+  }
 @}
 Now onto actually parsing fragment parameters from a call.
 We start off checking for fragment parameters, an \verb|@@(| sequence
@@ -2129,6 +2159,8 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
     case '[':
     case '(': @<Write in-text scrap@>
               break;
+    case '<': @<Expand macro into @'tex_file@'@>
+              break;
     case 'x': @<Copy label from source into@(tex_file@)@>
               c = source_get();
               break;
@@ -2154,6 +2186,27 @@ an eye peeled for \verb|@@|~characters, which signal a command sequence.
 @d Copy version info into tex file
 @{fputs(version_string, tex_file);
 c = source_get();
+@}
+
+@d Expand macro into @'file@'
+@{{
+   Parameters local_parameters = 0;
+   int changed;
+   char indent_chars[MAX_INDENT];
+   Arglist *a;
+   Name *name;
+   Arglist * args;
+   char * * inParams;
+   a = collect_scrap_name(0);
+   name = a->name;
+   args = instance(a->args, NULL, NULL, &changed);
+   inParams = name->arg;
+   name->mark = TRUE;
+   write_scraps(@1, tex_name, name->defs, 0, indent_chars, 0, 0, 1, 0,
+         args, name->arg, local_parameters, tex_name);
+   name->mark = FALSE;
+   c = source_get();
+}
 @}
 
 \subsection{Formatting Definitions}
@@ -2648,6 +2701,7 @@ this function. It updates the scrap formatting directives accordingly.
     case 'x': @<Copy label from source into@(file@)@>
               break;
     case 'v': @<Copy version info into file@>
+    case 's':
               break;
     case '+':
     case '-':
@@ -4325,7 +4379,7 @@ extern int num_scraps();
     case '4': case '5': case '6':
     case '7': case '8': case '9':
     case 'f': case '#': case 'v':
-    case 't':
+    case 't': case 's':
               push(nw_char, &writer);
               break;
     case '_': c = source_get();
@@ -4535,6 +4589,10 @@ lookup(int n, Arglist * par, char * arg[9], Name **name, Arglist ** args)
    return a;
 }
 @| instance @}
+
+@d Function prototypes
+@{Arglist * instance();
+@}
 
 @d Set up name, args and next
 @{next = instance(a->next, par, arg, &changed);
@@ -4750,6 +4808,8 @@ may be needed when the next fragment is started.
 
 @d Check for macro invocation...
 @{{
+  int oldin = indent;
+  char oldcf = comment_flag;
   c = pop(&reader);
   switch (c) {
     case 't': @<Copy fragment title into file@>
@@ -4762,10 +4822,17 @@ may be needed when the next fragment is started.
     case '_': break;
     case 'v': @<Copy version info into file@>
               break;
+    case 's': indent = -global_indent;
+              comment_flag = 0;
+              break;
     case '<': @<Copy macro into \verb|file|@>
               @<Insert debugging information if required@>
+              indent = oldin;
+              comment_flag = oldcf;
               break;
     @<Handle macro parameter substitution@>
+              indent = oldin;
+              break;
     default:
           if(c==nw_char)
             {
