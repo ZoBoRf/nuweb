@@ -1,10 +1,10 @@
-Here's an intermediate version of nuweb.  We've bundled up the
-web source (nuweb.w), the generated .c files, file, and the assorted
-auxiliary files for latex'ing with a Makefile.
+Here's an intermediate version of nuweb.  We've bundled up the web
+source (nuweb.w), the generated .c files and the assorted auxiliary
+files for latex'ing with a Makefile.
 
 Note that it's still not completely portable to every system without
 change.  In particular, it expects file-names to use '/' to delimit
-directories which is OK unless you are on MSDOS (where it's '\') or
+directories which is OK unless you are on Windows (where it's '\') or
 VMS (which uses ':' and ']') and it thinks tab stops are set every
 eight spaces.
 
@@ -31,8 +31,11 @@ using LaTeX2HTML.
 For the latest version check the SourceForge page:
     http://nuweb.sourceforge.net/
 
+Changes in Version 1.59:
+Fixed compiler warnings in both gcc and clang.
+
 Changes in Version 1.58:
-Supress indentation for one fragment or argument
+Suppress indentation for one fragment or argument
 Allow fragment expansion in tex.
 
 Changes in Version 1.57:

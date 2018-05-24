@@ -3,7 +3,7 @@ CC = cc
 CFLAGS = -g
 
 TARGET = nuweb
-VERSION = 1.58
+VERSION = 1.59
 
 OBJS = main.o pass1.o latex.o html.o output.o input.o scraps.o names.o \
 	arena.o global.o
@@ -66,10 +66,10 @@ check: nuweb
         echo "$$f failed"
 
 clean:
-	-rm -f *.o *.tex *.log *.dvi *~ *.blg *.lint
+	-rm -f *.o *.tex *.log *.dvi *.pdf *~ *.blg *.lint
 
 veryclean:
-	-rm -f *.o *.c *.h *.tex *.log *.dvi *~ *.blg *.lint
+	-rm -f *.o *.c *.h *.tex *.log *.dvi *.pdf *~ *.blg *.lint
 
 view:	$(TARGET).dvi
 	xdvi $(TARGET).dvi
