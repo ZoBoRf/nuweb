@@ -35,7 +35,7 @@
 % -- @@s in scrap supresses indent of following fragment expansion
 % -- @@<Name@@> in text is expanded
 % Update on 2011-04-20 from Keith Harwood.
-% -- @@t provide fragment title in output 
+% -- @@t provide fragment title in output
 % Changes from 2010-03-11 in the Sourceforge revision history. -- sjw
 % Updates on 2004-02-23 from Gregor Goldbach
 % <glauschwuffel@@users.sourceforge.net>
@@ -536,7 +536,7 @@ is typeset as if it appeared inside a scrap. This is useful for
 referring to fragments in the text and for
 describing the literate programming process itself.
 \item[\tt @@<\textit{Fragment name}@@>]
-The fragment named is expanded in place in the text. 
+The fragment named is expanded in place in the text.
 The expansion is presented verbatim, it is not interpretted for
 typesetting, so any special environment must be set up before and
 after this is used.
@@ -1582,7 +1582,7 @@ skipped:  ;
      case '}': case ']': case ')': case '>':
         if (--depth == 0)
            goto skipped;
-     case 'x': case '|': case ',': 
+     case 'x': case '|': case ',':
      case '%': case '1': case '2':
      case '3': case '4': case '5': case '6':
      case '7': case '8': case '9': case '_':
@@ -2589,7 +2589,6 @@ command.
 @o latex.c -cc
 @{static void write_literal(FILE * tex_file, char * p, int mode)
 {
-   fprintf(tex_file, "", p);
    fputs(delimit_scrap[mode][0], tex_file);
    while (*p!= '\000') {
      if (*p == nw_char)
@@ -3107,10 +3106,12 @@ for (j = 1; j < @2; j++)
   putc('}', tex_file);
 }@}
 
+@d Function prototypes
+@{extern int has_sector(Name *, unsigned char);
+@}
+
 @o latex.c -cc
-@{int has_sector(name, sector)
-Name * name;
-unsigned char sector;
+@{int has_sector(Name * name, unsigned char sector)
 {
   while(name) {
     if (name->sector == sector)
@@ -3516,6 +3517,7 @@ We must translate HTML special keywords into entities in scraps.
 @o html.c
 @{static void copy_scrap(file, prefix)
      FILE *file;
+     int prefix;
 {
   int indent = 0;
   int c = source_get();
@@ -3733,6 +3735,7 @@ pointed out any during the first pass.
 @{static void format_user_entry(name, html_file, sector)
      Name *name;
      FILE *html_file;
+     int sector;
 {
   while (name) {
     format_user_entry(name->llink, html_file, sector);
@@ -3981,6 +3984,12 @@ int source_get()
 @| source_peek source_get source_last @}
 
 \verb|source_ungetc| pushes a read character back to the \verb|source_file|.
+
+@d Function prototypes
+@{extern void source_ungetc(int*);
+@}
+
+
 @o input.c -cc
 @{void source_ungetc(int *c)
 {
@@ -4717,7 +4726,7 @@ a->next = next;@}
          } else {
            /* Don't show newlines in embedded fragmants */
            fputs(". . .", file);
-           return;
+           return 0;
          }
       case '\t': @<Handle tab...@>
                  delayed_indent = 0;
@@ -4790,7 +4799,7 @@ may be needed when the next fragment is started.
 
 @d Indent suppressed
 @{c1 == '\n'
-|| c1 == nw_char && (c2 == '#' || (delayed_indent |= (c2 == '<')))@}
+|| (c1 == nw_char && (c2 == '#' || (delayed_indent |= (c2 == '<'))))@}
 
 @d Handle tab characters on output
 @{{
@@ -4915,8 +4924,7 @@ else
       putc(' ', file);
       write_single_scrap_ref(file, name->defs->scrap);
    }
-   if (comment_end)
-      fputs(comment_end[comment_flag], file);
+   fputs(comment_end[comment_flag], file);
    putc('\n', file);
    if (!delayed_indent)
       for (i = indent + global_indent; --i >= 0; )
@@ -5297,10 +5305,12 @@ It returns -2 for alphabetically less-than, -1 for less-than but only
 differing in case, zero for equal, 1 for greater-than but only in case
 and 2 for alphabetically greater-than.
 
+@d Function prototypes
+@{extern int robs_strcmp(char*, char*);
+@}
+
 @o names.c -cc
-@{int robs_strcmp(x, y)
-     char *x;
-     char *y;
+@{int robs_strcmp(char* x, char* y)
 {
    int cmp = 0;
 
@@ -6096,7 +6106,7 @@ void search()
     q->next = depths[1];
     depths[1] = q;
   }
-  while (c = *p++) {
+  while ((c = *p++)) {
     Goto_Node *new = goto_lookup(c, q);
     if (!new) {
       Move_Node *new_move = (Move_Node *) arena_getmem(sizeof(Move_Node));
@@ -6290,6 +6300,10 @@ static void add_uses(Uses * * root, Name *name)
 } Uses;
 @| Uses @}
 
+@d Function prototypes
+@{extern void format_uses_refs(FILE *, int);
+@}
+
 @o scraps.c -cc
 @{
 void
@@ -6340,6 +6354,10 @@ write_scrap_ref(tex_file, defs->scrap, -1, &page);
 fputs("}{", tex_file);
 write_scrap_ref(tex_file, defs->scrap, first, &page);
 fputs("}", tex_file);@}
+
+@d Function prototypes
+@{extern void format_defs_refs(FILE *, int);
+@}
 
 @o scraps.c -cc
 @{
