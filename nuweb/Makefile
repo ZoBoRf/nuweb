@@ -22,6 +22,7 @@ DIST = Makefile README nuweb.w nuwebsty.w test htdocs nuweb.el \
 
 %.tex: %.w
 	nuweb -r $<
+	latex $(basename $<)
 	nuweb -r $<
 
 %: %.tex
@@ -73,10 +74,10 @@ check: nuweb
         echo "$$f failed"
 
 clean:
-	-rm -f *.o *.tex *.log *.dvi *.pdf *~ *.blg *.lint *.bbl
+	-rm -f *.o *.tex *.log *.dvi *.pdf *~ *.blg *.lint *.bbl *.aux *.brf *.out *.toc
 
-veryclean:
-	-rm -f *.o *.c *.h *.tex *.log *.dvi *.pdf *~ *.blg *.lint *.bbl
+veryclean: clean
+	-rm -f *.c *.h
 
 view:	$(TARGET).dvi
 	xdvi $(TARGET).dvi
