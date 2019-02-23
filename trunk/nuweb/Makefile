@@ -3,7 +3,7 @@ CC = cc
 CFLAGS = -g
 
 TARGET = nuweb
-VERSION = 1.59
+VERSION = 1.60
 
 OBJS = main.o pass1.o latex.o html.o output.o input.o scraps.o names.o \
 	arena.o global.o
@@ -22,18 +22,25 @@ DIST = Makefile README nuweb.w nuwebsty.w test htdocs nuweb.el \
 
 %.tex: %.w
 	nuweb -r $<
+	nuweb -r $<
 
 %: %.tex
-	latex2html -split 0 $<
+	latex2html -split 0 $(basename $<)
 
 %.hw: %.w
 	cp $< $@
 
 %.dvi: %.tex
-	latex $<
+	latex $(basename $<)
+	bibtex $(basename $<)
+	latex $(basename $<)
+	latex $(basename $<)
 
 %.pdf: %.tex
-	pdflatex $<
+	pdflatex $(basename $<)
+	bibtex $(basename $<)
+	pdflatex $(basename $<)
+	pdflatex $(basename $<)
 
 all:
 	$(MAKE) $(TARGET).tex
@@ -66,10 +73,10 @@ check: nuweb
         echo "$$f failed"
 
 clean:
-	-rm -f *.o *.tex *.log *.dvi *.pdf *~ *.blg *.lint
+	-rm -f *.o *.tex *.log *.dvi *.pdf *~ *.blg *.lint *.bbl
 
 veryclean:
-	-rm -f *.o *.c *.h *.tex *.log *.dvi *.pdf *~ *.blg *.lint
+	-rm -f *.o *.c *.h *.tex *.log *.dvi *.pdf *~ *.blg *.lint *.bbl
 
 view:	$(TARGET).dvi
 	xdvi $(TARGET).dvi
