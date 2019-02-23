@@ -31,6 +31,12 @@ using LaTeX2HTML.
 For the latest version check the SourceForge page:
     http://nuweb.sourceforge.net/
 
+Changes in Version 1.60:
+Made version number consistent between nuweb.w and tag.
+Corrected link to Z in htdocs/index.html.
+Makefile runs bibtex pass when creating .dvi, .pdf.
+master.bin no longer calls up nonexistent file.
+
 Changes in Version 1.59:
 Fixed compiler warnings in both gcc and clang.
 
