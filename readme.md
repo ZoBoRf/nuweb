@@ -68,12 +68,18 @@ cc -g   -c -o global.o global.c
 cc -o nuweb main.o pass1.o latex.o html.o output.o input.o scraps.o names.o arena.o global.o
 ```
 
-# Rebuild from `nuweb.nw`
+# Rebuild from `nuweb.w`
 
-Now use `nuweb.exe` to rebuild itself from it's `nuweb.nw` source.
+The current directory and TeX must be in your `PATH`:
 
 ```
 $ export PATH=.:$PATH
+$ export PATH=/C/Program\ Files\ \(x86\)/MiKTeX\ 2.9/miktex/bin:$PATH
+```
+
+Now use `nuweb.exe` to rebuild itself from it's `nuweb.w` source.
+
+```
 $ make
 make nuweb.tex
 make[1]: Entering directory '.../nuweb'
@@ -98,10 +104,28 @@ cc -o nuweb main.o pass1.o latex.o html.o output.o input.o scraps.o names.o aren
 make[1]: Leaving directory '.../nuweb'
 ```
 
+## Check the Build
+
+Optionally test the build
+
+```
+$ make check
+...
+Testing test/00/t0001a.sh
+/c/storage/project/nuweb.github/nuweb/./nuweb: you'll need to rerun nuweb after running latex
+/c/storage/project/nuweb.github/nuweb/./nuweb: <Test with parameter> never referenced.
+Testing test/00/t0002a.sh
+...
+Output written on test.dvi (1 page, 1752 bytes).
+Transcript written on test.log.
+35 done
+0 failed
+
+```
+
 ## Build the `weave`d literate program PDF
 
 ```
-$ export PATH=/C/Program\ Files\ \(x86\)/MiKTeX\ 2.9/miktex/bin:$PATH
 $ cd nuweb
 $ make nuweb.pdf
 ```
