@@ -2,7 +2,7 @@
 
 This is **not** the "official" `nuweb` repository.
 
-Here I make available some small enhancements I made.
+Here I make available some small [enhancements](changes/changes.md) I made.
 
 The official web site is http://nuweb.sourceforge.net/.
 
@@ -182,3 +182,6 @@ Keith Harwood, one of the developers and users of `nuweb` suggests in his [z-vim
 > to where they reference. If you are reading it on paper you have to turn the
 > pages yourself. I apologise for that.)
 
+# Changes Made
+
+Changes made so far are documented in [changes/changes.md](changes/changes.md).
