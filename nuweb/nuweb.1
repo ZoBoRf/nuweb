@@ -1,0 +1,162 @@
+.TH NUWEB 1 "local 3/22/95"
+.SH NAME
+Nuweb, a literate programming tool
+.SH SYNOPSIS
+.B nuweb
+.br
+\fBnuweb\fP [options] [file] ...
+.SH DESCRIPTION
+.I Nuweb
+is a literate programming tool like Knuth's
+.I WEB,
+only simpler.
+A
+.I nuweb
+file contains program source code interleaved with documentation.
+When
+.I nuweb
+is given a
+.I nuweb
+file, it writes the program file(s),
+and also
+produces,
+.I LaTeX
+source for typeset documentation.
+.SH COMMAND LINE OPTIONS
+.br
+\fB-t\fP Suppresses generation of the {\tt .tex} file.
+.br
+\fB-o\fP Suppresses generation of the output files.
+.br
+\fB-d\fP List dangling identifier references in indexes.
+.br
+\fB-c\fP Forces output files to overwrite old files of the same
+  name without comparing for equality first.
+.br
+\fB-v\fP The verbose flag. Forces output of progress reports.
+.br
+\fB-n\fP Forces sequential numbering of scraps (instead of page
+  numbers).
+.br
+\fB-s\fP Doesn't print list of scraps making up file at end of
+  each scrap.
+\fB-p path\fP Prepend path to the filenames for all the output files.
+\fB-V string\fP Provide the string for replacement of the @v
+operation. This is intended as a means for including version
+information in generated output.
+\fB-x\fP Include cross-references in comments in output files.
+\fB-h options\fP Turn on hyperlinks using the hyperref package of
+LaTeX and provide the options to the package.
+\fB-r\fP Turn on hyperlinks using the hyperref package of
+LaTeX, with the package options being in the text.
+\fB-I path\fP Provide a directory to search for included files. This
+may appear several times.
+
+.SH FORMAT OF NUWEB FILES
+A
+.I nuweb
+file contains mostly ordinary
+.I LaTeX.
+The file is read and copied to output (.tex file) unless a
+.I nuweb
+command is encountered. All
+.I nuweb
+commands start with an ``at-sign'' (@).
+Files and fragments are defined with the following commands:
+.PP
+@o \fIfile-name flags  scrap\fP  where scrap is smaller than one page.
+.br
+@O \fIfile-name flags  scrap\fP  where scrap is bigger than one page.
+.br
+@d \fIfragment-name scrap\fP. Where scrap is smallar than one page.
+.br
+@D \fIfragment-name scrap\fP. Where scrap is bigger than one page.
+.PP
+@q \fIfragment-name scrap\fP. Where scrap is smallar than one page.
+The scrap is not expanded in the output, allowing you to construct
+output files which can, perhaps after further processing, be input to
+.I nuweb.
+.br
+@Q \fIfragment-name scrap\fP. Where scrap is bigger than one page.
+Likewise.
+.PP
+Scraps have specific begin and end
+markers;
+which begin and end marker you use determines how the scrap will be
+typeset in the .tex file:
+.br
+\fB@{\fP...\fB@}\fP for verbatim "terminal style" formatting or,
+with the -l flag, LaTeX listing package.
+.br
+\fB@[\fP...\fB@]\fP for LaTeX paragraph mode formatting, and
+.br
+\fB@(\fP...\fB@)\fP for LaTeX math mode formmating.
+.br
+Any amount of whitespace
+(including carriage returns) may appear between a name and the
+begining of a scrap.
+.PP
+Several code/file scraps may have the same name;
+.I nuweb
+concatenates their definitions to produce a single scrap.
+Code scrap definitions are like macro definitions;
+.I nuweb
+extracts a program by expanding one scrap.
+The definition of that scrap contains references to other scraps, which are
+themselves expanded, and so on.
+\fINuweb\fP's output is readable; it preserves the indentation of expanded
+scraps with respect to the scraps in which they appear.
+.PP
+.SH PER FILE OPTIONS
+When defining an output file, the programmer has the option of using flags
+to control the output.
+.PP
+\fB-d\fR option,
+.I Nuweb
+will emit line number indications at scrap boundaries.
+.br
+\fB-i\fR option,
+.I Nuweb
+supresses the indentation of fragments (useful for \fBFortran\fR).
+.br
+\fB-t\fP option makes \fInuweb\fP
+copy tabs untouched from input to output.
+.br
+\fB-c\fIx\fP Include comments in the output file.
+\fIx\fP may be \fBc\fP for C-style comments, \fB+\fP for C++ and
+\fBp\fP for perl and similar.
+.PP
+.SH MINOR COMMANDS
+.br
+@@    Causes a single ``at-sign'' to be copied into the output.
+.br
+@\_    Causes the text between it and the next {\tt @\_} to be made bold
+        (for keywords, etc.) in the formatted document
+.br
+@%     Comments out a line so that it doesn't appear in the output.
+.br
+@i     \fBfilename\fR causes the file named to be included.
+.br
+@f     Creates an index of output files.
+.br
+@m     Creates an index of fragments.
+.br
+@u     Creates an index of user-specified identifiers.
+.PP
+To mark an identifier for inclusion in the index, it must be mentioned
+at the end of the scrap it was defined in. The line starts
+with @| and ends with the \fBend of scrap\fP mark \fB@}\fP.
+.PP
+.SH ERROR MESSAGES
+.PP
+.SH BUGS
+.PP
+.SH AUTHOR
+Preston Briggs.
+Internet address \fBpreston@cs.rice.edu\fP.
+.SH MAINTAINER
+Simon Wright
+Internet address \fBsimon@pushface.org\fP
+.br
+Keith Harwood
+Internet address \fBKeith.Harwood@vitalmis.com\fP

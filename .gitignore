@@ -49,3 +49,13 @@
 *.su
 *.idb
 *.pdb
+
+nuweb/nuweb.aux
+nuweb/nuweb.bbl
+nuweb/nuweb.blg
+nuweb/nuweb.brf
+nuweb/nuweb.log
+nuweb/nuweb.pdf
+nuweb/nuweb.tex
+nuweb/nuweb.toc
+nuweb/nuwebdoc.*
