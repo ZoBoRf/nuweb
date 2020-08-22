@@ -108,6 +108,15 @@ void write_scrap_ref(file, num, first, page)
   if (first>=0)
   *page = scrap_array(num).page;
 }
+int is_first_scrap(name, num)
+     Name *name;
+     int num;
+{
+  if ((scrap_array(name->defs->scrap).page == scrap_array(num).page) &&
+      (scrap_array(name->defs->scrap).letter == scrap_array(num).letter))
+      return TRUE;
+  return FALSE;
+}
 void write_single_scrap_ref(file, num)
      FILE *file;
      int num;
@@ -322,7 +331,7 @@ int collect_scrap()
                                /* Get label from */
                                char  label_name[MAX_NAME_LEN];
                                char * p = label_name;
-                               while (c = source_get(), c != nw_char) /* Here is 149a-01 */
+                               while (c = source_get(), c != nw_char) /* Here is 148c-01 */
                                   *p++ = c;
                                *p = '\0';
                                c = source_get();
@@ -807,7 +816,7 @@ int write_scraps(file, spelling, defs, global_indent, indent_chars,
                                   /* Get label from */
                                   char  label_name[MAX_NAME_LEN];
                                   char * p = label_name;
-                                  while (c = pop(&reader), c != nw_char) /* Here is 149a-01 */
+                                  while (c = pop(&reader), c != nw_char) /* Here is 148c-01 */
                                      *p++ = c;
                                   *p = '\0';
                                   c = pop(&reader);
@@ -1121,6 +1130,7 @@ void collect_numbers(aux_name)
       char aux_line[500];
       while (fgets(aux_line, 500, aux_file)) {
         /* Read line in \verb|.aux| file */
+        
         int scrap_number;
         int page_number;
         int i;

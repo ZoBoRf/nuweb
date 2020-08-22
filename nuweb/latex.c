@@ -67,6 +67,7 @@ void write_tex(file_name, tex_name, sector)
               case 'O': big_definition = TRUE;
               case 'o': {
                           Name *name = collect_file_name();
+                          int first;
                           /* Begin the scrap environment */
                           {
                             if (big_definition)
@@ -97,11 +98,15 @@ void write_tex(file_name, tex_name, sector)
                             fprintf(tex_file, "\\label{scrap%d}\\raggedright\\small\n", scraps);
                           }
                           fputs("\\NWtarget{nuweb", tex_file);
+                          first = is_first_scrap(name, scraps);
                           write_single_scrap_ref(tex_file, scraps);
                           fputs("}{} ", tex_file);
                           fprintf(tex_file, "\\verb%c\"%s\"%c\\nobreak\\ {\\footnotesize {", nw_char, name->spelling, nw_char);
                           write_single_scrap_ref(tex_file, scraps);
-                          fputs("}}$\\equiv$\n", tex_file);
+                          if (first)
+                            fputs("}}$\\,\\equiv$\n", tex_file);
+                          else
+                            fputs("}}$\\,\\mathrel+\\equiv$\n", tex_file);
                           /* Fill in the middle of the scrap environment */
                           {
                             fputs("\\vspace{-1ex}\n\\begin{list}{}{} \\item\n", tex_file);
@@ -162,6 +167,7 @@ void write_tex(file_name, tex_name, sector)
               case 'q':
               case 'd': {
                           Name *name = collect_macro_name();
+                          int first;
 
                           /* Begin the scrap environment */
                           {
@@ -193,6 +199,7 @@ void write_tex(file_name, tex_name, sector)
                             fprintf(tex_file, "\\label{scrap%d}\\raggedright\\small\n", scraps);
                           }
                           fputs("\\NWtarget{nuweb", tex_file);
+                          first = is_first_scrap(name, scraps);
                           write_single_scrap_ref(tex_file, scraps);
                           fputs("}{} $\\langle\\,${\\itshape ", tex_file);
                           /* Write the macro's name */
@@ -211,7 +218,10 @@ void write_tex(file_name, tex_name, sector)
                           }
                           fputs("}\\nobreak\\ {\\footnotesize {", tex_file);
                           write_single_scrap_ref(tex_file, scraps);
-                          fputs("}}$\\,\\rangle\\equiv$\n", tex_file);
+                          if (first)
+                            fputs("}}$\\,\\rangle\\equiv$\n", tex_file);
+                          else
+                            fputs("}}$\\,\\rangle\\,\\mathrel+\\equiv$\n", tex_file);
                           /* Fill in the middle of the scrap environment */
                           {
                             fputs("\\vspace{-1ex}\n\\begin{list}{}{} \\item\n", tex_file);
@@ -326,7 +336,7 @@ void write_tex(file_name, tex_name, sector)
                            /* Get label from */
                            char  label_name[MAX_NAME_LEN];
                            char * p = label_name;
-                           while (c = source_get(), c != nw_char) /* Here is 149a-01 */
+                           while (c = source_get(), c != nw_char) /* Here is 148c-01 */
                               *p++ = c;
                            *p = '\0';
                            c = source_get();
@@ -501,6 +511,7 @@ void initialise_delimit_scrap_array() {
 int scrap_type = 0;
 static void write_literal(FILE * tex_file, char * p, int mode)
 {
+   fprintf(tex_file, "", p);
    fputs(delimit_scrap[mode][0], tex_file);
    while (*p!= '\000') {
      if (*p == nw_char)
@@ -561,7 +572,7 @@ static void copy_scrap(file, prefix, name)
                               /* Get label from */
                               char  label_name[MAX_NAME_LEN];
                               char * p = label_name;
-                              while (c = source_get(), c != nw_char) /* Here is 149a-01 */
+                              while (c = source_get(), c != nw_char) /* Here is 148c-01 */
                                  *p++ = c;
                               *p = '\0';
                               c = source_get();

@@ -14,6 +14,7 @@ void write_files(files)
       FILE *temp_file;
 
       /* Find a free temporary file */
+      
       for( temp_name_count = 0; temp_name_count < 10000; temp_name_count++) {
         sprintf(temp_name,"%s%snw%06d", dirpath, path_sep, temp_name_count);
       #ifdef O_EXCL
@@ -48,6 +49,7 @@ void write_files(files)
       fclose(temp_file);
 
       /* Move the temporary file to the target, if required */
+      
       if (compare_flag)
         /* Compare the temp file and the old file */
         {
@@ -66,6 +68,7 @@ void write_files(files)
             else {
               remove(real_name);
               /* Rename the temporary file to the target */
+              
               if (0 != rename(temp_name, real_name)) {
                 fprintf(stderr, "%s: can't rename output file to %s\n",
                         command_name, real_name);
@@ -75,6 +78,7 @@ void write_files(files)
           }
           else
             /* Rename the temporary file to the target */
+            
             if (0 != rename(temp_name, real_name)) {
               fprintf(stderr, "%s: can't rename output file to %s\n",
                       command_name, real_name);
@@ -84,6 +88,7 @@ void write_files(files)
       else {
         remove(real_name);
         /* Rename the temporary file to the target */
+        
         if (0 != rename(temp_name, real_name)) {
           fprintf(stderr, "%s: can't rename output file to %s\n",
                   command_name, real_name);

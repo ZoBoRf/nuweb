@@ -46,7 +46,7 @@ Prerequisites for building and using `nuweb`:
 * GNU C Compiler `gcc`
   - On Windows I use [MinGW](http://www.mingw.org/wiki/MSYS), the *Minimalist GNU for Windows*.
 * A TeX distribution
-  - On Windows I use [MikTeX](https://miktex.org/howto/install-miktex)
+  - On Windows I use [MiKTeX](https://miktex.org/howto/install-miktex)
 
 # Bootstrap `nuweb`
 

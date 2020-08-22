@@ -129,19 +129,39 @@ urlcolor={linkcolor}%
 \setlength{\textwidth}{6.5in}
 \setlength{\marginparwidth}{0.5in}
 
-\title{Nuweb Version 1.60 \\ A Simple Literate Programming Tool}
+\title{Nuweb Version 1.60.1 \\ A Simple Literate Programming Tool}
 \date{}
 \author{Preston Briggs\thanks{This work has been supported by ARPA,
 through ONR grant N00014-91-J-1989.}
 \\ {\sl preston@@tera.com}
+\\
 \\ HTML scrap generator by John D. Ramsdell
 \\ {\sl ramsdell@@mitre.org}
+\\
 \\ Scrap formatting by Marc W. Mengel
 \\ {\sl mengel@@fnal.gov}
+\\
 \\ Continuing maintenance by Simon Wright
 \\ {\sl simon@@pushface.org}
 \\ and Keith Harwood
-\\ {\sl Keith.Harwood@@vitalmis.com}}
+\\ {\sl Keith.Harwood@@vitalmis.com}
+\\
+\\ Minor enhancements by Roman Bartke
+\\ {\sl ed.fRoBoz@@zoBoRf.de}}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{#1}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection{~}{#1}}}
+
+
+\rhead[subsectionname if subsection existing]{\leftmark}
+\lhead[\rightmark]{\chaptername~\thechapter}
+\lfoot[]{}
+\cfoot[\thepage]{\thepage}
+\rfoot[]{}
 
 \begin{document}
 \pagenumbering{roman}
@@ -2260,13 +2280,18 @@ I've factored the common parts out into separate scraps.
 @d Write output file definition
 @{{
   Name *name = collect_file_name();
+  int first;
   @<Begin the scrap environment@>
   fputs("\\NWtarget{nuweb", tex_file);
+  first = is_first_scrap(name, scraps);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{} ", tex_file);
   fprintf(tex_file, "\\verb%c\"%s\"%c\\nobreak\\ {\\footnotesize {", nw_char, name->spelling, nw_char);
   write_single_scrap_ref(tex_file, scraps);
-  fputs("}}$\\equiv$\n", tex_file);
+  if (first)
+    fputs("}}$\\,\\equiv$\n", tex_file);
+  else
+    fputs("}}$\\,\\mathrel+\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
   @<Begin the cross-reference environment@>
   if ( scrap_flag ) {
@@ -2285,15 +2310,20 @@ might want to use italics or bold face in the midst of the name.
 @d Write macro definition
 @{{
   Name *name = collect_macro_name();
+  int first;
 
   @<Begin the scrap environment@>
   fputs("\\NWtarget{nuweb", tex_file);
+  first = is_first_scrap(name, scraps);
   write_single_scrap_ref(tex_file, scraps);
   fputs("}{} $\\langle\\,${\\itshape ", tex_file);
   @<Write the macro's name@>
   fputs("}\\nobreak\\ {\\footnotesize {", tex_file);
   write_single_scrap_ref(tex_file, scraps);
-  fputs("}}$\\,\\rangle\\equiv$\n", tex_file);
+  if (first)
+    fputs("}}$\\,\\rangle\\equiv$\n", tex_file);
+  else
+    fputs("}}$\\,\\rangle\\,\\mathrel+\\equiv$\n", tex_file);
   @<Fill in the middle of the scrap environment@>
   @<Begin the cross-reference environment@>
   @<Write macro defs@>
@@ -2589,6 +2619,7 @@ command.
 @o latex.c -cc
 @{static void write_literal(FILE * tex_file, char * p, int mode)
 {
+   fprintf(tex_file, "", p);
    fputs(delimit_scrap[mode][0], tex_file);
    while (*p!= '\000') {
      if (*p == nw_char)
@@ -4195,6 +4226,7 @@ extern int write_scraps();
 extern void write_scrap_ref();
 extern void write_single_scrap_ref();
 extern int num_scraps();
+extern int is_first_scrap();
 @}
 
 
@@ -4232,6 +4264,18 @@ extern int num_scraps();
   *page = scrap_array(num).page;
 }
 @| write_scrap_ref @}
+
+@o scraps.c -cc
+@{int is_first_scrap(name, num)
+     Name *name;
+     int num;
+{
+  if ((scrap_array(name->defs->scrap).page == scrap_array(num).page) &&
+      (scrap_array(name->defs->scrap).letter == scrap_array(num).letter))
+      return TRUE;
+  return FALSE;
+}
+@| is_first_scrap @}
 
 @o scraps.c -cc
 @{void write_single_scrap_ref(file, num)

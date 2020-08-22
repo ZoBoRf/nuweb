@@ -58,6 +58,7 @@ typedef struct l_node
 } label_node;
 
 /* Limits */
+
 #ifndef MAX_NAME_LEN
 #define MAX_NAME_LEN 1024
 #endif
@@ -121,6 +122,7 @@ extern int write_scraps();
 extern void write_scrap_ref();
 extern void write_single_scrap_ref();
 extern int num_scraps();
+extern int is_first_scrap();
 extern void add_to_use(Name * name, int current_scrap);
 Arglist * instance();
 extern void collect_numbers();

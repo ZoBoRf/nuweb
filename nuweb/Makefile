@@ -1,4 +1,4 @@
-CC = cc
+CC = gcc
 
 CFLAGS = -g
 
@@ -90,4 +90,4 @@ lint:
 $(OBJS): global.h
 
 $(TARGET): $(OBJS)
-	$(CC) -o $(TARGET) $(OBJS)
+	$(CC) -static -o $(TARGET) $(OBJS)
