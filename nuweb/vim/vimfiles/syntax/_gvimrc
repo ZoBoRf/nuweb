@@ -1,0 +1,9 @@
+set statusline=%F%m%r%h%w\ [FMT=%{&ff}]\ [TYP=%Y]\ [ASC=\%03.3b]\ [HEX=\%02.2B]\ [POS=%04l,%04v]\ [%p%%]\ [LEN=%L]
+set laststatus=2
+set cursorline
+set cursorcolumn
+" match ErrorMsg /[^\t]\zs\t\+/
+" 2match ErrorMsg /\%>78v.\+/
+set spelllang=de,en
+au BufNewFile,BufRead *.nw      setf nuweb
+colorscheme desert
