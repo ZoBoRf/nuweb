@@ -182,3 +182,6 @@ Keith Harwood, one of the developers and users of `nuweb` suggests in his [z-vim
 > to where they reference. If you are reading it on paper you have to turn the
 > pages yourself. I apologise for that.)
 
+# Changes Made
+
+Changes made so far are documented in [changes/changes.md](changes/changes.md).
